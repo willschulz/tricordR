@@ -58,3 +58,16 @@ test_function1 <- function(x){
 test_function2 <- function(x){
   return(test_function1(x))
 }
+
+
+#' A function that uses the external function
+#'
+#' @param x Put something in here
+#' @keywords cats
+#' @export
+#' @examples
+#' test_function3()
+
+test_function3 <- function(x){
+  return(external_function1(x))
+}
