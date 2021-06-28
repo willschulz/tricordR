@@ -34,6 +34,10 @@ cat_function2 <- function(love=TRUE){
   }
 }
 
+#' A test function
+#'
+#' test_function1()
+
 test_function1 <- function(x){
   return(x^2)
 }
