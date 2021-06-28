@@ -45,3 +45,16 @@ cat_function2 <- function(love=TRUE){
 test_function1 <- function(x){
   return(x^2)
 }
+
+
+#' A function that uses the test function
+#'
+#' @param x Put something in here
+#' @keywords cats
+#' @export
+#' @examples
+#' test_function2()
+
+test_function2 <- function(x){
+  return(test_function1(x))
+}
