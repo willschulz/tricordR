@@ -33,3 +33,7 @@ cat_function2 <- function(love=TRUE){
     print("I am not a cool person at all.")
   }
 }
+
+test_function1 <- function(x){
+  return(x^2)
+}
