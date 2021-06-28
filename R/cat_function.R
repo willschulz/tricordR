@@ -36,6 +36,10 @@ cat_function2 <- function(love=TRUE){
 
 #' A test function
 #'
+#' @param x Put something in here
+#' @keywords cats
+#' @export
+#' @examples
 #' test_function1()
 
 test_function1 <- function(x){

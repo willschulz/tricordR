@@ -6,6 +6,13 @@
 \usage{
 test_function1(x)
 }
+\arguments{
+\item{x}{Put something in here}
+}
 \description{
+A test function
+}
+\examples{
 test_function1()
 }
+\keyword{cats}

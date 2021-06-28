@@ -2,3 +2,4 @@
 
 export(cat_function)
 export(cat_function2)
+export(test_function1)
