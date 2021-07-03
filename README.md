@@ -4,7 +4,7 @@
   
   - Token-hopping functions speed up data collection by utilizing all of a user's tokens, in sequence, to complete a data collection task
   - An architecture for tracking distinct sets of users longitudinally, which uses cron jobs to update datasets automatically once per day (or at a frequency of the user's choosing), making it easy to collect network data with high temporal resolution, while distributing computational resources more efficiently for collecting timeline data prospectively
-  - A set of interactive dashboards visualize data collection at-a-glance, helping identify failures in data collection early, and providing peace of mind to the researcher
+  - A set of shiny dashboards visualize data collection at-a-glance, helping identify failures in data collection early, and providing peace of mind to the researcher
   
 ## Installation
   
