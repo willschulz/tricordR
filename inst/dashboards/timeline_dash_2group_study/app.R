@@ -20,10 +20,6 @@ library(shinycssloaders)
 # SETTINGS
 
 refresh_time=5*60*1000 #(milliseconds)
-
-screen_name_label_cols <- c("white", "white", "red")
-screen_name_fonts <- c(2, 2, 4)
-
 spinner_size <- .5
 
 #survey_start_date <- "2021-04-21 12:00:00 EST"
@@ -127,6 +123,9 @@ ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic to plot various variables against mpg ----
 server <- function(input, output) {
+
+  screen_name_label_cols <- c("white", "white", "red")
+  screen_name_fonts <- c(2, 2, 4)
 
   point_cex <- .9
   default_axis_cex <- 1
