@@ -1,6 +1,6 @@
 # tricordR <img src='man/figures/logo.png' align="right" height="160" />
 
-tricordR is an R-based system that helps automate and monitor Twitter scraping and related data collection activities, designed particularly for studies that involve tracking the same sets of users over a period of time.  It is built upon ```rtweet```, providing several key features that make large-scale data collection faster, simpler, and more manageable:
+tricordR is an R package that helps automate and monitor Twitter scraping and related data collection activities, designed particularly for studies that involve tracking the same sets of users over a period of time.  It is built upon ```rtweet```, providing several key features that make large-scale data collection faster, simpler, and more manageable:
   
   - Robust scraping functions that utilize all of a user's tokens, in sequence, to complete a data collection task quickly while respecting Twitter's rate limits
   - An architecture for tracking distinct sets of users longitudinally, which uses cron jobs to update datasets automatically once per day (or at a frequency of the user's choosing), making it easy to collect network data with high temporal resolution, while distributing computational resources more efficiently by collecting timeline data prospectively, rather than retrospectively
