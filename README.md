@@ -24,9 +24,9 @@ library(tricordR)
 tricordR::initialize()
 ```
 
-This is where scraped data, scraping logs, and token sets will be stored.
+This is where scraped data, scraping logs, and token sets will be stored.  Beware: re-initializing will result in deletion of any existing tricordR data that has been collected in this folder!
 
-Then install a set of Twitter tokens by passing the relevant parameters to the ```saveToken``` function:
+After initializing, install a set of Twitter tokens by passing the relevant parameters to the ```saveToken``` function:
 
 ``` r
 saveToken(set_name = "my_twitter_tokens",
@@ -36,8 +36,7 @@ saveToken(set_name = "my_twitter_tokens",
           access_secret = YOUR_ACCESS_SECRET)
 ```
 
-Repeat this process, keeping ```set_name``` fixed, for all the tokens you have created on your account (up to 9).  This will save all your tokens in a convenient list object, stored in tricordR_data/tokens/my_twitter_tokens.rds, so that high-level scraping functions can cycle through them to speed up data collection.
-
+Repeat this process, keeping ```set_name``` fixed, for all the tokens you have created on your Twitter developer account (up to 9).  This will save all your tokens in a convenient list object, stored in tricordR_data/tokens/my_twitter_tokens.rds, so that high-level scraping functions can cycle through them to speed up data collection.
 
 Finally, if you intend to use tricordR's automated scraping features, add the following line to your crontab:
 
@@ -60,9 +59,12 @@ tricordR::addStudy("my_first_study")
 This simply creates a new folder in the tricordR_data/studies directory, where user panels can be added.  Adding a user panel is more involved, since it requires specifying the set of users you wish to track, and the data you wish to collect about them.  For example:
 
 ``` r
+library(dplyr)
+
 my_tokens <- tricordR::prep_tokens("my_twitter_tokens", 1:9)
 
-user_ids <– rtweet::stream_tweets(timeout = 30, token = my_tokens[[1]])$user_id %>% unique() #get some random user ids by streaming tweets for 30 seconds
+user_ids <– rtweet::stream_tweets(timeout = 10, #get some random user ids by streaming tweets for 10 seconds
+                                  token = my_tokens[[1]]) %>% pull(user_id) %>% unique()
 
 tricordR::addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
                    user_ids = user_ids,
