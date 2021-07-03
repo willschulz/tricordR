@@ -1258,7 +1258,7 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
     if (scrape_settings$scrape_friends){
       message("Scraping first friends...")
       new_friends <- getFriendsBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
-      colnames(new_friends) <- c("user_id", "friends", "scraped_at")
+      #colnames(new_friends) <- c("user_id", "friends", "scraped_at")
       saveRDS(new_friends, paste0(panel_directory,"/twitter_scrapes/first_friends/friends_",this_timecode,".rds"))
     }
 
