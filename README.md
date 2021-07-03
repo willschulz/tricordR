@@ -65,7 +65,7 @@ library(dplyr)
 
 my_tokens <- prep_tokens("my_twitter_tokens", 1:9) #prepare all nine of your tokens for usage
 
-user_ids <– rtweet::stream_tweets(timeout = 10, #get some random user ids by streaming tweets for 10 seconds
+user_ids <- rtweet::stream_tweets(timeout = 10, #get some random user ids by streaming tweets for 10 seconds
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% pull(user_id) %>% unique()
 
