@@ -36,7 +36,7 @@ source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R"
 source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
 
 #this takes the alphabetical first token set on the machine
-tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 twitter_tokens <- prepTokens(tokenset, 1:9)
 
 px_panel_1 <- 300
