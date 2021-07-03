@@ -2620,7 +2620,7 @@ scrapeStudy <- function(study_name, tokens,
 # # DAILY_TWITTER_SCRAPE
 # #########################################################################
 #
-# # LaForge unified scraping script
+# # unified scraping script
 #
 # options(tidyverse.quiet = TRUE)
 #
