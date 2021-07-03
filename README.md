@@ -80,19 +80,28 @@ addPanel(study_name = "my_first_study",
          tokens = my_tokens) #use all nine of your tokens for this
 ```
 
-By calling addPanel, we create a new panel ("my_first_panel") within the study we just created ("my_first_study"), and specify the kinds of data we would like to collect: we want to scrape their timelines (AKA their tweets), and their friends (AKA the people the follow), but not their followers or their favorites (AKA their likes). By passing the value TRUE for ```initial_scrape```, we tell tricordR to go ahead and collect this data immediately, using the list of tokens we prepared above.  When scrape_timelines is TRUE, this initial scrape will include the last 3200 tweets available from each user.  Moreover, these settings are saved, and if you have added the daily_scrape_script.R to your crontab as instructed above, tricordR will automatically update these datasets daily: in this case, we would collect daily snapshots of the accounts these users follow (their friends), and download any new tweets from these users that have been tweeted since the previous timeline scrape.
+By calling addPanel, we create a new panel ("my_first_panel") within the study we just created ("my_first_study"), and specify the kinds of data we would like to collect: we want to scrape their timelines (AKA their tweets), and their friends (AKA the people the follow), but not their followers or their favorites (AKA their likes). By passing the value TRUE for ```initial_scrape```, we tell tricordR to go ahead and collect this data immediately, using the list of tokens we prepared above.  When scrape_timelines is TRUE, this initial scrape will include the last 3200 tweets available from each user.
+
+Moreover, these settings are saved, and if you have added the daily_scrape_script.R to your crontab as instructed above, tricordR will automatically update these datasets daily: in this case, we would collect daily snapshots of the accounts these users follow (their friends), and download any new tweets from these users that have been tweeted since the previous timeline scrape.
+
+If we subsequently want to edit the panel, we can call editPanel() and pass a set of additional users we'd like to add to the panel, or specify users to remove from the panel (data collected from removed users will not be deleted, but future scrapes will not collect further data on these users).  We can also change the kinds of data we collect about the users in this panel (however it is not recommended to initiate timeline or favorite scraping in panels where these data types were not initially being collected - if these data types are of interest, the panel should be initiated with these arguments set to TRUE).
 
 ``` r
 editPanel(study_name = "my_first_study",
           panel_name = "my_first_panel",
-          add_users = user_ids,
-          remove_users = user_ids,
-          scrape_timelines = TRUE,
-          scrape_friends = TRUE,
-          scrape_followers = FALSE,
-          scrape_favorites = FALSE,
-          initial_scrape = TRUE,
-          tokens = my_tokens)
+          add_users = user_ids)
+          
+editPanel(study_name = "my_first_study",
+          panel_name = "my_first_panel",
+          remove_users = user_ids)
+          
+editPanel(study_name = "my_first_study",
+          panel_name = "my_first_panel",
+          scrape_followers = TRUE)
+          
+#calling editPanel with no optional arguments will print the panel's current settings
+editPanel(study_name = "my_first_study",
+          panel_name = "my_first_panel")
 ```
 
 ### Visualizing Data Collection
