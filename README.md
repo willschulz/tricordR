@@ -35,3 +35,9 @@ Data collection in tricordR is organized with respect to user groups, which are 
 
 So, to begin collecting data, first create a study:
 
+``` r
+add_study("my_first_study")
+```
+
+This simply creates a new folder in the tricordR_data/studies directory, where user groups can be added.  Adding a user group is more involved, since it requires specifying the set of users to track, and the data you wish to collect about them.  For example:
+
