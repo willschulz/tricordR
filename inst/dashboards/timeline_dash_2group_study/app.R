@@ -30,10 +30,10 @@ study_names <- dir("~/tricordings/studies", full.names = T) %>%
   arrange(desc(count), desc(most_recent)) %>%
   pull(study_name)
 
-source("~/Documents/GitRprojects/LaForge/functions/dashboard_functions.R")
-source("~/Documents/GitRprojects/LaForge/functions/schulzFunctions.R")
-source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R")
-source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
+#source("~/Documents/GitRprojects/LaForge/functions/dashboard_functions.R")
+#source("~/Documents/GitRprojects/LaForge/functions/schulzFunctions.R")
+#source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R")
+#source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
 
 #this takes the alphabetical first token set on the machine
 tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
