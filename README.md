@@ -21,4 +21,8 @@ library(tricordR)
 install_tricordR()
 ```
 
-Finally, if you intend to use tricordR's automated scraping features, add the following line to your crontab.
+Finally, if you intend to use tricordR's automated scraping features, add the following line to your crontab:
+
+``` bash
+00 03 00 * * Rscript path/to/script.R
+```
