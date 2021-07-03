@@ -125,7 +125,7 @@ ui <- dashboardPage(header, sidebar, body)
 server <- function(input, output) {
 
   screen_name_label_cols <- c("white", "white", "red")
-  screen_name_fonts <- c(2, 2, 4)
+  default_screen_name_fonts <- c(2, 2, 4)
 
   point_cex <- .9
   default_axis_cex <- 1
@@ -235,6 +235,7 @@ server <- function(input, output) {
             axis_cex = default_axis_cex,
             screen_name_cex = default_screen_name_cex,
             screen_name_cols = screen_name_label_cols,
+            screen_name_fonts = default_screen_name_fonts,
             sentiment_reference_scale = my_sentiment_reference_scale,
             ideo_reference_scale = my_ideo_reference_scale)
   })
@@ -261,6 +262,7 @@ server <- function(input, output) {
             axis_cex = default_axis_cex,
             screen_name_cex = default_screen_name_cex,
             screen_name_cols = screen_name_label_cols,
+            screen_name_fonts = default_screen_name_fonts,
             sentiment_reference_scale = my_sentiment_reference_scale,
             ideo_reference_scale = my_ideo_reference_scale)
   })

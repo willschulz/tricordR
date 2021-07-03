@@ -18,6 +18,7 @@ dotPlot(
   axis_cex,
   screen_name_cex,
   screen_name_cols,
+  screen_name_fonts,
   sentiment_reference_scale = NA,
   ideo_reference_scale = NA
 )
