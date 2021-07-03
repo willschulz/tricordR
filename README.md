@@ -7,11 +7,18 @@
   - A set of shiny dashboards visualize data collection at-a-glance, helping identify failures in data collection early, and providing peace of mind to the researcher
   
 ## Installation
-  
+  Since tricordR is still in development, itis only available by invitation to this private repository.  To install it, therefore, you must use Hadley's devtools package and pass your GitHub personal access token to the install_github function.
   
 ``` r
 # install.packages("devtools")
 devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
 ```
 
+  Before collecting any data, run the following code to install tricordR's data folder in your home directory:
   
+``` r
+library(tricordR)
+install_tricordR()
+```
+
+Finally, if you intend to use tricordR's automated scraping features, add the following line to your crontab.
