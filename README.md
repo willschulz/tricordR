@@ -11,7 +11,7 @@
   
 ``` r
 # install.packages("devtools")
-devtools::install_github("tidyverse/dplyr", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
+devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
 ```
 
   
