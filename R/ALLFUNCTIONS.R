@@ -1733,7 +1733,7 @@ make_timeseries <- function(input, volume_smoothing, midnight_today, time_range)
 #' @examples
 #' dotPlot()
 
-dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex, sentiment_reference_scale = NA, ideo_reference_scale = NA){
+dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex, default_screen_name_cex, sentiment_reference_scale = NA, ideo_reference_scale = NA){
 
   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)

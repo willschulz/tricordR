@@ -16,6 +16,7 @@ dotPlot(
   ideo_right_color,
   point_cex,
   default_axis_cex,
+  default_screen_name_cex,
   sentiment_reference_scale = NA,
   ideo_reference_scale = NA
 )
