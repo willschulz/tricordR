@@ -5,6 +5,7 @@
 # R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2panel_study/app.R', port = 4711)"
 # /Library/Frameworks/R.framework/Resources/bin/Rscript -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2panel_study/app.R', port = 4711)"
 
+#/Library/Frameworks/R.framework/Versions/4.0/Resources/library/tricordR/dashboards/timeline_dash_2group_study/app.R
 options(warn=-1)
 
 options(tidyverse.quiet = TRUE)
@@ -234,6 +235,7 @@ server <- function(input, output) {
             point_cex = point_cex,
             default_axis_cex = default_axis_cex,
             default_screen_name_cex = default_screen_name_cex,
+            default_screen_name_label_cols= screen_name_label_cols,
             sentiment_reference_scale = my_sentiment_reference_scale,
             ideo_reference_scale = my_ideo_reference_scale)
   })
@@ -259,6 +261,7 @@ server <- function(input, output) {
             point_cex = point_cex,
             default_axis_cex = default_axis_cex,
             default_screen_name_cex = default_screen_name_cex,
+            default_screen_name_label_cols= screen_name_label_cols,
             sentiment_reference_scale = my_sentiment_reference_scale,
             ideo_reference_scale = my_ideo_reference_scale)
   })
