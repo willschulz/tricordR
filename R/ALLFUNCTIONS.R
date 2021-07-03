@@ -1810,7 +1810,7 @@ dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentimen
 #' @examples
 #' linePlot()
 
-linePlot <- function(data_e, days, volume_smoothing){
+linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 
   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)

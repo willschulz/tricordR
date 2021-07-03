@@ -4,7 +4,7 @@
 \alias{linePlot}
 \title{Line Plot}
 \usage{
-linePlot(data_e, days, volume_smoothing)
+linePlot(data_e, days, volume_smoothing, axis_cex)
 }
 \arguments{
 \item{data_e}{timeline data to plot}

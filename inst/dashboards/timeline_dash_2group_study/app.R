@@ -22,6 +22,34 @@ library(shinycssloaders)
 refresh_time=5*60*1000 #(milliseconds)
 spinner_size <- .5
 
+screen_name_label_cols <- c("white", "white", "red")
+default_screen_name_fonts <- c(2, 2, 4)
+
+point_cex <- .9
+default_axis_cex <- 1
+default_screen_name_cex <- .8
+default_point_color <- rgb(1,1,1,.7)
+
+# my_red <- rgb(1,.5,.5)
+# my_blue <- rgb(.5,.5,1)
+my_red <- rgb(1,1,1,.7)
+my_blue <- rgb(1,1,1,.7)
+
+my_sentiment_reference_scale = c(-1,1)
+my_sentiment_reference_scale = NA
+sentiment_left_color = c(1,.2,0,.7)
+sentiment_right_color = c(0,1,0,.7)
+
+#my_ideo_reference_scale = c(-.1,.1)
+my_ideo_reference_scale = NA
+ideo_left_color = c(.5,.5,1,.3)
+ideo_right_color = c(.9,0,0,.3)
+
+sure_left_color = c(.3,.5,.9,.7)
+sure_right_color = c(.7,.7,0,.7)
+
+survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
+
 #survey_start_date <- "2021-04-21 12:00:00 EST"
 
 tricordings_directory <- "~/tricordings/studies/"
@@ -124,34 +152,6 @@ ui <- dashboardPage(header, sidebar, body)
 # Define server logic to plot various variables against mpg ----
 server <- function(input, output) {
 
-  screen_name_label_cols <- c("white", "white", "red")
-  default_screen_name_fonts <- c(2, 2, 4)
-
-  point_cex <- .9
-  default_axis_cex <- 1
-  default_screen_name_cex <- .8
-  default_point_color <- rgb(1,1,1,.7)
-
-  # my_red <- rgb(1,.5,.5)
-  # my_blue <- rgb(.5,.5,1)
-  my_red <- rgb(1,1,1,.7)
-  my_blue <- rgb(1,1,1,.7)
-
-  my_sentiment_reference_scale = c(-1,1)
-  my_sentiment_reference_scale = NA
-  sentiment_left_color = c(1,.2,0,.7)
-  sentiment_right_color = c(0,1,0,.7)
-
-  #my_ideo_reference_scale = c(-.1,.1)
-  my_ideo_reference_scale = NA
-  ideo_left_color = c(.5,.5,1,.3)
-  ideo_right_color = c(.9,0,0,.3)
-
-  sure_left_color = c(.3,.5,.9,.7)
-  sure_right_color = c(.7,.7,0,.7)
-
-  survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
-
   observeEvent(input$fetch_tweets, {
     #source("/Users/wschulz/Documents/GitRprojects/LaForge/scripts/qualtrics_fetch.R")
     scrapeStudy(study_name = input$study_name,
@@ -216,7 +216,7 @@ server <- function(input, output) {
   output$panel_1s_ts_l <- renderPlot({
     invalidateLater(refresh_time)
     timeline_data <- timeline_data_panel_1s()
-    linePlot(timeline_data[[1]], input$days_back, input$volume_smoothing)
+    linePlot(timeline_data[[1]], input$days_back, input$volume_smoothing, axis_cex = default_axis_cex)
   })
 
   output$panel_1s_ts_d <- renderPlot({
@@ -243,7 +243,7 @@ server <- function(input, output) {
   output$panel_2s_ts_l <- renderPlot({
     invalidateLater(refresh_time)
     timeline_data <- timeline_data_panel_2s()
-    linePlot(timeline_data[[1]], input$days_back, input$volume_smoothing)
+    linePlot(timeline_data[[1]], input$days_back, input$volume_smoothing, axis_cex = default_axis_cex)
   })
 
   output$panel_2s_ts_d <- renderPlot({
