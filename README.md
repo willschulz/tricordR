@@ -26,3 +26,12 @@ Finally, if you intend to use tricordR's automated scraping features, add the fo
 ``` bash
 00 03 00 * * Rscript path/to/script.R
 ```
+
+If you're new to cron jobs and use a mac, see this helpful primer: https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/
+
+## Collecting Data
+
+Data collection in tricordR is organized with respect to user groups, which are nested within studies.  User groups serve to organize sets of users in a shared category (for example, study participants) within studies where other groups of users (for example, the accounts followed by the study participants) are also being tracked as part of the same research project.
+
+So, to begin collecting data, first create a study:
+
