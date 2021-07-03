@@ -8,7 +8,7 @@ tricordR is an R-based system that helps automate and monitor Twitter scraping a
 
 These tools are designed to minimize the time and effort required to collect data, so you can focus on research design and analysis.
   
-## Installation
+## Getting Started
 
 Since tricordR is still in development, it is only available by invitation to this private repository.  To install it, therefore, you must use Hadley's ```devtools``` package and pass your GitHub personal access token to the install_github function.
   
