@@ -63,9 +63,9 @@ This simply creates a new folder in the tricordR_data/studies directory, where u
 ``` r
 library(dplyr)
 
-my_tokens <- prepTokens("my_twitter_tokens", 1:9) #prepare all nine of your tokens for usage
+my_tokens <- prepTokens("ws_botexp", 1:9) #prepare all nine of your tokens for usage
 
-user_ids <- rtweet::stream_tweets(timeout = 10, #get some random user ids by streaming tweets for 10 seconds
+user_ids <- rtweet::stream_tweets(timeout = 5, #get some random user ids by streaming tweets for 10 seconds
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% pull(user_id) %>% unique()
 
@@ -74,9 +74,9 @@ addPanel(study_name = "my_first_study",
          user_ids = user_ids,
          scrape_timelines = TRUE,
          scrape_friends = TRUE,
-         scrape_followers = FALSE,
+         scrape_followers = TRUE,
          scrape_favorites = FALSE,
-         initial_scrape = TRUE,
+         first_scrape = TRUE,
          tokens = my_tokens) #use all nine of your tokens for this
 ```
 
