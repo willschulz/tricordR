@@ -1402,18 +1402,18 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
     #     saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
     #   }
     # }
-    # if (!(lasso==TRUE | (sentiment %in% c("google", "sentimentR")))){
-    #   message("Saving scraped data...")
-    #   if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-    #     message("Binding to earlier scrape from today...")
-    #     last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    #     all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
-    #     saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    #   }
-    #   if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-    #     saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    #   }
-    # }
+    if (!(lasso==TRUE | (sentiment %in% c("google", "sentimentR")))){
+      message("Saving scraped data...")
+      if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        message("Binding to earlier scrape from today...")
+        last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+        saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+      if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+    }
     message("Saving new log...")
     this_log <- data %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
     new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
