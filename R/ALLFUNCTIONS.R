@@ -1,0 +1,3215 @@
+# ALL FUNCTIONS
+
+# General Functions
+
+#' Initialization Function
+#'
+#' This function initializes tricordR by creating the tricordings directory to save data, tokens, and scraping logs.
+#' @param location Location of tricordings directory, defaults to home directory (~/) and should not be changed at this time.
+#' @keywords
+#' @export
+#' @examples
+#' initialize()
+
+initialize <- function(location = "~/"){
+  #create main directory
+  tricordings_directory <- paste0(location, "tricordings/")
+  dir.create(tricordings_directory)
+
+  #create data directory
+  studies_directory <- paste0(tricordings_directory, "studies")
+  if (length(dir(studies_directory))>0){
+    if (askYesNo(msg = "Data already exists here. Do you want to reset?\n")){
+      unlink(x = paste0(studies_directory,"/"), recursive = T)
+    }
+  }
+  dir.create(studies_directory)
+
+  # create tokens directory
+  dir.create(paste0(tricordings_directory, "tokens"))
+
+  # create log directory
+  dir.create(paste0(tricordings_directory, "logs"))
+}
+
+
+#' Add a Study
+#'
+#' This function creates a new study in the studies folder of tricordings, to which panels can be added.
+#' @param study_name Name of the study to be added.
+#' @keywords
+#' @export
+#' @examples
+#' addStudy()
+
+# create study
+addStudy <- function(study_name){
+  ###
+  tricordings_directory <- "~/tricordings/"
+  ###
+  study_directory <- paste0(tricordings_directory, "studies/", study_name)
+  if (dir.exists(study_directory)){
+    if (askYesNo(msg = "This study already exists. Do you want to reset?\n")){
+      unlink(x = paste0(study_directory,"/"), recursive = T)
+    }
+  }
+  dir.create(study_directory)
+}
+
+
+# #create group of people to track within a study
+# addGroup <- function(group_name, study_name, user_ids = c(), initial_scrape = T, tokens, max_hours = 1,
+#                      qualtrics_survey_id = NULL,
+#                      scrape_survey = T,
+#                      scrape_timelines = T,
+#                      scrape_friends = T,
+#                      scrape_followers = T,
+#                      scrape_favorites = T){
+#   ###
+#   tricordings_directory <- "~/tricordings/"
+#   ###
+#   #create group directory
+#   group_directory <- paste0(tricordings_directory, "studies/", study_name, "/", group_name)
+#   if (dir.exists(group_directory)){
+#     if (askYesNo(msg = "This group already exists. Do you want to reset?\n")){#if you say no, it still proceeds with everything else... fix this!
+#       unlink(x = paste0(group_directory,"/"), recursive = T)
+#     }
+#   }
+#   dir.create(group_directory)
+#
+#   if (scrape_survey) {
+#     dir.create(paste0(group_directory,"/survey_scrapes"))
+#     dir.create(paste0(group_directory,"/survey_scrape_logs"))
+#     dir.create(paste0(group_directory,"/id_links"))
+#   }
+#
+#   if (any(scrape_timelines,scrape_friends,scrape_followers,scrape_favorites)) {
+#     dir.create(paste0(group_directory,"/twitter_scrapes"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/user_info"))
+#     saveRDS(user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds")) #save any user_ids that are available in the twitter_scrapes folder
+#   }
+#
+#   if (scrape_timelines) {
+#     dir.create(paste0(group_directory,"/twitter_scrapes/timelines"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/first_timelines"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/timeline_attempts"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/timeline_logs"))
+#   }
+#
+#   if (scrape_friends) {
+#     dir.create(paste0(group_directory,"/twitter_scrapes/friends"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/first_friends"))
+#   }
+#   if (scrape_followers) {
+#     dir.create(paste0(group_directory,"/twitter_scrapes/followers"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/first_followers"))
+#   }
+#
+#   if (scrape_favorites) {
+#     dir.create(paste0(group_directory,"/twitter_scrapes/favorites"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/first_favorites"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/favorite_attempts"))
+#     dir.create(paste0(group_directory,"/twitter_scrapes/favorite_logs"))
+#   }
+#
+#   #save scraping settings
+#   scrape_settings <- list(qualtrics_survey_id = qualtrics_survey_id,
+#                           scrape_survey = scrape_survey,
+#                           scrape_timelines = scrape_timelines,
+#                           scrape_friends = scrape_friends,
+#                           scrape_followers = scrape_followers,
+#                           scrape_favorites = scrape_favorites)
+#   saveRDS(scrape_settings, paste0(group_directory, "/scrape_settings.rds"))
+#
+#   if (initial_scrape & (length(user_ids)>0)){
+#     firstScrape(user_ids = user_ids,
+#                 group_directory = group_directory,
+#                 tokens = tokens,
+#                 max_hours = max_hours)
+#   }
+# }
+#
+# editGroup <- function(group_name, study_name,
+#                       add_users = NULL,
+#                       remove_users = NULL,
+#                       qualtrics_survey_id = NULL,
+#                       scrape_survey = NULL,
+#                       scrape_timelines = NULL,
+#                       scrape_friends = NULL,
+#                       scrape_followers = NULL,
+#                       scrape_favorites = NULL,
+#                       first_scrape = FALSE,
+#                       tokens = NULL,
+#                       max_hours = 1){
+#   ###
+#   tricordings_directory <- "~/tricordings/"
+#   ###
+#   #construct group directory path
+#   group_directory <- paste0(tricordings_directory, "studies/", study_name, "/", group_name)
+#
+#   #load scraping settings
+#   scrape_settings <- readRDS(paste0(group_directory, "/scrape_settings.rds"))
+#   #edit scraping settings
+#   if (!is.null(scrape_survey)){scrape_settings$scrape_survey <- scrape_survey}
+#   if (!is.null(scrape_timelines)){scrape_settings$scrape_timelines <- scrape_timelines}
+#   if (!is.null(scrape_friends)){scrape_settings$scrape_friends <- scrape_friends}
+#   if (!is.null(scrape_followers)){scrape_settings$scrape_followers <- scrape_followers}
+#   if (!is.null(scrape_favorites)){scrape_settings$scrape_favorites <- scrape_favorites}
+#   #save scraping settings
+#   saveRDS(scrape_settings, paste0(group_directory, "/scrape_settings.rds"))
+#
+#   #update userid list
+#   if ((!is.null(add_users)) & (length(add_users)>0)){
+#     current_user_ids <- readRDS(paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+#     updated_user_ids <- unique(c(current_user_ids, add_users))
+#     saveRDS(updated_user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+#     message((length(updated_user_ids)-length(current_user_ids)), " users added to ", group_name, " in ", study_name,".")
+#     message(sum(add_users %in% current_user_ids), " were already in this group.")
+#     #target
+#     if (first_scrape){
+#       new_userids_toscrape <- updated_user_ids[which(! updated_user_ids %in% current_user_ids)]
+#       firstScrape(new_userids_toscrape, group_directory, tokens, max_hours = max_hours)
+#     }
+#   }
+#
+#   if (!is.null(remove_users)){
+#     current_user_ids <- readRDS(paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+#     if(any(remove_users %in% current_user_ids)){
+#       updated_user_ids <- unique(current_user_ids[-which(current_user_ids %in% remove_users)])
+#       saveRDS(updated_user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+#       message((-length(updated_user_ids)+length(current_user_ids)), " users removed from user_id list for ", group_name, " in ", study_name,".")
+#     }
+#     message(sum(!remove_users %in% current_user_ids), " were already not in this user_id list.")
+#
+#     if (file.exists(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
+#       current_user_lookup <- readRDS(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+#       if(any(remove_users %in% current_user_lookup$user_id)){
+#         updated_user_lookup <- current_user_lookup %>% filter(!user_id %in% remove_users)
+#         saveRDS(updated_user_lookup, paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+#         message((-nrow(updated_user_lookup)+nrow(current_user_lookup)), " users removed from current_user_lookup file for ", group_name, " in ", study_name,".")
+#       }
+#       message(sum(!remove_users %in% current_user_lookup$user_id), " were already not in this lookup file.")
+#     }
+#     #still need to add something to remove them from the log, but this is dangerous, so I'll do it carefully later
+#   }
+#   print(scrape_settings)
+# }
+#
+# #Token management
+#
+# saveToken <- function(set_name, consumer_key, consumer_secret, access_token, access_secret){
+#   require(rtweet)
+#   ###
+#   tricordings_directory <- "~/tricordings/"
+#   ###
+#   new_token <- create_token(consumer_key = consumer_key, consumer_secret = consumer_secret, access_token = access_token, access_secret = access_secret, set_renv = FALSE)
+#   ifelse(file.exists(paste0(tricordings_directory, "tokens/", set_name, ".rds")),
+#          yes = {
+#            token_list <- readRDS(paste0(tricordings_directory, "tokens/", set_name, ".rds"))
+#            #if (list(new_token) %in% token_list) {stop("This token is already in this set.")} #for some reason this fires whether or not the token is already in the set
+#            message("Appending to existing token set.")
+#            token_list <- c(token_list, new_token)
+#          },
+#          no = {
+#            message("Adding to new token set.")
+#            token_list <- list(new_token)
+#          })
+#   saveRDS(token_list, file = paste0(tricordings_directory, "tokens/", set_name, ".rds"))
+# }
+#
+#
+# # data management
+#
+# fixSentiment <- function(input, allowed_range = c(-1,1)){
+#   input[which(input<allowed_range[1])] <- allowed_range[1]
+#   input[which(input>allowed_range[2])] <- allowed_range[2]
+#   return(input)
+# }
+#
+# timeCode <- function(){ #add this function to schulzFunctions?
+#   require(tidyverse)
+#   return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
+# }
+#
+# myIndexer <- function(input, reference){
+#   myvec <- rep(NA, length(input))
+#   for (i in 1:length(input)){
+#     myvec[i] <- which(reference==input[i])
+#   }
+#   return(myvec)
+# }
+#
+# read_and_session <- function(input){
+#   return(readRDS(input) %>% mutate(scrape_session = str_remove_all(input, ".*timelines_|.rds")))
+# }
+#
+#
+# prep_timeline_data <- function(user_dir, sessions_back, include_historical = FALSE, load_all_since_first = FALSE){
+#   user_ids <- readRDS(file = paste0(user_dir, "/twitter_scrapes/user_ids.rds")) #bind to available data
+#   current_lookup <- readRDS(file = paste0(user_dir, "/twitter_scrapes/user_info/current_lookup.rds"))
+#
+#   scrape_dir <- dir(paste0(user_dir,"/twitter_scrapes/timelines/"), full.names = TRUE) %>% str_subset("timelines_")
+#   if (!load_all_since_first){
+#     scrape_dir <- scrape_dir %>% .[(length(.)-min((sessions_back-1), (length(.)-1))):length(.)]
+#     scrape_dir <- scrape_dir[-which(is.na(scrape_dir))]
+#   }
+#
+#   if (include_historical){
+#     first_timelines_dir <- dir(paste0(user_dir,"/twitter_scrapes/first_timelines/"), full.names = TRUE)
+#     scrape_dir <- c(scrape_dir, first_timelines_dir)
+#   }
+#
+#   timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
+#
+#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+#
+#   e <- timelines_bound %>%
+#     distinct(status_id, .keep_all = T) %>%
+#     select(colnames(timelines_bound)[which(colnames(timelines_bound) %in% keep_if_there)]) %>%
+#     mutate(scrape_session=as.numeric(scrape_session))
+#
+#   missing <- keep_if_there[which(! keep_if_there %in% colnames(e))]
+#   missing_cols <- array(dim = c(nrow(e),length(missing)))
+#   colnames(missing_cols) <- missing
+#   e <- cbind(e, missing_cols)
+#
+#   unique_sessions <- unique(e$scrape_session)
+#   unique_users <- unique(e$user_id)
+#   e$session_index <- myIndexer(input=e$scrape_session, reference=unique_sessions)
+#   e$user_index <- myIndexer(input=e$user_id, reference=unique_users)
+#
+#   e_f <- e %>% group_by(user_id) %>% summarise(screen_name = screen_name[1],
+#                                                user_id = user_id[1],
+#                                                last=max(created_at),
+#                                                index=user_index[1])
+#
+#   subset_current_lookup <- current_lookup %>% filter(!(user_id %in% e_f$user_id)) %>% transmute(screen_name, user_id, index = NA)
+#   for (i in 1:nrow(subset_current_lookup)){
+#     subset_current_lookup$index[i] <- i + max(e_f$index)
+#   }
+#   e_f <- bind_rows(e_f,subset_current_lookup)
+#
+#   return(list(e, e_f))
+# }
+#
+#
+#
+#
+# #######################################
+# ## TWITTER SCRAPING FUNCTIONS
+# #######################################
+#
+#
+# require(tidyverse)
+# require(rtweet)
+#
+# prep_tokens <- function(tokenset, which_tokens){
+#   list_tokens <- readRDS(file = paste0("~/tricordings/tokens/",tokenset,"_tokenslist.rds"))
+#   list_tokens <- list_tokens[which_tokens]
+#   num_tokens <- length(which_tokens)
+#   assign(x = "num_tokens", value = num_tokens, envir = .GlobalEnv)
+#   message(paste("Loaded", num_tokens, "tokens from", tokenset, "\n"), which_tokens)
+#   return(list_tokens)
+# }
+#
+# maxN <- function(x, N=2){ #put this in a script
+#   len <- length(x)
+#   if(N>len){
+#     #warning('N greater than length(x).  Setting N=length(x)')
+#     N <- length(x)
+#   }
+#   sort(x,partial=len-N+1)[len-N+1]
+# }
+#
+# #this is a version of maxNchar that orders by numeric value but returns character
+# maxNchar <- function(x, N=2){ #put this in a script
+#   x <- x[which(!is.na(x))]
+#   len <- length(x)
+#   if(N>len){
+#     #warning('N greater than length(x).  Setting N=length(x)')
+#     N <- length(x)
+#   }
+#   sorted_indices <- sort(as.numeric(x), index.return=T)$ix
+#   sorted_character_vector <- x[sorted_indices]
+#   return(sorted_character_vector[len-N+1])
+# }
+#
+# dateCode <- function(){ #add this function to schulzFunctions?
+#   require(tidyverse)
+#   return(as.character(Sys.Date()) %>% str_remove_all(pattern="-") %>% str_sub(., 3))
+# }
+#
+# timeCode <- function(){ #add this function to schulzFunctions?
+#   require(tidyverse)
+#   return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
+# }
+#
+# ts_tid <- function(days_back = 1){
+#   this_date <- Sys.Date()
+#   return(system(paste0("/usr/local/bin/python3 ~/Documents/GitRprojects/LaForge/functions/ts_to_tid.py -y ", year(this_date), " -m ", month(this_date), " -d ", (day(this_date) - days_back)), intern = T))
+# } #target - universalize
+#
+# # Network functions
+#
+# get_friends_rotate_maxToken <- function(users, n=5000, list_tokens, per_token_limit=15, max_hours=1){
+#   require(tidyverse)
+#   require(rtweet)
+#   if (is.data.frame(users)){
+#     users_df <- users
+#   }
+#   if (!is.data.frame(users)){
+#     users_df <- data.frame(user_id=users, other=NA)
+#   }
+#   n_tokens <- length(list_tokens)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   users_remaining <- users_df
+#   friends_list <- list()
+#   friends_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_friends", token = list_tokens[[i]])
+#       if (rl$remaining < 2) {# used to be 15
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       individual_friends_list <- list()
+#       for (j in 1:slice_size) {
+#         warned <- FALSE
+#         warning_text <- ""
+#
+#         tryCatch({individual_friends_list[[j]] <- get_friends(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+#
+#         if(str_detect(warning_text, "rate limit")){
+#           if(j>1){j <- j-1}
+#           message("Rate limit reached!  Moving on to next token...")
+#           break
+#         }
+#       }
+#       attempted_now <- users_remaining_subset$user_id[1:j]
+#       attempted <- unique(c(attempted, attempted_now))
+#       if (length(individual_friends_list)>0) {
+#         friends_list[[i]] <- do.call(rbind, individual_friends_list)
+#         already <- c(already, unique(friends_list[[i]]$user))
+#       }
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     friends_df <- do.call(rbind, friends_list)
+#     friends_megalist[[batch]] <- friends_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   friends_megadf <- do.call(rbind, friends_megalist)
+#   friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
+#   #return(list(friends_megadf, attempted))
+#   return(friends_megadf)
+# }
+#
+# get_friends_rotate_maxToken_BIG <- function(users, n=20000, list_tokens, max_hours=1){
+#   require(tidyverse)
+#   require(rtweet)
+#   n_tokens <- length(list_tokens)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   if (is.data.frame(users)){
+#     users_df <- users
+#   }
+#   if (!is.data.frame(users)){
+#     users_df <- data.frame(user_id=users, other=NA)
+#   }
+#   users_remaining <- users_df
+#   friends_list <- list()
+#   friends_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   i = 1
+#   #prior_divisible <- FALSE
+#   already_cycled <- FALSE
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     message("Users Remaining: ", nrow(users_remaining))
+#     users_remaining_subset <- users_remaining %>% sample_n(., 1)
+#     prior_request_pagination_string <- "-1"
+#     individual_ids <- c()
+#     while (prior_request_pagination_string != "0") {
+#       message("\nToken: ", i)
+#
+#       warned <- FALSE
+#       warning_text <- ""
+#
+#       tryCatch({friends_unparsed <- get_friends(user = users_remaining_subset$user_id,
+#                                                 n = n,
+#                                                 token = list_tokens[[i]],
+#                                                 page = prior_request_pagination_string,
+#                                                 parse = FALSE)},
+#                warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+#
+#       if(str_detect(warning_text, "rate|Rate")){
+#         message("Rate limit reached!  Moving on to next token...")
+#         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
+#         # rate limit waiting time code -- is this the best place to put it?
+#         rl <- rate_limit(query = "get_friends", token = list_tokens[[i]])
+#         if (rl$remaining < 5) { #calibrate this
+#           if(already_cycled){
+#             wait <- rl$reset + 0.1
+#             message(paste("Waiting for", round(wait,2),"minutes..."))
+#             Sys.sleep(wait * 60)
+#           }
+#         }
+#         next
+#       }
+#       if(!warned){
+#         if(length(friends_unparsed$ids)==0){
+#           "Zero friends scraped!  Assuming zero friends and continuing..."
+#           prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
+#           next
+#         }
+#         individual_ids <- c(individual_ids, friends_unparsed$ids) #save new ids gotten
+#         prior_request_pagination_string <- friends_unparsed$next_cursor_str #save cursor for next pass through while loop
+#       }
+#     }
+#     ifelse(length(individual_ids)>0,
+#            {#if
+#              friends_list[[batch]] <- data.frame(user = users_remaining_subset$user_id, user_id = individual_ids)
+#              message(paste("Successfully scraped", nrow(friends_list[[batch]]), "friends from user", users_remaining_subset$user_id))
+#              already <- c(already, unique(friends_list[[batch]]$user))
+#            },
+#            {#else
+#              message(paste("Zero friends scraped from user", users_remaining_subset$user_id))
+#            })
+#
+#     attempted_now <- users_remaining_subset$user_id
+#     attempted <- unique(c(attempted, attempted_now))
+#
+#     set.seed(as.POSIXct(Sys.time()))
+#     users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   friends_megadf <- do.call(rbind, friends_list)
+#   friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
+#   return(friends_megadf)
+# }
+#
+# ws_scrape_friends <- function(user_dir, list_tokens, n=5000, per_token_limit=15, max_hours=1){
+#   message("Scraping friends...")
+#   today <- timeCode()
+#   users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
+#   new_friends <- get_friends_rotate_maxToken_BIG(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+#   #new_friends <- get_friends_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+#   saveRDS(new_friends, file = paste0(user_dir,"twitter_scrapes/friends/friends_",today,".rds"))
+# }
+#
+# #generally speaking, better to use maxToken_BIG
+# get_followers_rotate_maxToken <- function(users, n=5000, list_tokens, per_token_limit=15, max_hours=1){
+#   require(tidyverse)
+#   require(rtweet)
+#   if (is.data.frame(users)){
+#     users_df <- users
+#   }
+#   if (!is.data.frame(users)){
+#     users_df <- data.frame(user_id=users, other=NA)
+#   }
+#   n_tokens <- length(list_tokens)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   users_remaining <- users_df
+#   followers_list <- list()
+#   followers_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+#       if (rl$remaining < 15) {
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       individual_followers_list <- list()
+#       for (j in 1:slice_size) {
+#         warned <- FALSE
+#         warning_text <- ""
+#
+#         tryCatch({individual_followers_list[[j]] <- get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+#
+#         if(str_detect(warning_text, "rate limit")){
+#           if(j>1){j <- j-1}
+#           message("Rate limit reached!  Moving on to next token...")
+#           break
+#         }
+#         if(!warned){
+#           try(individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)) #try added to patch Error: Problem with `mutate()` input `..2`. ✖ object 'user_id' not found
+#         }
+#       }
+#       attempted_now <- users_remaining_subset$user_id[1:j]
+#       attempted <- unique(c(attempted, attempted_now))
+#       if (length(individual_followers_list)>0) {
+#         followers_list[[i]] <- do.call(rbind, individual_followers_list)
+#         already <- c(already, unique(followers_list[[i]]$user))
+#       }
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     followers_df <- do.call(rbind, followers_list)
+#     followers_megalist[[batch]] <- followers_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   followers_megadf <- do.call(rbind, followers_megalist)
+#   followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
+#   #return(list(followers_megadf, attempted))
+#   return(followers_megadf)
+# }
+#
+# get_followers_rotate_maxToken_BIG <- function(users, n=15000, list_tokens, per_token_limit=15, max_hours=1){
+#   require(tidyverse)
+#   require(rtweet)
+#   n_tokens <- length(list_tokens)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   if (is.data.frame(users)){
+#     users_df <- users
+#   }
+#   if (!is.data.frame(users)){
+#     users_df <- data.frame(user_id=users, other=NA)
+#   }
+#   users_remaining <- users_df
+#   followers_list <- list()
+#   followers_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   prior_divisible <- FALSE
+#   already_cycled <- FALSE
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       if (i == n_tokens){already_cycled <- TRUE}
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+#       if (rl$remaining < 5) { #calibrate this
+#         if(already_cycled){
+#           wait <- rl$reset + 0.1
+#           message(paste("Waiting for", round(wait,2),"minutes..."))
+#           Sys.sleep(wait * 60)
+#         }
+#         if(!already_cycled){
+#           next
+#         }
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       individual_followers_list <- list()
+#       prior_followers_scraped_length <- NA
+#       for (j in 1:slice_size) {
+#         if (j>1) {prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]])}
+#         warned <- FALSE
+#         warning_text <- ""
+#
+#         tryCatch({individual_followers_list[[j]] <- get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+#
+#         if(str_detect(warning_text, "rate limit")){
+#           if(j>1){j <- j-1}
+#           message("Rate limit reached!  Moving on to next token...")
+#           break
+#         }
+#         if(!warned){
+#           if(nrow(individual_followers_list[[j]])==0){
+#             if(j>1){
+#               if((prior_followers_scraped_length %% 5000)==0){
+#                 message("No followers scraped and prior attempt divisible by 5000!  Moving on to next token and reattempting both...")
+#                 j <- j-2
+#                 break
+#               }
+#             }
+#             if(j==1){
+#               "Zero followers scraped with a fresh token!  Assuming zero followers and continuing..."
+#               #might need to add something here to handle true zeroes at the transmutation stage
+#               break
+#             }
+#           }
+#           if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (!prior_divisible)){
+#             message("Number of followers scraped divisible by 5000!  Moving on to next token and reattempting once...")
+#             j <- j-1
+#             prior_divisible <- TRUE
+#             break
+#           }
+#           message(paste("Successfully scraped", nrow(individual_followers_list[[j]]), "followers from user", users_remaining_subset$user_id[j]))
+#           individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)
+#           prior_divisible <- FALSE #is this in the right place?
+#         }
+#       }
+#       attempted_now <- users_remaining_subset$user_id[1:j]
+#       attempted <- unique(c(attempted, attempted_now))
+#       if (length(individual_followers_list)>0) {
+#         #followers_list[[i]] <- do.call(rbind, individual_followers_list)
+#         followers_list[[i]] <- do.call(rbind, individual_followers_list[1:j])
+#         already <- c(already, unique(followers_list[[i]]$user))
+#       }
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     followers_df <- do.call(rbind, followers_list)
+#     followers_megalist[[batch]] <- followers_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   followers_megadf <- do.call(rbind, followers_megalist)
+#   followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
+#   #return(list(followers_megadf, attempted))
+#   return(followers_megadf)
+# }
+#
+# ws_scrape_followers <- function(user_dir, list_tokens, n=20000, per_token_limit=15, max_hours=1){#so unless you set n explicitly to be small, it will use the "BIG" function
+#   message("Scraping followers...")
+#   today <- timeCode()
+#   users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
+#   if (n>5000){
+#     new_followers <- get_followers_rotate_maxToken_BIG(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+#   }
+#   if (n<=5000){
+#     new_followers <- get_followers_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+#   }
+#   saveRDS(new_followers, file = paste0(user_dir,"twitter_scrapes/followers/followers_",today,".rds"))
+# }
+#
+# # Favorites (likes) functions
+#
+# get_favorites_since <- function(users, n=3000, list_tokens, days_back = 1, per_token_limit=15, max_hours=1){
+#   require(tidyverse)
+#   require(rtweet)
+#   if (is.data.frame(users)){
+#     users_df <- users
+#   }
+#   if (!is.data.frame(users)){
+#     users_df <- data.frame(user_id=users, other=NA)
+#   }
+#   n_tokens <- length(list_tokens)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   users_remaining <- users_df
+#   favorites_list <- list()
+#   favorites_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_favorites", token = list_tokens[[i]])
+#       if (rl$remaining < 30) {
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       individual_favorites_list <- list()
+#       for (j in 1:slice_size) {
+#         warned <- FALSE
+#         warning_text <- ""
+#
+#         if (!is.na(users_remaining_subset$penultimate_tweet[j])){
+#           tryCatch({individual_favorites_list[[j]] <- get_favorites(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], since_id = ts_tid(days_back))}, #target
+#                    error=function(e) {warning_text <<- (e$message); warned <<- TRUE})
+#         }
+#         if (is.na(users_remaining_subset$penultimate_tweet[j])){
+#           tryCatch({individual_favorites_list[[j]] <- get_favorites(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#                    error=function(e) {warning_text <<- (e$message); warned <<- TRUE})
+#         }
+#
+#         if(str_detect(warning_text, "rate limit")){
+#           if(j>1){j <- j-1}
+#           message("Rate limit reached!  Moving on to next token...")
+#           break
+#         }
+#         if(!warned){
+#           individual_favorites_list[[j]] <- individual_favorites_list[[j]]
+#         }
+#       }
+#       attempted_now <- users_remaining_subset$user_id[1:j]
+#       attempted <- unique(c(attempted, attempted_now))
+#       if (length(individual_favorites_list)>0) {
+#         favorites_list[[i]] <- do.call(rbind, individual_favorites_list)
+#         already <- c(already, unique(favorites_list[[i]]$favorited_by))
+#       }
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     favorites_df <- do.call(rbind, favorites_list)
+#     favorites_megalist[[batch]] <- favorites_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   favorites_megadf <- do.call(rbind, favorites_megalist)
+#   #if (nrow(favorites_megadf)>0){ #in case no favorites are scraped
+#   if (length(favorites_megadf)!=0){ #in case no favorites are scraped
+#     favorites_megadf <- favorites_megadf %>% mutate(scraped_at = Sys.time())
+#   }
+#   #return(favorites_megadf)
+#   return(list(favorites_megadf, attempted))
+# }
+#
+# ws_scrape_favorites <- function(user_set, days_further_back = 0, n=3000, list_tokens, max_hours=12, sub_batch_size=30, sentiment=FALSE, lasso=FALSE){
+#   message("Scraping favorites...")
+#   require(tidyverse)
+#   require(rtweet)
+#   message("Scraping users: ", user_set)
+#   today <- dateCode()
+#   message("Scraping date: ", today)
+#   set.seed(as.numeric(today))
+#   message("Reading prior scrape log...")
+#   logs <- dir(paste0("data/",user_set,"/favorite_logs/")) %>% str_subset(., pattern="log_")
+#   last_log_file <- max(logs)
+#   previous_scrape_day <- last_log_file %>% str_sub(start = 5,end = 10)
+#   message("Prior scraping date: ", previous_scrape_day)
+#   days_ago <- as.Date.character(today, format = "%y%m%d") - as.Date.character(previous_scrape_day, format = "%y%m%d")
+#   last_log <- readRDS(paste0("data/",user_set,"/favorite_logs/",last_log_file))
+#   last_log <- sample_n(last_log, size = nrow(last_log))
+#   message("Start scraping...")
+#   #if (1==1){
+#   data_list <- get_favorites_since(users_df = last_log, n=n, list_tokens = list_tokens, days_back=as.integer(days_ago + days_further_back), per_token_limit=sub_batch_size, max_hours=max_hours)
+#   #}
+#   data <- data_list[[1]]
+#   attempted <- data_list[[2]]
+#   message("Saving scraped data...")
+#   #previous_scrape_day
+#   if (file.exists(paste0("data/",user_set,"/favorites/favorites_", previous_scrape_day,".rds"))){
+#     message("Merging with previous scrape...")
+#     previous_data <- readRDS(file = paste0("data/",user_set,"/favorites/favorites_", previous_scrape_day,".rds"))
+#     all_data <- bind_rows(previous_data, data) %>% distinct(status_id, favorited_by, .keep_all = T)
+#     #saveRDS(all_data, file = paste0("data/",user_set,"/favorites/favorites_", today,".rds"))
+#   }
+#   if (file.exists(paste0("data/",user_set,"/favorites/favorites_", today,".rds"))){
+#     message("Merging with earlier scrape from today...")
+#     last_data <- readRDS(file = paste0("data/",user_set,"/favorites/favorites_", today,".rds"))
+#     all_data <- bind_rows(last_data, all_data) %>% distinct(status_id, favorited_by, .keep_all = T)
+#     #saveRDS(all_data, file = paste0("data/",user_set,"/favorites/favorites_", today,".rds"))
+#   }
+#   saveRDS(all_data, file = paste0("data/",user_set,"/favorites/favorites_", today,".rds"))
+#   message("Saving new log...")
+#   this_log <- data %>% distinct(status_id, favorited_by, .keep_all = T) %>% group_by(favorited_by) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n()) %>% rename(user_id=favorited_by)
+#   new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
+#   saveRDS(new_log, file = paste0("data/",user_set,"/favorite_logs/log_", today,".rds"))
+#   message(sum((this_log$count-1)), " new favorites scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new favorites to scrape.")
+#   message(sum(! last_log$ultimate_tweet %in% data$status_id), " users may have missing favorites")
+#   saveRDS(attempted, file = paste0("data/",user_set,"/favorite_attempts/attempted_", today,".rds"))
+#   message("Total attempted: ", sum(last_log$user_id %in% attempted))
+#   message("Total unattempted: ", sum(! last_log$user_id %in% attempted))
+# }
+#
+#
+# ws_scrape_favorites2 <- function(user_dir, days_further_back = 0, n=3000, list_tokens, max_hours=12, sub_batch_size=30, sentiment=FALSE, lasso=FALSE){
+#   message("Scraping favorites...")
+#   require(tidyverse)
+#   require(rtweet)
+#   #message("Scraping users: ", user_set)
+#   today <- dateCode()
+#   message("Scraping date: ", today)
+#   set.seed(as.numeric(today))
+#   message("Reading prior scrape log...")
+#   logs <- dir(paste0(user_dir,"twitter_scrapes/favorite_logs/")) %>% str_subset(., pattern="log_")
+#   last_log_file <- max(logs)
+#   previous_scrape_day <- last_log_file %>% str_sub(start = 5,end = 10)
+#   message("Prior scraping date: ", previous_scrape_day)
+#   days_ago <- as.Date.character(today, format = "%y%m%d") - as.Date.character(previous_scrape_day, format = "%y%m%d")
+#   last_log <- readRDS(paste0(user_dir,"twitter_scrapes/favorite_logs/",last_log_file))
+#   last_log <- sample_n(last_log, size = nrow(last_log))
+#   message("Start scraping...")
+#   #if (1==1){
+#   data_list <- get_favorites_since(users = last_log, n=n, list_tokens = list_tokens, days_back=as.integer(days_ago + days_further_back), per_token_limit=sub_batch_size, max_hours=max_hours)
+#   #}
+#   data <- data_list[[1]]
+#   attempted <- data_list[[2]]
+#   if (nrow(data)>0){#often there are no new favorites, so need to make this robust
+#     message("Saving scraped data...")
+#     #previous_scrape_day -- not sure why I have this, it seems like it would balloon storage requirements for no reason
+#     # if (file.exists(paste0(user_dir,"twitter_scrapes/favorites/favorites_", previous_scrape_day,".rds"))){
+#     #   message("Merging with previous scrape...")
+#     #   previous_data <- readRDS(file = paste0(user_dir,"twitter_scrapes/favorites/favorites_", previous_scrape_day,".rds"))
+#     #   all_data <- bind_rows(previous_data, data) %>% distinct(status_id, favorited_by, .keep_all = T)
+#     # }
+#     if (file.exists(paste0(user_dir,"twitter_scrapes/favorites/favorites_", today,".rds"))){
+#       message("Merging with earlier scrape from today...")
+#       last_data <- readRDS(file = paste0(user_dir,"twitter_scrapes/favorites/favorites_", today,".rds"))
+#       all_data <- bind_rows(last_data, all_data) %>% distinct(status_id, favorited_by, .keep_all = T)
+#     }
+#     if (!file.exists(paste0(user_dir,"twitter_scrapes/favorites/favorites_", today,".rds"))){
+#       all_data <- data
+#     }
+#     saveRDS(all_data, file = paste0(user_dir,"twitter_scrapes/favorites/favorites_", today,".rds"))
+#     message("Saving new log...")
+#     this_log <- data %>% distinct(status_id, favorited_by, .keep_all = T) %>% group_by(favorited_by) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n()) %>% rename(user_id=favorited_by)
+#     new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
+#     saveRDS(new_log, file = paste0(user_dir,"twitter_scrapes/favorite_logs/log_", today,".rds"))
+#     message(sum((this_log$count-1)), " new favorites scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new favorites to scrape.")
+#     message(sum(! last_log$ultimate_tweet %in% data$status_id), " users may have missing favorites")
+#   }
+#   if (nrow(data)==0){message("No new favorites scraped in this group today.  Saving attempt...")}
+#   saveRDS(attempted, file = paste0(user_dir,"twitter_scrapes/favorite_attempts/attempted_", today,".rds"))
+#   message("Total attempted: ", sum(last_log$user_id %in% attempted))
+#   message("Total unattempted: ", sum(! last_log$user_id %in% attempted))
+# }
+#
+# # Timeline functions
+#
+# get_timelines_rotate_update <- function(users_df, n=3200, list_tokens, per_token_limit=100, max_hours=4){ #version that ignores NA since_id's
+#   require(tidyverse)
+#   require(rtweet)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   users_remaining <- users_df
+#   n_tokens=length(list_tokens)
+#   timelines_list <- list()
+#   timelines_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_timeline", token = list_tokens[[i]])
+#       #might need to increase robustness here by testing for rl error class, and/or adding try() the above line
+#       if (rl$remaining < 900) {
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       individual_timelines_list <- list()
+#       for (j in 1:slice_size) {
+#         if (!is.na(users_remaining_subset$penultimate_tweet[j]))
+#         {individual_timelines_list[[j]] <- get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE, since_id = users_remaining_subset$penultimate_tweet[j])}
+#         if (is.na(users_remaining_subset$penultimate_tweet[j]))
+#         {individual_timelines_list[[j]] <- get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE)}
+#       }
+#       attempted_now <- users_remaining_subset$user_id[1:j]
+#       attempted <- unique(c(attempted, attempted_now))
+#       timelines_list[[i]] <- do.call(rbind, individual_timelines_list)
+#       already <- c(already, unique(timelines_list[[i]]$user_id))
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     timelines_df <- do.call(rbind, timelines_list)
+#     timelines_megalist[[batch]] <- timelines_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   timelines_megadf <- do.call(rbind, timelines_megalist)
+#   timelines_megadf <- timelines_megadf %>% mutate(scraped_at = Sys.time())
+#   return(list(timelines_megadf, attempted))
+# }
+#
+# get_timelines_rotate_update_maxToken <- function(users_df, n=3200, list_tokens, per_token_limit=100, max_hours=4){ #version that ignores NA since_id's
+#   require(tidyverse)
+#   require(rtweet)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   users_remaining <- users_df
+#   n_tokens=length(list_tokens)
+#   timelines_list <- list()
+#   timelines_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_timeline", token = list_tokens[[i]])
+#       if (rl$remaining < 5) { #used to be 100, but seems like a waste since I already check for rate limit errors in this function
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       individual_timelines_list <- list()
+#       for (j in 1:slice_size) {
+#         warned <- FALSE
+#         warning_text <- ""
+#         if (!is.na(users_remaining_subset$penultimate_tweet[j])){
+#           tryCatch({individual_timelines_list[[j]] <- get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE, since_id = users_remaining_subset$penultimate_tweet[j])},
+#                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+#         }
+#         if (is.na(users_remaining_subset$penultimate_tweet[j])){
+#           tryCatch({individual_timelines_list[[j]] <- get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE)},
+#                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+#         }
+#         if(str_detect(warning_text, "rate limit")){
+#           if(j>1){j <- j-1}
+#           message("Rate limit reached!  Moving on to next token...")
+#           break
+#         }
+#       }
+#       attempted_now <- users_remaining_subset$user_id[1:j]
+#       attempted <- unique(c(attempted, attempted_now))
+#       timelines_list[[i]] <- do.call(rbind, individual_timelines_list)
+#       already <- c(already, unique(timelines_list[[i]]$user_id))
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     timelines_df <- do.call(rbind, timelines_list)
+#     timelines_megalist[[batch]] <- timelines_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   timelines_megadf <- do.call(rbind, timelines_megalist)
+#   timelines_megadf <- timelines_megadf %>% mutate(scraped_at = Sys.time())
+#   return(list(timelines_megadf, attempted))
+# }
+#
+#
+# get_timelines_rotate_allHistory <- function(users_df, n=3200, list_tokens, per_token_limit=100, max_hours=4){ #version that ignores NA since_id's
+#   require(tidyverse)
+#   require(rtweet)
+#   start_time <- Sys.time()
+#   message("Started: ", start_time)
+#   users_remaining <- users_df
+#   n_tokens=length(list_tokens)
+#   timelines_list <- list()
+#   timelines_megalist <- list()
+#   already <- c()
+#   attempted <- c()
+#   batch <- 0
+#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#     batch <- batch + 1
+#     message("Batch: ", batch)
+#     for (i in 1:n_tokens) {
+#       message("\nToken: ", i)
+#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#       if (! length(already) < nrow(users_df)) {break}
+#       rl <- rate_limit(query = "get_timeline", token = list_tokens[[i]])
+#       if (rl$remaining < 500) {
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       slice_size <- min(per_token_limit,nrow(users_remaining))
+#       users_remaining_subset <- users_remaining[1:slice_size,]
+#       {timelines_list[[i]] <- get_timeline(user = users_remaining_subset$user_id, n = n, token = list_tokens[[i]], check = FALSE)}
+#       attempted_now <- users_remaining_subset$user_id
+#       attempted <- unique(c(attempted, attempted_now))
+#       already <- c(already, unique(timelines_list[[i]]$user_id))
+#       set.seed(as.POSIXct(Sys.time()))
+#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+#     }
+#     timelines_df <- do.call(rbind, timelines_list)
+#     timelines_megalist[[batch]] <- timelines_df
+#     if(all(users_df$user_id %in% attempted)){break}
+#   }
+#   timelines_megadf <- do.call(rbind, timelines_megalist)
+#   timelines_megadf <- timelines_megadf %>% mutate(scraped_at = Sys.time())
+#   return(list(timelines_megadf, attempted))
+# }
+#
+#
+# ### Initial Scraping function
+#
+# firstScrape <- function(user_ids, group_directory, tokens, max_hours = 1, sentiment = "none", lasso = T){
+#   message("Running initial scrape for ", user_ids, "...")
+#   scrape_settings <- readRDS(paste0(group_directory,"/scrape_settings.rds"))
+#
+#   this_timecode <- timeCode()
+#
+#   new_lookup <- try(lookup_users(users = user_ids, token = tokens[[1]]))
+#
+#   if (is.data.frame(new_lookup)){
+#     saveRDS(new_lookup, file = paste0(group_directory, "/twitter_scrapes/user_info/new_lookup_",this_timecode,".rds"))
+#
+#     if (file.exists(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
+#       message("Binding to last current lookup.")
+#       last_current_lookup <- readRDS(paste0(group_directory, "twitter_scrapes/user_info/current_lookup.rds"))
+#       new_current_lookup <- bind_rows(last_current_lookup, new_lookup) %>% distinct(user_id, .keep_all = TRUE)
+#     } else {
+#       message("Creating new current lookup.")
+#       new_current_lookup <- new_lookup
+#     }
+#
+#     saveRDS(new_current_lookup, paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+#
+#
+#     # code to immediately scrape all timeline history and add entries to the central log
+#     if (scrape_settings$scrape_timelines){
+#       message("Scraping first timelines...")
+#       init_log <- new_lookup %>% transmute(user_id = user_id, penultimate_tweet=NA, ultimate_tweet=NA)
+#
+#       first_timelines_data <- get_timelines_rotate_update_maxToken(users = init_log, n = 3200, max_hours = max_hours, list_tokens = tokens) #used to use allHistory, but that can break because it doesn't check rate limits. This is slower but safer.
+#       first_timelines <- first_timelines_data[[1]]
+#       first_attempts <- first_timelines_data[[2]]
+#
+#       if (sentiment=="sentimentR"){
+#         message("Analyzing sentiment...")
+#         source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+#         first_timelines <- addSentimentForFree(first_timelines)
+#       }
+#       if (sentiment=="google"){
+#         message("Analyzing sentiment...")
+#         source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+#         first_timelines <- addSentiment(first_timelines) #uses google, which costs money
+#       }
+#       if (lasso==TRUE){
+#         message("Analyzing ideology and sureness...")
+#         library(tidyverse)
+#         library(glmnet)
+#         library(quanteda)
+#         source("~/Documents/GitRprojects/LaForge/functions/v1_lasso/featurization.R") #featurization scripts for the classifiers used here
+#         #load classifiers and feature names
+#         load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_liborcon_Nint.rda")
+#         load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_most_not_NIAA.rda")
+#         load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/training_featnames.rda")
+#         preds <- myTokMatchClass(input = first_timelines$text, i_mod = bin_liborcon_Nint, s_mod = bin_most_not_NIAA, match_to = training_featnames, type = "response")
+#         first_timelines <- cbind(first_timelines,preds)
+#       }
+#
+#       saveRDS(first_timelines, file = paste0(group_directory,"/twitter_scrapes/first_timelines/timelines_", this_timecode, ".rds"))
+#       saveRDS(first_attempts, file = paste0(group_directory,"/twitter_scrapes/timeline_attempts/attempted_", this_timecode, ".rds"))
+#
+#       this_log <- first_timelines %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1))
+#
+#       new_log <- bind_rows(init_log, this_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+#
+#
+#       # save updated central log
+#       logs <- dir(paste0(group_directory,"/twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
+#
+#       last_log_file <- max(logs)
+#       if(!is.na(last_log_file)){
+#         message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+#         last_log <- readRDS(paste0(group_directory,"/twitter_scrapes/timeline_logs/",last_log_file))
+#         new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+#       }
+#
+#       if(is.na(last_log_file)){
+#         message("First scrape")
+#       }
+#
+#       saveRDS(new_log, file = paste0(group_directory,"/twitter_scrapes/timeline_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
+#     }
+#
+#
+#     # code to immediately scrape friend lists
+#     if (scrape_settings$scrape_friends){
+#       message("Scraping first friends...")
+#       new_friends <- get_friends_rotate_maxToken_BIG(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
+#       colnames(new_friends) <- c("user_id", "friends", "scraped_at")
+#       saveRDS(new_friends, paste0(group_directory,"/twitter_scrapes/first_friends/friends_",this_timecode,".rds"))
+#     }
+#
+#
+#     # and immediately scrape followers
+#     if (scrape_settings$scrape_followers){
+#       message("Scraping first followers...")
+#       new_followers <- get_followers_rotate_maxToken_BIG(users = new_lookup, list_tokens=tokens)
+#       #colnames(new_followers) <- c("user_id", "followers", "scraped_at") #this line fucks everything up, don't use it
+#       saveRDS(new_followers, paste0(group_directory,"/twitter_scrapes/first_followers/followers_",this_timecode,".rds"))
+#     }
+#
+#     # and scrape favorites and add rows to the favorite log/create novel favorites log
+#     if (scrape_settings$scrape_favorites){
+#       message("Scraping first favorites...")
+#       new_favorites <- get_favorites_since(users = new_lookup %>% mutate(penultimate_tweet=NA), list_tokens=tokens, max_hours = max_hours)
+#       new_favorites_data <- new_favorites[[1]]
+#       new_favorites_attempted <- new_favorites[[2]]
+#       saveRDS(new_favorites_data, paste0(group_directory,"/twitter_scrapes/first_favorites/favorites_",this_timecode,".rds"))
+#       saveRDS(new_favorites_attempted, paste0(group_directory,"/twitter_scrapes/favorite_attempts/attempt_",this_timecode,".rds"))
+#
+#       message("Saving new log...")
+#       this_log <- new_favorites_data %>% distinct(status_id, favorited_by, .keep_all = T) %>% group_by(favorited_by) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n()) %>% rename(user_id=favorited_by)
+#
+#       logs <- dir(paste0(group_directory,"/twitter_scrapes/favorite_logs/")) %>% str_subset(., pattern="log_")
+#
+#       last_log_file <- max(logs)
+#       if(!is.na(last_log_file)){
+#         message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+#         last_log <- readRDS(paste0(group_directory,"/twitter_scrapes/favorite_logs/",last_log_file))
+#         new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+#       }
+#
+#       if(is.na(last_log_file)){
+#         message("First favorites scrape, saving new log.")
+#       }
+#
+#       saveRDS(new_log, file = paste0(group_directory,"/twitter_scrapes/favorite_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
+#     }
+#   }
+#
+#   if (!is.data.frame(new_lookup)){
+#     message("Lookup error!  Initial scrape aborted.")
+#   }
+# }
+#
+# ws_scrape_timelines3 <- function(user_dir, N=3200, list_tokens, max_hours=12, allHistory=FALSE, sub_batch_size=100, max_token=FALSE, sentiment=FALSE, lasso=FALSE){
+#   message("Scraping timelines...")
+#   require(tidyverse)
+#   require(rtweet)
+#   message("Scraping users: ", user_dir)
+#   today <- dateCode()
+#   message("Scraping date: ", today)
+#   set.seed(as.numeric(today))
+#   message("Reading prior scrape log...")
+#   logs <- dir(paste0(user_dir,"twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
+#   last_log_file <- max(logs)
+#   message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+#   last_log <- readRDS(paste0(user_dir,"twitter_scrapes/timeline_logs/",last_log_file))
+#   # this adds back any user_ids in the main folder and attempts to scrape them again if they're not in the log file for whatever reason
+#   raw_userids <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
+#   raw_userids <- raw_userids[which(!is.na(raw_userids))] #this fixes a bug where any NA user_ids who get added (shouldn't happen anymore, but might) don't break this function
+#   previously_attempted <- dir(paste0(user_dir,"twitter_scrapes/timeline_attempts"), full.names = T) %>% map(readRDS) %>% unlist %>% unique
+#   if (any(!raw_userids %in% previously_attempted)){ #needs road testing
+#     new_userids <- raw_userids[which(!raw_userids %in% previously_attempted)]
+#     raw_userids <- raw_userids[which(!raw_userids %in% new_userids)]
+#     firstScrape(new_userids, group_directory = user_dir, tokens = list_tokens)
+#   }
+#   # if (any(!raw_userids %in% last_log$user_id)) { #old version I am updating to do a firstScrape when appropriate, see above
+#   #   to_append <- cbind(raw_userids[which(!raw_userids %in% last_log$user_id)],
+#   #                      rep(NA, sum(!raw_userids %in% last_log$user_id)),
+#   #                      rep(NA, sum(!raw_userids %in% last_log$user_id)))
+#   #   colnames(to_append) <- colnames(last_log)
+#   #   last_log <- rbind(last_log, to_append)
+#   # }
+#   last_log <- sample_n(last_log, size = nrow(last_log))
+#   message("Start scraping...")
+#   if (max_token==TRUE & allHistory==FALSE){
+#     data_list <- get_timelines_rotate_update_maxToken(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
+#   }
+#   if (max_token==FALSE & allHistory==FALSE){
+#     data_list <- get_timelines_rotate_update(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
+#   }
+#   if (allHistory==TRUE){
+#     data_list <- get_timelines_rotate_allHistory(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
+#   }
+#   data <- data_list[[1]]
+#   attempted <- data_list[[2]]
+#   if (nrow(data)>0){
+#     if (sentiment=="sentimentR"){
+#       message("Analyzing sentiment...")
+#       source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+#       data <- addSentimentForFree(data)
+#       # message("Saving data...")
+#       # saveRDS(data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#     }
+#     if (sentiment=="google"){
+#       message("Analyzing sentiment...")
+#       source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+#       data <- addSentiment(data) #uses google, which costs money
+#       # message("Saving data...")
+#       # saveRDS(data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#     }
+#     if (lasso==TRUE){
+#       message("Analyzing ideology and sureness...")
+#       library(tidyverse)
+#       library(glmnet)
+#       library(quanteda)
+#       source("~/Documents/GitRprojects/LaForge/functions/v1_lasso/featurization.R") #featurization scripts for the classifiers used here
+#       #load classifiers and feature names
+#       load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_liborcon_Nint.rda")
+#       load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_most_not_NIAA.rda")
+#       load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/training_featnames.rda")
+#       preds <- myTokMatchClass(input = data$text, i_mod = bin_liborcon_Nint, s_mod = bin_most_not_NIAA, match_to = training_featnames, type = "response")
+#       data <- cbind(data,preds)
+#       # message("Saving data...")
+#       # saveRDS(data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#     }
+#     if (lasso==TRUE | (sentiment %in% c("google", "sentimentR"))){
+#       message("Saving classified data...")
+#       if (file.exists(paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+#         message("Binding to earlier scrape from today...")
+#         last_data <- readRDS(file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#         all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+#         saveRDS(all_data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#       }
+#       if (!file.exists(paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+#         saveRDS(data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#       }
+#     }
+#     if (!(lasso==TRUE | (sentiment %in% c("google", "sentimentR")))){
+#       message("Saving scraped data...")
+#       if (file.exists(paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+#         message("Binding to earlier scrape from today...")
+#         last_data <- readRDS(file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#         all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+#         saveRDS(all_data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#       }
+#       if (!file.exists(paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+#         saveRDS(data, file = paste0(user_dir,"twitter_scrapes/timelines/timelines_", today,".rds"))
+#       }
+#     }
+#     message("Saving new log...")
+#     this_log <- data %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
+#     new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
+#     saveRDS(new_log, file = paste0(user_dir,"twitter_scrapes/timeline_logs/log_", today,".rds"))
+#     message(sum((this_log$count-1)), " new tweets scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new tweets to scrape.")
+#     message(sum(! last_log$ultimate_tweet %in% data$status_id), " users may have missing tweets.")
+#     saveRDS(attempted, file = paste0(user_dir,"twitter_scrapes/timeline_attempts/attempted_", today,".rds"))
+#     message("Total attempted: ", sum(last_log$user_id %in% attempted)) # B
+#     message("Total unattempted: ", sum(! last_log$user_id %in% attempted)) # C ## I think I've fixed the numbers-not-adding-up problem, which I think was due to using this_log instead of last_log as the first argument to the logical
+#   }
+#   if (!(nrow(data)>0)){message("Zero new tweets scraped from this group, skipping tweet analysis/saving...")}
+# }
+#
+#
+#
+# ### Grouped Scraping on Schedule
+#
+# scrapeGroup <- function(group_directory, tokens,
+#                         include_timelines = TRUE,
+#                         include_friends = TRUE,
+#                         include_followers = TRUE,
+#                         include_favorites = TRUE){
+#   scrape_settings <- readRDS(paste0(group_directory, "scrape_settings.rds"))
+#
+#   if (scrape_settings$scrape_timelines & include_timelines){
+#     ws_scrape_timelines3(user_dir = group_directory,
+#                          list_tokens = tokens,
+#                          max_hours = 2, sentiment = "sentimentR", lasso = TRUE, max_token = TRUE)
+#   }
+#   if (scrape_settings$scrape_friends & include_friends){
+#     ws_scrape_friends(user_dir = group_directory,
+#                       list_tokens = tokens, n = 5000) #can't go higher than 5k yet
+#   }
+#   if (scrape_settings$scrape_followers & include_followers){
+#     ws_scrape_followers(user_dir = group_directory,
+#                         list_tokens = tokens, n = 5000) #this can go bigger than 5k
+#   }
+#   if (scrape_settings$scrape_favorites & include_favorites){
+#     ws_scrape_favorites2(user_dir = group_directory,
+#                          days_further_back = 0, n=3000, list_tokens = tokens, max_hours=1) #this needs some road testing
+#   }
+# }
+#
+# scrapeStudy <- function(study_name, tokens,
+#                         include_timelines = TRUE,
+#                         include_friends = TRUE,
+#                         include_followers = TRUE,
+#                         include_favorites = TRUE){
+#   all_groups_contents <- dir(paste0("~/tricordings/studies/",study_name), full.names = T) %>% dir(full.names = T)
+#   scrape_settings_paths <- all_groups_contents[str_detect(all_groups_contents, "scrape_settings.rds")]
+#   group_directories <- str_remove_all(scrape_settings_paths,"scrape_settings.rds")
+#
+#   for (i in 1:length(group_directories)) {
+#     message("Scraping ", str_remove_all(group_directories[i], ".*studies/"))
+#     scrapeGroup(group_directories[i], tokens = tokens,
+#                 include_timelines,
+#                 include_friends,
+#                 include_followers,
+#                 include_favorites)
+#   }
+# }
+#
+# # implement this in all token-hopping functions:
+# # already_cycled <- FALSE
+# # while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+# #   batch <- batch + 1
+# #   message("Batch: ", batch)
+# #   for (i in 1:n_tokens) {
+# #     if (i == n_tokens){already_cycled <- TRUE}
+# #     message("\nToken: ", i)
+# #     message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+# #     if (! length(already) < nrow(users_df)) {break}
+# #     rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+# #     if (rl$remaining < 5) { #calibrate this
+# #       if(already_cycled){
+# #         wait <- rl$reset + 0.1
+# #         message(paste("Waiting for", round(wait,2),"minutes..."))
+# #         Sys.sleep(wait * 60)
+# #       }
+# #       if(!already_cycled){
+# #         next
+# #       }
+# #     }
+#
+#
+# ##################################
+# # SENTIMENT ANALYSIS FUNCTIONS
+# ##################################
+#
+# # script to get Google sentiment analysis for a dataframe of tweets
+#
+# require(tidyverse, warn.conflicts = FALSE)
+# # require(googleLanguageR)
+# # gl_auth("~/.keys/gl-auth.json")
+# #
+# # addSentiment <- function(timelines_df){
+# #   sentiments <- gl_nlp(string=timelines_df$text,
+# #                          nlp_type = "analyzeSentiment")
+# #   timelines_df_c <- cbind(timelines_df,sentiments$documentSentiment)
+# #   return(timelines_df_c)
+# # }
+#
+# ### FREE VERSION ###
+#
+# require(sentimentr)
+#
+# mySentiment <- function(input){
+#   sentences <- get_sentences(input)
+#   sentiments <- sentiment_by(sentences, polarity_dt = lexicon::hash_sentiment_jockers_rinker)$ave_sentiment
+#   return(sentiments)
+# }
+#
+#
+# batchedSentiment <- function(input, batchSize=1000){
+#   nBatches <- length(input)/batchSize
+#   nWholeBatches <- floor(nBatches)
+#   p_list <- list()
+#   for (i in 1:nWholeBatches) {
+#     #pb <- txtProgressBar(min=0, max=nWholeBatches, style=3) #when min=1, this breaks 1-iteration loops.  Commenting out for safety (not needed for scripts anyway)
+#     #setTxtProgressBar(pb, i)
+#     p_list[[i]] <- mySentiment(input[((i-1)*batchSize +1):((i)*batchSize)])
+#   }
+#   message("Analyzing final batch...")
+#   if (nBatches!=nWholeBatches){p_list[[i+1]] <- mySentiment(input[((i)*batchSize +1):length(input)])}
+#   message("Binding batches together...")
+#   return(do.call(c,p_list))
+# }
+#
+# addSentimentForFree <- function(timelines_df){
+#   if (nrow(timelines_df)>1000){
+#     sentiments <- batchedSentiment(timelines_df$text)
+#   }
+#   if (nrow(timelines_df)<=1000){
+#     sentiments <- mySentiment(timelines_df$text)
+#   }
+#   timelines_df_c <- cbind(timelines_df, "score" = sentiments)
+#   return(timelines_df_c)
+# }
+#
+#
+# ########################################
+# # DASHBOARD FUNCTIONS
+# ###################################
+#
+#
+# # shiny dashboard functions
+#
+# # SETTINGS
+#
+# refresh_time=5*60*1000 #(milliseconds)
+#
+# #screen_name_label_cols <- rgb(.6,.6,1,1)
+# #screen_name_label_cols <- rgb(.9,.9,.9,1)
+# screen_name_label_cols <- c("white", "white", "red")
+# screen_name_fonts <- c(2, 2, 4)
+#
+# point_cex <- .9
+# default_axis_cex <- 1
+# default_screen_name_cex <- .8
+# default_point_color <- rgb(1,1,1,.7)
+#
+# # my_red <- rgb(1,.5,.5)
+# # my_blue <- rgb(.5,.5,1)
+# my_red <- rgb(1,1,1,.7)
+# my_blue <- rgb(1,1,1,.7)
+#
+# my_sentiment_reference_scale = c(-1,1)
+# my_sentiment_reference_scale = NA
+# sentiment_left_color = c(1,.2,0,.7)
+# sentiment_right_color = c(0,1,0,.7)
+#
+# #my_ideo_reference_scale = c(-.1,.1)
+# my_ideo_reference_scale = NA
+# ideo_left_color = c(.5,.5,1,.3)
+# ideo_right_color = c(.9,0,0,.3)
+#
+# sure_left_color = c(.3,.5,.9,.7)
+# sure_right_color = c(.7,.7,0,.7)
+#
+# survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
+#
+# spinner_size <- .5
+#
+# #survey_start_date <- "2021-04-21 12:00:00 EST"
+#
+#
+# # FUNCTIONS
+#
+# fixSentiment <- function(input, allowed_range = c(-1,1)){
+#   input[which(input<allowed_range[1])] <- allowed_range[1]
+#   input[which(input>allowed_range[2])] <- allowed_range[2]
+#   return(input)
+# }
+#
+# timeCode <- function(){ #add this function to schulzFunctions?
+#   require(tidyverse)
+#   return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
+# }
+#
+# myIndexer <- function(input, reference){
+#   myvec <- rep(NA, length(input))
+#   for (i in 1:length(input)){
+#     myvec[i] <- which(reference==input[i])
+#   }
+#   return(myvec)
+# }
+#
+# read_and_session <- function(input){
+#   return(readRDS(input) %>% mutate(scrape_session = str_remove_all(input, ".*timelines_|.rds")))
+# }
+#
+# prep_timeline_data <- function(user_dir, sessions_back, include_historical = FALSE, load_all_since_first = FALSE){
+#   user_ids <- readRDS(file = paste0(user_dir, "/twitter_scrapes/user_ids.rds")) #bind to available data
+#   current_lookup <- readRDS(file = paste0(user_dir, "/twitter_scrapes/user_info/current_lookup.rds"))
+#
+#   scrape_dir <- dir(paste0(user_dir,"/twitter_scrapes/timelines/"), full.names = TRUE) %>% str_subset("timelines_")
+#   if (!load_all_since_first){
+#     scrape_dir <- scrape_dir %>% .[(length(.)-min((sessions_back-1), (length(.)-1))):length(.)]
+#     scrape_dir <- scrape_dir[-which(is.na(scrape_dir))]
+#   }
+#
+#   if (include_historical){
+#     first_timelines_dir <- dir(paste0(user_dir,"/twitter_scrapes/first_timelines/"), full.names = TRUE)
+#     scrape_dir <- c(scrape_dir, first_timelines_dir)
+#   }
+#
+#   timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
+#
+#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+#
+#   e <- timelines_bound %>%
+#     distinct(status_id, .keep_all = T) %>%
+#     select(colnames(timelines_bound)[which(colnames(timelines_bound) %in% keep_if_there)]) %>%
+#     mutate(scrape_session=as.numeric(scrape_session))
+#
+#   missing <- keep_if_there[which(! keep_if_there %in% colnames(e))]
+#   missing_cols <- array(dim = c(nrow(e),length(missing)))
+#   colnames(missing_cols) <- missing
+#   e <- cbind(e, missing_cols)
+#
+#   unique_sessions <- unique(e$scrape_session)
+#   unique_users <- unique(e$user_id)
+#   e$session_index <- myIndexer(input=e$scrape_session, reference=unique_sessions)
+#   e$user_index <- myIndexer(input=e$user_id, reference=unique_users)
+#
+#   e_f <- e %>% group_by(user_id) %>% summarise(screen_name = screen_name[1],
+#                                                user_id = user_id[1],
+#                                                last=max(created_at),
+#                                                index=user_index[1])
+#
+#   subset_current_lookup <- current_lookup %>% filter(!(user_id %in% e_f$user_id)) %>% transmute(screen_name, user_id, index = NA)
+#   for (i in 1:nrow(subset_current_lookup)){
+#     subset_current_lookup$index[i] <- i + max(e_f$index)
+#   }
+#   e_f <- bind_rows(e_f,subset_current_lookup)
+#
+#   return(list(e, e_f))
+# }
+#
+# make_timeseries <- function(input, volume_smoothing, midnight_today, time_range){
+#   output <- input %>%
+#     mutate(minute_span = round_date(created_at, unit = paste(volume_smoothing,"minutes"))) %>%
+#     group_by(minute_span) %>%
+#     summarise(count = n())
+#   all_minutes <- seq.POSIXt(min(output$minute_span, na.rm=T), midnight_today, by = paste(volume_smoothing,"min"))
+#   other_minutes <- all_minutes[which(!all_minutes %in% output$minute_span)]
+#   output <- bind_rows(output, data.frame("minute_span"=other_minutes,"count"=rep(0, length(other_minutes)))) %>% arrange(minute_span) %>% filter(minute_span>time_range[1])
+# }
+#
+#
+# dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex, sentiment_reference_scale = NA, ideo_reference_scale = NA){
+#
+#   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
+#   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
+#
+#   date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
+#
+#   #par(xpd=T, bg="#222222", mfrow = c(2,1))
+#   #layout(matrix(matrix(c(1,2,2,2)), nrow=4, ncol=1, byrow = TRUE))
+#   #par(xpd=T, bg="#222222")
+#   par(xpd=F, bg="#343E48")
+#   par(bty="n")
+#
+#   par(mar=c(4.1, 4.1, 0.1, 4.1))
+#   if (color_variable=="none") {plot(x=data_e$created_at, y=data_e$user_index,
+#                                     ylim = range(data_e_f$index),
+#                                     col=default_point_color,
+#                                     xlim = time_range,
+#                                     yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
+#   if (color_variable=="sentiment") {plot(x=data_e$created_at, y=data_e$user_index,
+#                                          ylim = range(data_e_f$index),
+#                                          col=plotGradient(input = fixSentiment(data_e$score), left_color = sentiment_left_color, right_color = sentiment_right_color, reference_scale = sentiment_reference_scale),
+#                                          xlim = time_range,
+#                                          yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
+#   if (color_variable=="ideology") {plot(x=data_e$created_at, y=data_e$user_index,
+#                                         ylim = range(data_e_f$index),
+#                                         col=plotGradient(input = data_e$p_i, left_color = ideo_left_color, right_color = ideo_right_color, reference_scale = ideo_reference_scale),
+#                                         xlim = time_range,
+#                                         yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
+#   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#   if(show_names){
+#     par(xpd=T)
+#     data_e_f$status <- 3
+#     data_e_f$status[which(data_e_f$last<min(date_axis))] <- 2
+#     data_e_f$status[which(data_e_f$last>=min(date_axis))] <- 1
+#     data_e_f$tpos <- 4
+#     data_e_f$tpos[which(data_e_f$status>1)] <- 2
+#     data_e_f$xpos <- data_e_f$last
+#     data_e_f$xpos[which(data_e_f$status>1)] <- min(date_axis)
+#     text(x=data_e_f$xpos, y=data_e_f$index,
+#          labels = data_e_f$screen_name,
+#          cex = default_screen_name_cex,
+#          pos = data_e_f$tpos,
+#          col=screen_name_label_cols[data_e_f$status],
+#          font = screen_name_fonts[data_e_f$status])
+#   }
+#   #if(show_now){
+#   par(xpd=F)
+#   time_now <- Sys.time()
+#   abline(v = time_now, col = "gray")
+#   par(xpd=T)
+#   text(x = time_now, y=0, labels = format(time_now, format = "%H:%M"), col = "gray", pos = 1)
+#   #}
+# }
+#
+# linePlot <- function(data_e, days, volume_smoothing){
+#
+#   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
+#   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
+#
+#   date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
+#
+#   group_timeseries <- make_timeseries(data_e, volume_smoothing, midnight_today, time_range)
+#
+#   #par(xpd=T, bg="#222222", mfrow = c(2,1))
+#
+#   #par(xpd=T, bg="#222222")
+#   par(xpd=T, bg="#343E48")
+#   par(bty="n")
+#
+#   par(mar=c(2.1, 4.1, 0.1, 4.1))
+#   plot(group_timeseries$minute_span, group_timeseries$count,
+#        type="l",
+#        col="gray", xlab="",
+#        xaxt="n",
+#        ylab = "",
+#        yaxt = "n",
+#        col.axis = "gray",
+#        fg = "gray",
+#        ylim = range(c(group_timeseries$count, group_timeseries$count), na.rm = T),
+#        xlim = time_range)
+#   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#   #axis(side=2, at=range(group_timeseries$count), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+# }
+#
+#
+# # Survey stuff
+#
+# prep_survey_data <- function(experiment_directory, participant_group){
+#   survey_dir <- dir(paste0(experiment_directory, participant_group, "/survey_scrapes/"), full.names = T)
+#   surveys_bound <- readRDS(max(survey_dir))
+#
+#   link_dir <- dir(paste0(experiment_directory, participant_group, "/id_links/"), full.names = T)
+#   links_bound <- map_dfr(link_dir, readRDS)
+#
+#   survey_data_joined <- left_join(surveys_bound, links_bound)
+#   survey_data_joined_GOOD <- survey_data_joined %>% filter(!is.na(user_id))
+#
+#   return(list(survey_data_joined, survey_data_joined_GOOD))
+# }
+#
+# make_survey_timeseries <- function(input, volume_smoothing, survey_data_joined_GOOD, survey_start_date){
+#   output <- input %>%
+#     mutate(minute_span = round_date(RecordedDate, unit = paste(volume_smoothing,"minutes"))) %>%
+#     group_by(minute_span) %>%
+#     summarise(count = n(),
+#               count_good = sum(ResponseId %in% survey_data_joined_GOOD$ResponseId, na.rm = T),
+#               count_bad = sum(! ResponseId %in% survey_data_joined_GOOD$ResponseId, na.rm = T))
+#   all_minutes <- seq.POSIXt(as.POSIXct(survey_start_date), ceiling_date(Sys.time(), "day"), by = paste(volume_smoothing,"min")) #changed noon_today to sys.time()
+#   other_minutes <- all_minutes[which(!all_minutes %in% output$minute_span)]
+#   output <- bind_rows(output, data.frame("minute_span"=other_minutes,
+#                                          "count"=rep(0, length(other_minutes)),
+#                                          "count_good"=rep(0, length(other_minutes)),
+#                                          "count_bad"=rep(0, length(other_minutes)))) %>% arrange(minute_span)
+#   return(output)
+# }
+#
+# ts_to_cumulative <- function(survey_ts){
+#   survey_cumulative <- survey_ts %>% transmute(minute_span,
+#                                                count=NA,
+#                                                count_good=NA,
+#                                                count_bad=NA)
+#   for (i in 1:nrow(survey_cumulative)) {
+#     survey_cumulative$count[i] <- sum(survey_ts$count[1:i])
+#     survey_cumulative$count_good[i] <- sum(survey_ts$count_good[1:i])
+#     survey_cumulative$count_bad[i] <- sum(survey_ts$count_bad[1:i])
+#   }
+#   return(survey_cumulative)
+# }
+#
+# # NETWORK STUFF
+# require(igraph)
+#
+# assignment_node_col <- "gray50"
+# placeboed_node_col <- "plum"
+# treated_node_col <- "dodgerblue2"
+#
+# id_to_sn <- function(id, lookup){
+#   require(dplyr)
+#   if(length(id)==1){out <- lookup %>% filter(user_id == id) %>% pull(screen_name)}
+#   if(length(id)>1){
+#     out <- c()
+#     for (i in 1:length(id)){
+#       out[i] <- lookup %>% filter(user_id == id[i]) %>% pull(screen_name)
+#     }
+#   }
+#   return(out)
+# }
+#
+# # prep_network_data <- function(experiment_directory, participant_group, assignment_group){
+# #   p_friends_all <- dir(paste0(experiment_directory, participant_group, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+# #
+# #   par_info <- dir(paste0(experiment_directory, participant_group, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+# #   ass_info <- dir(paste0(experiment_directory, assignment_group, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+# #   all_info <- rbind(par_info, ass_info)
+# #
+# #   id_links <- dir(paste0(experiment_directory, participant_group, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+# #   survey_responses_GOOD <- prep_survey_data(experiment_directory, participant_group)[[2]]
+# #
+# #   vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses_GOOD)
+# #   vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+# #   vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+# #
+# #   data <- p_friends_all %>% filter(user_id %in% vertex_metadata$user_id) %>% group_by(user, user_id) %>% summarise(first = min(scraped_at), last = max(scraped_at), orange = difftime(Sys.time(), last, units = "day")>1)
+# #
+# #   graph <- graph_from_data_frame(data, directed = TRUE, vertices = vertex_metadata)
+# #
+# #   V(graph)$label <- V(graph)$screen_name
+# #
+# #   #V(graph)$frame.color <- "red"
+# #
+# #   V(graph)$color[which(V(graph)$group=="assignment")] <- "gray40"
+# #   V(graph)$color[which(V(graph)$group=="treated")] <- "dodgerblue2"
+# #   V(graph)$color[which(V(graph)$group=="placeboed")] <- "deeppink3"
+# #   E(graph)$color[which(E(graph)$orange)] <- "orange"
+# #   E(graph)$color[which(!E(graph)$orange)] <- "green"
+# #
+# #   return(graph)
+# # }
+#
+# prep_network_data_igraph <- function(experiment_directory, participant_group, assignment_group){
+#   p_friends_all <- dir(paste0(experiment_directory, participant_group, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+#
+#   par_info <- dir(paste0(experiment_directory, participant_group, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+#   ass_info <- dir(paste0(experiment_directory, assignment_group, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+#   all_info <- rbind(par_info, ass_info)
+#
+#   id_links <- dir(paste0(experiment_directory, participant_group, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+#   survey_responses_GOOD <- prep_survey_data(experiment_directory, participant_group)[[2]]
+#
+#   vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses_GOOD)
+#   vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+#   vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+#
+#   data <- p_friends_all %>% filter(user_id %in% vertex_metadata$user_id) %>% group_by(user, user_id) %>% summarise(first = min(scraped_at), last = max(scraped_at), color = ifelse(difftime(Sys.time(), last, units = "day")>1, "orange", "green"))
+#
+#   data <- map_dfr(which(vertex_metadata$group!="assignment"),
+#                   ~data.frame("user" = vertex_metadata$user_id[.x],
+#                               "user_id" = vertex_metadata$shown[[.x]],
+#                               first = NA, last = NA, color = "red")) %>%
+#     anti_join(., data, by = c("user", "user_id")) %>%
+#     rbind(., data)
+#
+#   graph <- graph_from_data_frame(data, directed = TRUE, vertices = vertex_metadata)
+#
+#   V(graph)$label <- V(graph)$screen_name
+#
+#   #V(graph)$frame.color <- "red"
+#   V(graph)$color[which(V(graph)$group=="assignment")] <- assignment_node_col
+#   V(graph)$color[which(V(graph)$group=="treated")] <- treated_node_col
+#   V(graph)$color[which(V(graph)$group=="placeboed")] <- placeboed_node_col
+#   #E(graph)$color[which(E(graph)$orange)] <- "orange"
+#   #E(graph)$color[which(!E(graph)$orange)] <- "green"
+#
+#   return(graph)
+# }
+#
+# require(networkD3)
+#
+# prep_network_data_d3 <- function(experiment_directory, participant_group, assignment_group){
+#   p_friends_all <- dir(paste0(experiment_directory, participant_group, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+#
+#   par_info <- dir(paste0(experiment_directory, participant_group, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+#   ass_info <- dir(paste0(experiment_directory, assignment_group, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+#   all_info <- rbind(par_info, ass_info)
+#
+#   id_links <- dir(paste0(experiment_directory, participant_group, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+#   id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
+#
+#   #anyDuplicated(id_links$ResponseId, fromLast = T)
+#
+#   # survey_responses_GOOD <- prep_survey_data(experiment_directory, participant_group)[[2]]
+#   # vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses_GOOD)
+#
+#   survey_responses <- prep_survey_data(experiment_directory, participant_group)[[1]] %>% distinct(ResponseId, .keep_all = T)
+#   #vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses)
+#   #vertex_metadata <- survey_responses %>% left_join(., id_links) %>% full_join(., all_info)
+#
+#   vertex_metadata <- id_links %>% select(ResponseId, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+#   #vertex_metadata <- all_info %>% full_join(., id_links) %>% left_join(., survey_responses)
+#
+#   vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+#   vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+#
+#   na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
+#   for(i in 1:length(na_user_ids_indices)){
+#     vertex_metadata$user_id[na_user_ids_indices[i]] <- paste0("UNKNOWN_",i)
+#     vertex_metadata$screen_name[na_user_ids_indices[i]] <- paste0("UNKNOWN_",i)
+#   }
+#
+#   data <- p_friends_all %>%
+#     filter(user_id %in% vertex_metadata$user_id) %>%
+#     group_by(user, user_id) %>%
+#     summarise(first = min(scraped_at),
+#               last = max(scraped_at),
+#               color = ifelse(difftime(Sys.time(), last, units = "day")>1,
+#                              "orange",
+#                              "green"))
+#
+#   data <- map_dfr(which(vertex_metadata$group!="assignment"),
+#                   ~data.frame("user" = vertex_metadata$user_id[.x],
+#                               "user_id" = vertex_metadata$shown[[.x]],
+#                               first = NA, last = NA, color = "red")) %>%
+#     anti_join(., data, by = c("user", "user_id")) %>%
+#     rbind(., data)
+#   return(list("e" = data, "v" = vertex_metadata))
+# }
+#
+# nodeIndexer <- function(twitter_user_id, metadata){
+#   singleNodeIndexer <- function(twitter_user_id, thismetadata = metadata){return(thismetadata$NodeID[which(thismetadata$user_id==twitter_user_id)])}
+#   if (length(twitter_user_id)==1){
+#     return(singeNodeIndexer(twitter_user_id,metadata))
+#   }
+#   if (length(twitter_user_id)>1){
+#     return(sapply(twitter_user_id,singleNodeIndexer))
+#   }
+# }
+#
+# ################################
+# # QUALTRICS FUNCTIONS
+# ###############################
+#
+# # qualtrics-related functions
+#
+# source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/general_functions.R")
+#
+# require(qualtRics)
+# qualtrics_api_credentials(api_key = "nMNZz9DksEX2m8pefqeyJebdessGS41VZleBsUDC",
+#                           base_url = "princetonsurvey.az1.qualtrics.com",
+#                           install = FALSE)
+#
+# sn_to_userid <- function(sn, treatment_acct_info){
+#   if(! sn %in% treatment_acct_info$screen_name){
+#     message("This screen name is not in the reference set!")
+#     return(NA)
+#   }
+#   if(length(sn)==1){
+#     return(treatment_acct_info %>% filter(screen_name == sn) %>% pull(user_id))
+#   }
+#   if(length(sn)>1){
+#     output <- c()
+#     for (i in 1:length(sn)){
+#       output[i] <- treatment_acct_info %>% filter(screen_name == sn[i]) %>% pull(user_id)
+#     }
+#     return(output)
+#   }
+# }
+#
+# which_maxes <- function(x){which(x == max(x, na.rm = TRUE))}
+#
+# link_ids <- function(claims, new_friends_by_follower){
+#   id_links <- claims %>% mutate(user_id = NA, perfect_match = NA, unique_match = NA, no_match = NA, candidates = list(NA))
+#   for (i in 1:nrow(id_links)) {
+#     this_claim <- id_links$claimed[i] %>% unlist #who did respondent i claim to follow
+#     list_match_logical <- list()
+#     for (j in 1:nrow(new_friends_by_follower)) {
+#       list_match_logical[[j]] <- this_claim %in% new_friends_by_follower$new_friends[[j]]
+#     }
+#     id_links$candidates[[i]] <- new_friends_by_follower %>% transmute(follower, all_match = sapply(list_match_logical, all), match_count = sapply(list_match_logical, sum)) %>% filter(match_count>1) # made this match_count>1 (used to be match_count>0), since all matches must have at least 1
+#     if (sum(id_links$candidates[[i]]$all_match)==1){ #if there is one perfect match
+#       id_links$user_id[i] <- id_links$candidates[[i]] %>% filter(all_match) %>% pull(follower)
+#       id_links$perfect_match[i] <- TRUE
+#       id_links$unique_match[i] <- TRUE
+#       id_links$no_match[i] <- FALSE
+#     }
+#     if (sum(id_links$candidates[[i]]$all_match)>1){ #if there are several perfect matches
+#       id_links$perfect_match[i] <- TRUE
+#       id_links$unique_match[i] <- FALSE
+#       id_links$no_match[i] <- FALSE
+#     }
+#     if (sum(id_links$candidates[[i]]$all_match)<1){ #if there are no perfect matches
+#       id_links$perfect_match[i] <- FALSE
+#       these_maxes <- which_maxes(id_links$candidates[[i]]$match_count)
+#       if (length(these_maxes)==1){ #if there is one best match
+#         id_links$user_id[i] <- id_links$candidates[[i]]$follower[these_maxes]
+#         id_links$unique_match[i] <- TRUE
+#         id_links$no_match[i] <- FALSE
+#       }
+#       if (length(these_maxes)>1){ #if there are several best matches
+#         id_links$unique_match[i] <- FALSE
+#         id_links$no_match[i] <- FALSE
+#       }
+#       if (length(these_maxes)<1){ #if there are no matches
+#         id_links$unique_match[i] <- FALSE
+#         id_links$no_match[i] <- TRUE
+#       }
+#     }
+#   }
+#   return(id_links)
+# }
+#
+# # match_by_following_5 <- function(responses_new, group_name, study_name, assignment_dir, participant_tokens, this_timecode){
+# #   prior_treatment_followers_path <- maxN(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T), N = 3) #get 3rd most recent
+# #
+# #   prior_treatment_followers <- readRDS(prior_treatment_followers_path)
+# #   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
+# #
+# #   message("Identifying claims...")
+# #   claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3, f4, f5) %>%
+# #     transmute(ResponseId,
+# #               claim1 = !is.na(follow1),
+# #               claim2 = !is.na(follow2),
+# #               claim3 = !is.na(follow3),
+# #               claim4 = !is.na(follow4),
+# #               claim5 = !is.na(follow5),
+# #               f1=sn_to_userid(f1, treatment_acct_info),
+# #               f2=sn_to_userid(f2, treatment_acct_info),
+# #               f3=sn_to_userid(f3, treatment_acct_info),
+# #               f4=sn_to_userid(f4, treatment_acct_info),
+# #               f5=sn_to_userid(f5, treatment_acct_info))
+# #
+# #   c_mat <- claims %>% select(starts_with("claim")) %>% as.matrix
+# #   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
+# #
+# #   all_list <- list()
+# #   claim_list <- list()
+# #   for(i in 1:nrow(claims)){
+# #     all_list[[i]] <- f_mat[i,]
+# #     claim_list[[i]] <- f_mat[i,c_mat[i,]]
+# #   }
+# #
+# #   claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list)
+# #
+# #   message("Reading most recent treatment followers scrape...")
+# #   treatment_followers_current_scrape_path <- max(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T)) #get first most recent
+# #   treatment_followers_current_scrape <- readRDS(treatment_followers_current_scrape_path)
+# #
+# #   #new followers of treatments
+# #   new_followers <- treatment_followers_current_scrape %>% filter(! user_id %in% prior_treatment_followers$user_id) #this might lose anyone who happened to follow any treatments before
+# #   if(nrow(new_followers)==0){stop("No new followers!")}
+# #
+# #   unique_new_followers <- unique(new_followers$user_id)
+# #   new_friends_list <- list()
+# #   message("Compiling unique new followers... (this may take some time)")
+# #   for (i in 1:length(unique_new_followers)){
+# #     new_friends_list[[i]] <- new_followers %>% filter(user_id == unique_new_followers[i]) %>% pull(user)
+# #   }
+# #
+# #   new_friends_by_follower <- data.frame(follower = unique_new_followers) %>% mutate(new_friends = new_friends_list)
+# #   id_links <- link_ids(claims, new_friends_by_follower)
+# #   message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
+# #
+# #   if(nrow(id_links)>0){
+# #     saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",group_name, "/id_links/id_links_",this_timecode,".rds"))
+# #     editGroup(group_name, study_name, add_users = id_links$user_id, first_scrape = T, tokens = participant_tokens, max_hours = 1)
+# #   }
+# # }
+#
+# match_by_following_3 <- function(responses_new, group_name, study_name, assignment_dir, participant_tokens, this_timecode){
+#   prior_treatment_followers_path <- maxN(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T), N = 3) #get 3rd most recent
+#
+#   prior_treatment_followers <- readRDS(prior_treatment_followers_path)
+#   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
+#
+#   message("Identifying claims...")
+#   claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
+#     transmute(ResponseId,
+#               #claim1 = !is.na(follow1),
+#               #claim2 = !is.na(follow2),
+#               #claim3 = !is.na(follow3),
+#               f1=sn_to_userid(f1, treatment_acct_info),
+#               f2=sn_to_userid(f2, treatment_acct_info),
+#               f3=sn_to_userid(f3, treatment_acct_info)
+#     )
+#
+#   #c_mat <- claims %>% select(starts_with("claim")) %>% as.matrix
+#   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
+#
+#   all_list <- list()
+#   claim_list <- list()
+#   for(i in 1:nrow(claims)){
+#     all_list[[i]] <- f_mat[i,]
+#     #claim_list[[i]] <- f_mat[i,c_mat[i,]]
+#   }
+#
+#   #claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list)
+#   claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = all_list) #this just assumes all shown are claimed; can be made more parsimonious if we stick with this assumption
+#
+#
+#   message("Reading most recent treatment followers scrape...")
+#   treatment_followers_current_scrape_path <- max(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T)) #get first most recent
+#   treatment_followers_current_scrape <- readRDS(treatment_followers_current_scrape_path)
+#
+#   #new followers of treatments
+#   #new_followers <- treatment_followers_current_scrape %>% filter(! user_id %in% prior_treatment_followers$user_id) #this might lose anyone who happened to follow any treatments before
+#   new_followers_ids <- anti_join(treatment_followers_current_scrape[,c(1,2)], prior_treatment_followers[,c(1,2)]) %>% pull(user_id) %>% unique
+#   new_followers <- treatment_followers_current_scrape %>% filter(user_id %in% new_followers_ids)
+#
+#   if(nrow(new_followers)==0){
+#     warning("No new followers!")
+#     for (i in 1:nrow(responses_new)) {
+#       match_by_following_3_BYHAND(responses_new = responses_new[i,], user_id = NA,
+#                                   study_name = study_name,
+#                                   participant_group = participant_group,
+#                                   assignment_group = assignment_group,
+#                                   add = F)
+#     }
+#   }
+#
+#   if(nrow(new_followers)>0){
+#     unique_new_followers <- unique(new_followers$user_id)
+#     new_friends_list <- list()
+#     message("Compiling unique new followers... (this may take some time)")
+#     for (i in 1:length(unique_new_followers)){
+#       new_friends_list[[i]] <- new_followers %>% filter(user_id == unique_new_followers[i]) %>% pull(user)
+#     }
+#
+#     new_friends_by_follower <- data.frame(follower = unique_new_followers) %>% mutate(new_friends = new_friends_list)
+#     id_links <- link_ids(claims, new_friends_by_follower)
+#     message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
+#
+#     if(nrow(id_links)>0){
+#       saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",group_name, "/id_links/id_links_",this_timecode,".rds"))
+#       editGroup(group_name, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = participant_tokens, max_hours = 1)
+#     }
+#   }
+# }
+#
+# match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study_name, participant_group = "participants", assignment_group = "assignments", add = FALSE, tokens = NULL){
+#
+#   prior_treatment_followers <- before
+#   treatment_acct_info <- readRDS(file = paste0("~/tricordings/studies/",study_name,"/",assignment_group,"/twitter_scrapes/user_info/current_lookup.rds"))
+#
+#   message("Identifying claims...")
+#   claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
+#     transmute(ResponseId,
+#               f1=sn_to_userid(f1, treatment_acct_info),
+#               f2=sn_to_userid(f2, treatment_acct_info),
+#               f3=sn_to_userid(f3, treatment_acct_info)
+#     )
+#
+#   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
+#
+#   all_list <- list()
+#   for(i in 1:nrow(claims)){all_list[[i]] <- f_mat[i,]}
+#
+#   claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = all_list)
+#
+#   treatment_followers_current_scrape <- after
+#
+#   new_followers_ids <- anti_join(treatment_followers_current_scrape[,c(1,2)], prior_treatment_followers[,c(1,2)]) %>% pull(user_id) %>% unique
+#   new_followers <- treatment_followers_current_scrape %>% filter(user_id %in% new_followers_ids)
+#
+#   if(nrow(new_followers)==0){stop("No new followers!")}
+#
+#   unique_new_followers <- unique(new_followers$user_id)
+#   new_friends_list <- list()
+#   message("Compiling unique new followers... (this may take some time)")
+#   for (i in 1:length(unique_new_followers)){
+#     new_friends_list[[i]] <- new_followers %>% filter(user_id == unique_new_followers[i]) %>% pull(user)
+#   }
+#
+#   new_friends_by_follower <- data.frame(follower = unique_new_followers) %>% mutate(new_friends = new_friends_list)
+#   id_links <- link_ids(claims, new_friends_by_follower)
+#   message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
+#
+#   if(nrow(id_links)>0){
+#     print(id_links)
+#     if(add & !is.null(tokens)){
+#       saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",participant_group, "/id_links/id_links_",timeCode(),".rds"))
+#       editGroup(participant_group, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
+#     }
+#   }
+# }
+#
+# match_by_following_3_BYHAND <- function(responses_new, user_id, study_name, participant_group = "participants", assignment_group = "assignments", add = FALSE, tokens = NULL){
+#
+#   if (nrow(responses_new)!=1){stop("responses_new must be a 1-row dataframe!")}
+#
+#   treatment_acct_info <- readRDS(file = paste0("~/tricordings/studies/",study_name,"/",assignment_group,"/twitter_scrapes/user_info/current_lookup.rds"))
+#
+#   message("Identifying claims...")
+#   claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
+#     transmute(ResponseId,
+#               f1=sn_to_userid(f1, treatment_acct_info),
+#               f2=sn_to_userid(f2, treatment_acct_info),
+#               f3=sn_to_userid(f3, treatment_acct_info)
+#     )
+#
+#   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
+#
+#   all_list <- list()
+#   for(i in 1:nrow(claims)){all_list[[i]] <- f_mat[i,]}
+#
+#   claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = all_list)
+#   id_links <- claims %>% mutate(user_id = user_id, perfect_match = NA, unique_match = NA, no_match = NA, candidates = NA)
+#
+#   print(id_links)
+#   #return(id_links)
+#   if(add & !is.null(tokens)){
+#     saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",participant_group, "/id_links/id_links_",timeCode(),".rds"))
+#     editGroup(participant_group, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
+#   }
+# }
+#
+# #high-level qualtrics scraping function
+# scrape_qualtrics <- function(group_name, study_name, match_by = NULL, assignment_dir = NULL, max_treat_followers = 20000, treatment_tokens, participant_tokens){
+#   user_dir <- paste0("~/tricordings/studies/",study_name,"/",group_name,"/")
+#
+#   if(is.null(assignment_dir)){
+#     study_groups <- dir(paste0("~/tricordings/studies/",study_name,"/"))
+#     other_group <- study_groups[which(study_groups != group_name)]
+#     assignment_dir <- paste0("~/tricordings/studies/",study_name,"/",other_group,"/")
+#   }
+#
+#   #fetch survey
+#   this_timecode <- timeCode()
+#   responses_fetched <- fetch_survey(surveyID = readRDS(paste0(user_dir,"scrape_settings.rds"))$qualtrics_survey_id,
+#                                     verbose = FALSE, force_request = TRUE)
+#   # NOT NEEDED IF CLAIMS IGNORED
+#   # responses_fetched <- responses_fetched %>%
+#   #   mutate(follow1 = as.character(follow1),
+#   #          follow2 = as.character(follow2),
+#   #          follow3 = as.character(follow3)#,
+#   #          #follow4 = as.character(follow4),
+#   #          #follow5 = as.character(follow5)
+#   #          )
+#
+#   #fetch treatment followers
+#   message("Scraping all treatment followers...")
+#   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
+#   treatment_followers_current_scrape <- get_followers_rotate_maxToken_BIG(treatment_acct_info, list_tokens = treatment_tokens, n = max_treat_followers)
+#   saveRDS(treatment_followers_current_scrape, file = paste0(assignment_dir,"/twitter_scrapes/followers/followers_",this_timecode,".rds"))
+#
+#   prior_responses_path <- max(dir(paste0(user_dir,"/survey_scrapes"), full.names = T))
+#
+#   if (is.na(prior_responses_path)) {
+#     message("First survey scrape!")
+#     responses_new <- responses_fetched
+#   }
+#
+#   if (!is.na(prior_responses_path)){
+#     prior_responses_fetched <- readRDS(prior_responses_path)
+#     responses_new <- responses_fetched %>% filter(! ResponseId %in% prior_responses_fetched$ResponseId)
+#   }
+#
+#   message(nrow(responses_new), " new responses collected...")
+#
+#   if(nrow(responses_new)>0){
+#     message("Saving...")
+#     saveRDS(responses_fetched, file = paste0(user_dir, "/survey_scrapes/responses_fetched_",this_timecode,".rds")); message("Saved.")
+#     if ((match_by=="follow5")){ #generalize to other systems, like direct capture
+#       message("Matching by follow-5 system...")
+#       match_by_following_5(responses_new = responses_new, group_name = group_name, study_name = study_name, assignment_dir = assignment_dir, participant_tokens = participant_tokens, this_timecode = this_timecode)
+#     }
+#     if ((match_by=="follow3")){
+#       message("Matching by follow-3 system...")
+#       match_by_following_3(responses_new = responses_new, group_name = group_name, study_name = study_name, assignment_dir = assignment_dir, participant_tokens = participant_tokens, this_timecode = this_timecode)
+#     }
+#   }
+# }
+#
+# #####################################
+# # FIX HANDLE FROM SURVEY
+# ####################################
+#
+# fixHandle <- function(RID_to_fix, fixed_handle){
+#   fixed_handle_list_old <- readRDS("~/scrapeTweets/qualtrics_data/twitterhandles_fixed.rds")
+#   fixed_handle_list_old <- fixed_handle_list_old %>% filter(fixed_handle_list_old$RID != RID_to_fix)
+#   fixed_handle_list_new <- rbind(fixed_handle_list_old, c(RID_to_fix, tolower(fixed_handle)))
+#   saveRDS(fixed_handle_list_new, "~/scrapeTweets/qualtrics_data/twitterhandles_fixed.rds")
+#
+#   prids <- readRDS("~/scrapeTweets/qualtrics_data/prior_response_ids.rds")
+#   if(RID_to_fix %in% prids){prids <- prids[-which(prids==RID_to_fix)]}
+#   saveRDS(prids, "~/scrapeTweets/qualtrics_data/prior_response_ids.rds")
+#   message(paste0("Handle changed to ", fixed_handle, ". Fetch survey to reattempt scraping."))
+# }
+#
+# ####################################
+# # SCHULZFUNCTIONS
+# #####################################
+#
+#
+# #wills functions
+#
+# willRescale <- function(input){
+#   return((input-min(input))/max(input))
+# }
+#
+# #made version that's robust to NAs - added 210120
+# willRescale <- function(input){
+#   newinput <- (input-min(input, na.rm = T))
+#   return((newinput)/max(newinput, na.rm = T))
+# }
+#
+# #make a centered sequence for histogram breaks
+# cSeq <- function(l=-2, u=2, b=.1){
+#   r <- c(l,u)
+#   return(seq(r[1]-b/2, r[2]+b/2, by=b))
+# }
+#
+# #explore extreme values
+# extremes <- function(input, n=10){
+#   my_length <- length(input)
+#   my_order <- order(input, decreasing = T)
+#   return(rbind(cbind(rownames(input)[my_order[1:n]],input[my_order[1:n]]), c("...","..."), cbind(rownames(input)[my_order[(my_length-n):my_length]],input[my_order[(my_length-n):my_length]])))
+# }
+#
+# extremes <- function(input, n=10){
+#   my_length <- length(input)
+#   my_order <- order(input, decreasing = T)
+#   if(is.array(input)){return(rbind(cbind(rownames(input)[my_order[1:n]],input[my_order[1:n]]), c("...","..."), cbind(rownames(input)[my_order[(my_length-n):my_length]],input[my_order[(my_length-n):my_length]])))}
+#   if(class(input)=="dgCMatrix"){return(rbind(cbind(rownames(input)[my_order[1:n]],input[my_order[1:n]]), c("...","..."), cbind(rownames(input)[my_order[(my_length-n):my_length]],input[my_order[(my_length-n):my_length]])))}
+#   if(is.vector(input)){return(rbind(cbind(names(input)[my_order[1:n]],input[my_order[1:n]]), c("...","..."), cbind(names(input)[my_order[(my_length-n):my_length]],input[my_order[(my_length-n):my_length]])))}
+# }
+#
+# timeCode <- function(){ #add this function to schulzFunctions?
+#   require(tidyverse)
+#   return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
+# }
+#
+#
+# ##pick set by fold
+# pickTrain <- function(input, k=1, negate=F){
+#   if (negate==F & is.null(dim(input))) {output <- input[which((m$fold)==k)]}
+#   if (negate==F & !is.null(dim(input))) {output <- input[which((m$fold)==k),]}
+#   if (negate==T & is.null(dim(input))) {output <- input[which((m$fold)!=k)]}
+#   if (negate==T & !is.null(dim(input))) {output <- input[which((m$fold)!=k),]}
+#   return(output)
+# }
+#
+# #####
+#
+# #generate colors for a base plot by a categorical variable
+# plotColors <- function(data, colors=c("red","blue","orange","green","cyan","brown", "black", "magenta", "purple"), seed=4711){
+#   set.seed(4711)
+#   color_list <- sample(colors)
+#   data_levels <- unique(data)
+#   out_vector <- rep(NA, length(data))
+#   for (i in 1:length(out_vector)) {
+#     out_vector[i] <- colors[which(data_levels==data[i])]
+#   }
+#   return(out_vector)
+# }
+#
+# #cosine similarity
+# cosineSimilarity <- function(a, b){
+#   return(t(a)%*%b/(sqrt(sum(diag(a %*% t(a))))*sqrt(sum(diag(b %*% t(b))))))
+# }
+#
+# #generate random colors
+# randomColors <- function(my_count=10, my_seed=7, max_lightness=2, opacity=.8){
+#   set.seed(my_seed)
+#   output <- rep(NA, my_count)
+#   for(i in 1:my_count){
+#     for(j in 1:20){
+#       attempt <- c(runif(1),runif(1),runif(1))
+#       if (sum(attempt)<max_lightness){break}
+#     }
+#     output[i] <- rgb(attempt[1],attempt[2],attempt[3],opacity)
+#   }
+#   return(output)
+# }
+#
+#
+# randomColors <- function(my_count=2, my_seed=7, max_lightness=5, min_lightness=0, opacity=.75, max_similarity=.95){
+#   attempt <- rep(NA,3)
+#   set.seed(my_seed)
+#   stored <- matrix(NA, my_count, 3)
+#   output <- rep(NA, my_count)
+#   for(j in 1:1000){
+#     attempt <- runif(3)
+#     if ((sum(attempt)<max_lightness) & (sum(attempt)>min_lightness)){break}
+#   }
+#   stored[1,] <- attempt
+#   output[1] <- rgb(stored[1,1],stored[1,2],stored[1,3],opacity)
+#   for(j in 1:1000){
+#     attempt <- runif(3)
+#     if ((sum(attempt)<max_lightness) & (sum(attempt)>min_lightness) & (cosineSimilarity(attempt, stored[1,])<max_similarity)){break}
+#   }
+#   stored[2,] <- attempt
+#   output[2] <- rgb(stored[2,1],stored[2,2],stored[2,3],opacity)
+#   if (my_count>2){
+#     for(i in 3:my_count){
+#       for(j in 1:10000){
+#         attempt <- runif(3)
+#         if ((sum(attempt)<max_lightness) & (sum(attempt)>min_lightness) & (!any(apply(stored[which(!is.na(stored[,1])),], MARGIN = 1, cosineSimilarity, attempt)>max_similarity))){break}
+#       }
+#       stored[i,] <- attempt
+#       output[i] <- rgb(stored[i,1],stored[i,2],stored[i,3],opacity)
+#     }
+#   }
+#   return(output)
+#   #return(stored)
+# }
+#
+#
+# plotColors <- function(data, colors=c("red","blue","orange","green","cyan","brown", "black", "magenta", "purple"), seed=4711){
+#   set.seed(4711)
+#   #color_list <- sample(colors)
+#   data_levels <- unique(data)
+#   color_list <- randomColors(length(data_levels))
+#   out_vector <- rep(NA, length(data))
+#   for (i in 1:length(out_vector)) {
+#     out_vector[i] <- color_list[which(data_levels==data[i])]
+#   }
+#   return(out_vector)
+# }
+#
+# plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5)){
+#   input <- willRescale(input)
+#   input_length <- length(input)
+#   lr_diff <- right_color-left_color
+#   input_std <- (input-min(input))/max(input)
+#   l_values <- matrix(rep(left_color, input_length), nrow = input_length, ncol = 4, byrow = T)
+#   c_values <- input_std %*% t(lr_diff) + l_values
+#   out <- rep(NA, input_length)
+#   for(i in 1:input_length){
+#     out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
+#   }
+#   return(out)
+# }
+#
+# # version below should be robust to NAs in the input, allow custom selection of backup color for NAs
+# plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5), NA_color=c(.5,.5,.5,.5), transparency = NULL, reference_scale = NA){
+#   input <- willRescale(input)
+#   input_length <- length(input)
+#   input_std <- (input-min(input, na.rm=TRUE))/max(input, na.rm=TRUE) #Why isn't this line redundant with willRescale in the first line...?
+#   if (!is.na(reference_scale)){
+#     input <- willRescale(c(input,reference_scale))
+#     input_std <- (input-min(input, na.rm=TRUE))/max(input, na.rm=TRUE)
+#     input_std <- input_std[1:input_length]
+#   }
+#   lr_diff <- right_color-left_color
+#   l_values <- matrix(rep(left_color, input_length), nrow = input_length, ncol = 4, byrow = T)
+#   c_values <- input_std %*% t(lr_diff) + l_values
+#   out <- rep(NA, input_length)
+#   if (!is.null(transparency)){
+#     transparency_rescaled <- willRescale(transparency)
+#   }
+#   for(i in 1:input_length){
+#     if(any(is.na(c_values[i,]))){
+#       out[i] <- rgb(NA_color[1], NA_color[2], NA_color[3], NA_color[4])
+#     } else {
+#       if (is.null(transparency)) {out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
+#       } else {
+#         out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], transparency_rescaled[i])
+#       }
+#     }
+#   }
+#   return(out)
+# }
+#
+#
+# myLogisticP <- function(x=seq(-1,1,.01), k=1, x_0=0){
+#   if(k>0){
+#     return(plogis(x, x_0, 1/(k)))
+#   }
+#   if(k<0){
+#     return(1-plogis(x, x_0, 1/(-k)))
+#   }
+# }
+#
+# myLogisticQ <- function(x, k=1, x_0=0){
+#   if(k>0){
+#     return(qlogis(x, x_0, 1/(k)))
+#   }
+#   if(k<0){
+#     return(qlogis((1-x), x_0, 1/(-k)))
+#   }
+# }
+#
+# #make superimposed densities
+# myDensities <- function(data, variable, categories, my_bandwidth="auto", breaks=10, main){
+#   eval(parse(text=paste0("my_range <- range(",data,"$",variable,")")))
+#   x_span <- abs(my_range[1]-my_range[2])
+#   print(x_span)
+#   if (my_bandwidth=="auto"){my_bandwidth=x_span/breaks}
+#   my_levels <- eval(parse(text=paste0("unique(",data,"$",categories,")")))
+#   eval(parse(text=paste0("group_1 <- density(",data,"[which(",data,"$",categories,"==\"",my_levels[1],"\"),\"",variable,"\"], bw=",my_bandwidth,")")))
+#   eval(parse(text=paste0("group_2 <- density(",data,"[which(",data,"$",categories,"==\"",my_levels[2],"\"),\"",variable,"\"], bw=",my_bandwidth,")")))
+#   plot(group_1, type="n", main=main, ylim=c(0,max(c(group_1$y, group_2$y))), xlim=c(min(c(group_1$x, group_2$x)),max(c(group_1$x, group_2$x))))
+#   polygon(group_1, border=NA, col=rgb(0,0,1,.7))
+#   polygon(group_2, border=NA, col=rgb(1,0,0,.7))
+# }
+#
+# flipy <- function(x){
+#   thing <- x
+#   thing$y <- -(thing$y)
+#   return(thing)
+# }
+#
+# #convert a matrix from logical to numeric, without losing dimensions
+# #data.matrix() function already exists
+#
+#
+#
+# ################################
+# # FEATURIZATION FUNCTIONS (NEEDS MODELS TO BE READ IN)
+# ################################
+#
+#
+# myTokenize <- function(input, remove_punct = TRUE, remove_numbers=TRUE, remove_url=TRUE) {
+#   dfm_new <- char_tolower(input) %>%
+#     tokens(., what="word", remove_punct = remove_punct, remove_numbers=remove_numbers, remove_url=remove_url) %>%
+#     tokens_remove(., stopwords("english")) %>% #remove standard stopwords
+#     tokens_remove(., "\\p{Z}", valuetype = "regex") %>% #remove problem characters
+#     tokens_wordstem(.) %>% #this step does the stemming
+#     tokens_ngrams(., 1:2) %>% #add bigrams
+#     dfm(.) #make document feature matrix
+#   return(dfm_new)
+# }
+#
+# myClassify <- function(input_dfm, i_mod, s_mod, type = "class"){
+#   p_i <- predict(i_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
+#   if (type != "class"){
+#     p_s <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
+#   } else {
+#     p_s <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.logical() %>% as.numeric()
+#   }
+#   return(cbind(p_i, p_s))
+# }
+#
+# myTokMatchClass <- function(input, match_to, i_mod, s_mod, type = "class"){
+#   output <- input %>% myTokenize(.) %>% dfm_match(., features = match_to) %>% myClassify(., i_mod, s_mod, type = type)
+#   return(output)
+# }
+#
+# batchedClassify <- function(input, batchSize=100000, match_to = NULL, i_mod, s_mod, remove_punct = TRUE, remove_numbers=TRUE, remove_url=TRUE, type = "class"){
+#   nBatches <- length(input)/batchSize
+#   nWholeBatches <- floor(nBatches)
+#   p_list <- list()
+#   for (i in 1:nWholeBatches) {
+#     if(nWholeBatches>1){
+#       pb <- txtProgressBar(min=1, max=nWholeBatches, style=3)
+#       setTxtProgressBar(pb, i)
+#     }
+#     p_list[[i]] <- myTokMatchClass(input[((i-1)*batchSize +1):((i)*batchSize)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)
+#   }
+#   message("Classifying final batch...")
+#   if (nBatches!=nWholeBatches){p_list[[i+1]] <- myTokMatchClass(input[((i)*batchSize +1):length(input)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)}
+#   message("Binding batches together...")
+#   return(do.call(rbind,p_list))
+# }
+#
+#
+# #########################################################################
+# # DAILY_TWITTER_SCRAPE
+# #########################################################################
+#
+# # LaForge unified scraping script
+#
+# options(tidyverse.quiet = TRUE)
+#
+# # getScriptPath <- function(){
+# #   cmd.args <- commandArgs()
+# #   m <- regexpr("(?<=^--file=).+", cmd.args, perl=TRUE)
+# #   script.dir <- dirname(regmatches(cmd.args, m))
+# #   if(length(script.dir) == 0) stop("can't determine script dir: please call the script with Rscript")
+# #   if(length(script.dir) > 1) stop("can't determine script dir: more than one '--file' argument detected")
+# #   return(script.dir)
+# # }
+# #
+# # setwd(getScriptPath())
+# # setwd("../")
+#
+# setwd("~/Documents/GitRprojects/LaForge/")
+#
+# source("functions/twitter_scraping_functions.R")
+#
+# all_groups_contents <- dir("~/tricordings/studies", full.names = T) %>% dir(full.names = T) %>% dir(full.names = T)
+# scrape_settings_paths <- all_groups_contents[str_detect(all_groups_contents, "scrape_settings.rds")]
+# group_directories <- str_remove_all(scrape_settings_paths,"scrape_settings.rds")
+#
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+#
+# for (i in 1:length(group_directories)) {
+#   message("Scraping ", str_remove_all(group_directories[i], ".*studies/"))
+#   scrapeGroup(group_directories[i], tokens = prep_tokens(tokenset, 1:9))
+# }
+#
+#
+#
+# #########################################################################
+# # HOURLY_QUALTRICS_SCRAPE
+# #########################################################################
+#
+#
+# # hourly qualtrics scrape
+# # /usr/local/bin/Rscript /Users/wschulz/Documents/GitRprojects/LaForge/scripts/hourly_qualtrics_scrape.R
+#
+# options(tidyverse.quiet = TRUE)
+#
+# # getScriptPath <- function(){
+# #   cmd.args <- commandArgs()
+# #   m <- regexpr("(?<=^--file=).+", cmd.args, perl=TRUE)
+# #   script.dir <- dirname(regmatches(cmd.args, m))
+# #   if(length(script.dir) == 0) stop("can't determine script dir: please call the script with Rscript")
+# #   if(length(script.dir) > 1) stop("can't determine script dir: more than one '--file' argument detected")
+# #   return(script.dir)
+# # }
+# #
+# # setwd(getScriptPath())
+# # setwd("../")
+#
+# setwd("~/Documents/GitRprojects/LaForge/")
+#
+# source("functions/qualtrics_functions.R") #also loads twitter_scraping and general functions
+#
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# tokens <- prep_tokens(tokenset, 1:9)
+#
+# all_groups_contents <- dir("~/tricordings/studies", full.names = T) %>% dir(full.names = T) %>% dir(full.names = T)
+# scrape_settings_paths <- all_groups_contents[str_detect(all_groups_contents, "scrape_settings.rds")]
+# wants_survey <- c()
+# for (i in 1:length(scrape_settings_paths)){
+#   wants_survey[i] <- !is.null(readRDS(scrape_settings_paths[i])$qualtrics_survey_id)
+# }
+# scrape_settings_paths_wantsurvey <- scrape_settings_paths[wants_survey]
+# group_directories <- str_remove_all(scrape_settings_paths_wantsurvey,"/scrape_settings.rds")
+#
+# for (i in 1:length(group_directories)) {
+#   message("Scraping ", str_remove_all(group_directories[i], ".*studies/"))
+#   names <- group_directories[i] %>% str_remove_all(".*studies/") %>% str_split("/") %>% unlist
+#   this_study_name <- names[1]
+#   this_group_name <- names[2]
+#   scrape_qualtrics(group_name = this_group_name, study_name = this_study_name, match_by = "follow3",
+#                    assignment_dir = NULL, max_treat_followers = 20000,
+#                    treatment_tokens = tokens, participant_tokens = tokens)
+# }
+#
+#
+# #########################################################################
+# # TWITTER_DASH_2GROUP_STUDY
+# #########################################################################
+#
+# # R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2group_study/app.R', port = 4711)"
+# # /Library/Frameworks/R.framework/Resources/bin/Rscript -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2group_study/app.R', port = 4711)"
+#
+# options(warn=-1)
+#
+# options(tidyverse.quiet = TRUE)
+# library(tidyverse)
+# options(dplyr.summarise.inform = FALSE)
+# library(lubridate)
+# library(shiny)
+# library(shinydashboard)
+# library(dashboardthemes)
+# library(shinycssloaders)
+#
+# tricordings_directory <- "~/tricordings/studies/"
+#
+# study_names <- dir("~/tricordings/studies", full.names = T) %>%
+#   dir(full.names = T) %>%
+#   dir(full.names = T) %>%
+#   .[str_detect(., "scrape_settings.rds")] %>%
+#   file.info() %>%
+#   mutate(path = rownames(.)) %>%
+#   mutate(study_name = path %>% str_remove_all(".*/studies/") %>% str_remove_all("/.*")) %>%
+#   group_by(study_name) %>%
+#   summarise(most_recent = max(mtime), count = n()) %>%
+#   arrange(desc(count), desc(most_recent)) %>%
+#   pull(study_name)
+#
+# source("~/Documents/GitRprojects/LaForge/functions/dashboard_functions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/schulzFunctions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
+#
+# #this takes the alphabetical first token set on the machine
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# twitter_tokens <- prep_tokens(tokenset, 1:9)
+#
+# px_group_1 <- 300
+# px_group_2 <- 300
+#
+# px_l <- 40
+#
+# dash_theme = "grey_dark"
+# row_height = 200
+#
+#
+# # App title ----
+# header <- dashboardHeader(title = "Tweet Dashboard"
+#                           # title = shinyDashboardLogoDIY(
+#                           #   boldText = "LaForge",
+#                           #   mainText = "Twitter",
+#                           #   textSize = 16,
+#                           #   badgeText = " v1.0",
+#                           #   badgeTextColor = "white",
+#                           #   badgeTextSize = 2,
+#                           #   badgeBackColor = "#343E48",
+#                           #   badgeBorderRadius = 3
+#                           # )
+# )
+#
+# sidebar <- dashboardSidebar(#width=12,
+#   #textInput("study_name", "Study Name", value = "test_study", width = "100%", placeholder = NULL),
+#   selectInput("study_name", "Study Name", choices = study_names), #target
+#   numericInput("days_back", "Days Back", value = 10, min = 1, max = 365, step = 1),
+#   #br(),#br(),br(),
+#   selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
+#               c("Sentiment" = "sentiment",
+#                 "Lasso Ideology" = "ideology",
+#                 #"Lasso Sureness" = "sureness",
+#                 "None" = "none")),
+#   numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
+#   checkboxInput(inputId = "show_names", label = "Show Names", value = TRUE),
+#   checkboxInput(inputId = "load_all_since_first", label = "Load All", value = TRUE),
+#   checkboxInput(inputId = "include_historical", label = "Include Historical", value = TRUE),
+#   br(),br(),br(),
+#   actionButton("fetch_tweets","Fetch Tweets", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67"),
+#   actionButton("fetch_survey","Fetch Survey", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")
+# )
+#
+#
+#
+# # Main panel for displaying outputs ----
+# body <- dashboardBody(
+#   shinyDashboardThemes(theme = dash_theme),
+#
+#   fluidRow(
+#     box(title=textOutput("group_1_name"),
+#         width = 12,
+#         plotOutput("group_1s_ts_l", height = px_l, width = "100%") %>%
+#           withSpinner(color="#777777", type=8, size = spinner_size),
+#         plotOutput("group_1s_ts_d", height = px_group_1, width = "100%") %>%
+#           withSpinner(color="#777777", type=8, size = spinner_size),
+#     ),
+#
+#     box(title=textOutput("group_2_name"),
+#         width = 12,
+#         plotOutput("group_2s_ts_l", height = px_l, width = "100%") %>%
+#           withSpinner(color="#777777", type=8, size = spinner_size),
+#         plotOutput("group_2s_ts_d", height = px_group_2, width = "100%") %>%
+#           withSpinner(color="#777777", type=8, size = spinner_size),
+#     ),
+#   )
+# )
+#
+#
+# ui <- dashboardPage(header, sidebar, body)
+#
+# # Data pre-processing ----
+#
+#
+#
+# # Define server logic to plot various variables against mpg ----
+# server <- function(input, output) {
+#
+#   observeEvent(input$fetch_tweets, {
+#     #source("/Users/wschulz/Documents/GitRprojects/LaForge/scripts/qualtrics_fetch.R")
+#     scrapeStudy(study_name = input$study_name,
+#                 tokens = twitter_tokens,
+#                 include_timelines = T,
+#                 include_friends = F,
+#                 include_followers = F,
+#                 include_favorites = F)
+#     showModal(modalDialog(
+#       title = "Twitter scrape completed",
+#       paste0("X new tweets collected.")
+#     ))
+#   })
+#
+#   experiment_directory <- reactive({paste0(tricordings_directory,"/", input$study_name, "/")})
+#   groups <- reactive({dir(experiment_directory())})
+#
+#   output$group_1_name <- renderText({
+#     groups()[1]
+#   })
+#
+#   output$group_2_name <- renderText({
+#     groups()[2]
+#   })
+#
+#   participant_group <- reactive({
+#     for (i in 1:2){
+#       if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+#         participant_group <- groups()[i]
+#       }
+#     }
+#     return(participant_group)
+#   })
+#
+#   observeEvent(input$fetch_survey, {
+#     scrape_qualtrics(participant_group(), input$study_name, match_by = "follow3",
+#                      treatment_tokens = twitter_tokens, participant_tokens = twitter_tokens) #don't need to split anymore since automatically tries all
+#     #treatment_tokens = twitter_tokens[1:6], participant_tokens = twitter_tokens[7:9])
+#     showModal(modalDialog(
+#       title = "Fetch Completed",
+#       paste0(participant_group(), " fetched!")
+#       #paste0(new_responses_count, " new responses collected.")
+#     ))
+#   })
+#
+#   timeline_data_group_1s <- reactive({
+#     invalidateLater(refresh_time)
+#     prep_timeline_data(user_dir = paste0(experiment_directory(), groups()[1]),
+#                        sessions_back=(input$days_back),
+#                        include_historical = input$include_historical,
+#                        load_all_since_first = input$load_all_since_first)
+#   })
+#
+#   timeline_data_group_2s <- reactive({
+#     invalidateLater(refresh_time)
+#     prep_timeline_data(user_dir = paste0(experiment_directory(), groups()[2]),
+#                        sessions_back=(input$days_back),
+#                        include_historical = input$include_historical,
+#                        load_all_since_first = input$load_all_since_first)
+#   })
+#
+#   output$group_1s_ts_l <- renderPlot({
+#     invalidateLater(refresh_time)
+#     timeline_data <- timeline_data_group_1s()
+#     linePlot(timeline_data[[1]], input$days_back, input$volume_smoothing)
+#   })
+#
+#   output$group_1s_ts_d <- renderPlot({
+#     invalidateLater(refresh_time)
+#     timeline_data <- timeline_data_group_1s()
+#     dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex,
+#             sentiment_reference_scale = my_sentiment_reference_scale,
+#             ideo_reference_scale = my_ideo_reference_scale)
+#   })
+#
+#   output$group_2s_ts_l <- renderPlot({
+#     invalidateLater(refresh_time)
+#     timeline_data <- timeline_data_group_2s()
+#     linePlot(timeline_data[[1]], input$days_back, input$volume_smoothing)
+#   })
+#
+#   output$group_2s_ts_d <- renderPlot({
+#     invalidateLater(refresh_time)
+#     timeline_data <- timeline_data_group_2s()
+#     dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex,
+#             sentiment_reference_scale = my_sentiment_reference_scale,
+#             ideo_reference_scale = my_ideo_reference_scale)
+#   })
+#
+# }
+#
+# shinyApp(ui, server)
+#
+#
+# #########################################################################
+# # TWITTER_DASH_2GROUP_STUDY_D3
+# #########################################################################
+#
+# # R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2group_study_d3/app.R', port = 4710)"
+# # /Library/Frameworks/R.framework/Resources/bin/Rscript -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2group_study_d3/app.R', port = 4710)"
+#
+# options(warn=-1)
+#
+# options(tidyverse.quiet = TRUE)
+# library(tidyverse)
+# options(dplyr.summarise.inform = FALSE)
+# library(lubridate)
+# library(shiny)
+# library(shinydashboard)
+# library(dashboardthemes)
+# library(shinycssloaders)
+#
+# tricordings_directory <- "~/tricordings/studies/"
+#
+# study_names <- dir("~/tricordings/studies", full.names = T) %>%
+#   dir(full.names = T) %>%
+#   dir(full.names = T) %>%
+#   .[str_detect(., "scrape_settings.rds")] %>%
+#   file.info() %>%
+#   mutate(path = rownames(.)) %>%
+#   mutate(study_name = path %>% str_remove_all(".*/studies/") %>% str_remove_all("/.*")) %>%
+#   group_by(study_name) %>%
+#   summarise(most_recent = max(mtime), count = n()) %>%
+#   arrange(desc(count), desc(most_recent)) %>%
+#   pull(study_name)
+#
+# source("~/Documents/GitRprojects/LaForge/functions/dashboard_functions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/schulzFunctions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
+#
+# #this takes the alphabetical first token set on the machine
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# twitter_tokens <- prep_tokens(tokenset, 1:9)
+#
+# px_group_1 <- 300
+# px_group_2 <- 300
+#
+# px_l <- 40
+#
+# dash_theme = "grey_dark"
+# row_height = 200
+#
+#
+# ##### FUNCTIONS TEMP
+# require(r2d3)
+#
+# dotPlot_simple <- function(data_e, data_e_f, days, point_cex){
+#
+#   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
+#   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
+#
+#   date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
+#
+#   par(xpd=F, bg="#343E48")
+#   par(bty="n")
+#
+#   par(mar=c(4.1, 4.1, 0.1, 4.1))
+#
+#   plot(x=data_e$created_at, y=data_e$user_index,
+#        ylim = range(data_e_f$index),
+#        xlim = time_range,
+#        col = "grey",
+#        yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")
+#   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"),
+#        cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+# }
+#
+#
+# ####
+#
+#
+#
+# # App title ----
+# header <- dashboardHeader(title = "Tweet Dashboard"
+#                           # title = shinyDashboardLogoDIY(
+#                           #   boldText = "LaForge",
+#                           #   mainText = "Twitter",
+#                           #   textSize = 16,
+#                           #   badgeText = " v1.0",
+#                           #   badgeTextColor = "white",
+#                           #   badgeTextSize = 2,
+#                           #   badgeBackColor = "#343E48",
+#                           #   badgeBorderRadius = 3
+#                           # )
+# )
+#
+# sidebar <- dashboardSidebar(#width=12,
+#   #textInput("study_name", "Study Name", value = "test_study", width = "100%", placeholder = NULL),
+#   selectInput("study_name", "Study Name", choices = study_names), #target
+#   numericInput("days_back", "Days Back", value = 50, min = 1, max = 365, step = 1),
+#   #br(),#br(),br(),
+#   selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
+#               c("Sentiment" = "sentiment",
+#                 "Lasso Ideology" = "ideology",
+#                 #"Lasso Sureness" = "sureness",
+#                 "None" = "none")),
+#   numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
+#   checkboxInput(inputId = "show_names", label = "Show Names", value = TRUE),
+#   checkboxInput(inputId = "load_all_since_first", label = "Load All", value = TRUE),
+#   checkboxInput(inputId = "include_historical", label = "Include Historical", value = TRUE),
+#
+#   br(),
+#   actionButton("fetch_tweets","Fetch Tweets", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67"),
+#   actionButton("fetch_survey","Fetch Survey", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")
+#   #br(),br(),br(),
+#
+# )
+#
+#
+#
+# # Main panel for displaying outputs ----
+# body <- dashboardBody(
+#   shinyDashboardThemes(theme = dash_theme),
+#
+#   fluidRow(column(width = 8,
+#                   box(title=textOutput("group_1_name"),
+#                       width = 12,
+#                       plotOutput("group_1s_ts_d", height = px_group_1, width = "100%") %>%
+#                         withSpinner(color="#777777", type=8, size = spinner_size),
+#                   ),
+#
+#                   box(title=textOutput("group_2_name"),
+#                       width = 12,
+#                       div(id = "htmlwidget_container",
+#                           d3Output("group_2s_ts_d", height = px_group_2, width = "100%")
+#                       )
+#                   )),
+#            box(title="Tweet Details",
+#                width = 4,
+#                htmlOutput("tweet_viewer"))
+#   )
+#
+#
+# )
+#
+#
+# #test_text <- "test_text_yay"
+#
+# ui <- dashboardPage(header, sidebar, body)
+#
+# # Data pre-processing ----
+#
+# # Define server logic to plot various variables against mpg ----
+# server <- function(input, output) {
+#   output$tweet_viewer <- renderText(paste0("From: ",input$tweet_screen_name,"<br>",
+#                                            "At: ",input$tweet_created_at,"<br>",
+#                                            "Sentiment: ",round(as.numeric(input$tweet_sentiment),2),"<br>",
+#                                            input$tweet_text))
+#
+#   observeEvent(input$fetch_tweets, {
+#     #source("/Users/wschulz/Documents/GitRprojects/LaForge/scripts/qualtrics_fetch.R")
+#     scrapeStudy(study_name = input$study_name,
+#                 tokens = twitter_tokens,
+#                 include_timelines = T,
+#                 include_friends = F,
+#                 include_followers = F,
+#                 include_favorites = F)
+#     showModal(modalDialog(
+#       title = "Twitter scrape completed",
+#       paste0("X new tweets collected.")
+#     ))
+#   })
+#
+#   experiment_directory <- reactive({paste0(tricordings_directory,"/", input$study_name, "/")})
+#   groups <- reactive({dir(experiment_directory())})
+#
+#   output$group_1_name <- renderText({
+#     groups()[1]
+#   })
+#
+#   output$group_2_name <- renderText({
+#     groups()[2]
+#   })
+#
+#   participant_group <- reactive({
+#     for (i in 1:2){
+#       if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+#         participant_group <- groups()[i]
+#       }
+#     }
+#     return(participant_group)
+#   })
+#
+#   observeEvent(input$fetch_survey, {
+#     scrape_qualtrics(participant_group(), input$study_name, match_by = "follow3",
+#                      treatment_tokens = twitter_tokens, participant_tokens = twitter_tokens) #don't need to split anymore since automatically tries all
+#     #treatment_tokens = twitter_tokens[1:6], participant_tokens = twitter_tokens[7:9])
+#     showModal(modalDialog(
+#       title = "Fetch Completed",
+#       paste0(participant_group(), " fetched!")
+#       #paste0(new_responses_count, " new responses collected.")
+#     ))
+#   })
+#
+#   timeline_data_group_1s <- reactive({
+#     invalidateLater(refresh_time)
+#     prep_timeline_data(user_dir = paste0(experiment_directory(), groups()[1]),
+#                        sessions_back=(input$days_back),
+#                        include_historical = input$include_historical,
+#                        load_all_since_first = input$load_all_since_first)
+#   })
+#
+#   timeline_data_group_2s <- reactive({
+#     invalidateLater(refresh_time)
+#     prep_timeline_data(user_dir = paste0(experiment_directory(), groups()[2]),
+#                        sessions_back=(input$days_back),
+#                        include_historical = input$include_historical,
+#                        load_all_since_first = input$load_all_since_first)
+#   })
+#
+#   output$group_1s_ts_d <- renderPlot({
+#     invalidateLater(refresh_time)
+#     timeline_data <- timeline_data_group_1s()
+#     dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex,
+#             sentiment_reference_scale = my_sentiment_reference_scale,
+#             ideo_reference_scale = my_ideo_reference_scale)
+#   })
+#
+#   output$group_2s_ts_d <- renderD3({
+#     invalidateLater(refresh_time)
+#     timeline_data <- timeline_data_group_2s()
+#     timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
+#     data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
+#                        y = timeline_data[[1]]$user_index,
+#                        text = timeline_data[[1]]$text,
+#                        sentiment = timeline_data[[1]]$score,
+#                        screen_name = timeline_data[[1]]$screen_name,
+#                        created_at = timeline_data[[1]]$created_at,
+#                        size = 4)
+#     options(r2d3.theme = list(
+#       background = "#343E48",
+#       foreground = "#808080")
+#     )
+#     r2d3(data=data,
+#          script = "~/Documents/GitRprojects/LaForge/dev/d3_scripts/scatter5.js",
+#          options = list(margin_top = 6,
+#                         margin_bottom = 60,
+#                         margin_sides = 20,
+#                         colour = c("rgba(0,255,0,1)"),
+#                         hovercolour = "green",
+#                         xLabel = "",
+#                         yLabel = "",
+#                         xmin = min(data$x),
+#                         xmax = max(data$x),
+#                         ymin = min(data$y),
+#                         ymax = max(data$y),
+#                         chartTitle = ""
+#          )
+#     )
+#   })
+#
+# }
+#
+# shinyApp(ui, server)
+#
+#
+# ########################################
+# # SURVEY DASH D3
+# #########################################
+#
+#
+# # R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/survey_dash/app.R', port = 4712)"
+# # /Library/Frameworks/R.framework/Resources/bin/Rscript -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/survey_dash/app.R', port = 4712)"
+#
+# options(warn=-1)
+#
+# options(tidyverse.quiet = TRUE)
+# library(tidyverse)
+# options(dplyr.summarise.inform = FALSE)
+# library(lubridate)
+# library(shiny)
+# library(shinydashboard)
+# library(dashboardthemes)
+# library(shinycssloaders)
+#
+# survey_start_date <- "2021-06-01 12:00:00 EST"
+#
+# tricordings_directory <- "~/tricordings/studies/"
+#
+# study_names <- dir("~/tricordings/studies", full.names = T) %>%
+#   dir(full.names = T) %>%
+#   dir(full.names = T) %>%
+#   .[str_detect(., "scrape_settings.rds")] %>%
+#   file.info() %>%
+#   mutate(path = rownames(.)) %>%
+#   mutate(study_name = path %>% str_remove_all(".*/studies/") %>% str_remove_all("/.*")) %>%
+#   group_by(study_name) %>%
+#   summarise(most_recent = max(mtime), count = n()) %>%
+#   arrange(desc(count), desc(most_recent)) %>%
+#   pull(study_name)
+#
+# source("~/Documents/GitRprojects/LaForge/functions/dashboard_functions.R")
+# source("~/Documents/GitRprojects/LaForge/functions/schulzFunctions.R")
+#
+# # source("~/Documents/GitRprojects/LaForge/functions/twitter_scraping_functions.R")
+# # source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
+# #
+# # #this takes the alphabetical first token set on the machine
+# # tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# # twitter_tokens <- prep_tokens(tokenset, 1:9)
+#
+# dash_theme = "grey_dark"
+#
+#
+# # App title ----
+# header <- dashboardHeader(title = "Compliance Dashboard"
+# )
+#
+# sidebar <- dashboardSidebar(#width=12,
+#   selectInput("study_name", "Study Name", choices = study_names)
+# )
+#
+# # Main panel for displaying outputs ----
+# body <- dashboardBody(
+#   shinyDashboardThemes(theme = dash_theme),
+#
+#   fluidRow(
+#     column(width=4,
+#            box(title="Survey Data Collection (Cumulative)",
+#                width = 12,
+#                plotOutput("survey_ts", height = paste0(150, "px"), width = "100%") %>%
+#                  withSpinner(color="#777777", type=8)
+#            )
+#            # ,box(title="Lookup",
+#            #     width = 12, height = "600px",
+#            #     dataTableOutput("data_table") %>%
+#            #       withSpinner(color="#777777", type=8)
+#            # )
+#     ),
+#     column(width=8,
+#            box(title="Network",
+#                width = 12,
+#                forceNetworkOutput("network_graph_d3", height = paste0(650, "px"), width = "100%") %>%
+#                  withSpinner(color="#777777", type=8)
+#                ,dataTableOutput("data_table") %>%
+#                  withSpinner(color="#777777", type=8)
+#            ),
+#     )
+#   )
+# )#prop_followers_assigned
+#
+# ui <- dashboardPage(header, sidebar, body)
+#
+# server <- function(input, output) {
+#
+#   experiment_directory <- reactive({paste0(tricordings_directory,"/", input$study_name, "/")})
+#   groups <- reactive({dir(experiment_directory())})
+#
+#   output$group_1_name <- renderText({
+#     groups()[1]
+#   })
+#
+#   output$group_2_name <- renderText({
+#     groups()[2]
+#   })
+#
+#   participant_group <- reactive({
+#     for (i in 1:2){
+#       if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+#         participant_group <- groups()[i]
+#       }
+#     }
+#     return(participant_group)
+#   })
+#
+#   assignment_group <- reactive({#this could be made more intelligent, but good enough for now
+#     for (i in 1:2){
+#       if (is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+#         assignment_group <- groups()[i]
+#       }
+#     }
+#     return(assignment_group)
+#   })
+#
+#   survey_data_prepped <- reactive({invalidateLater(refresh_time)
+#     prep_survey_data(experiment_directory(),participant_group())
+#   })
+#
+#
+#   output$survey_ts <- renderPlot({invalidateLater(refresh_time)
+#
+#     surveys_df <- survey_data_prepped()[[1]]
+#     survey_data_joined_GOOD <- survey_data_prepped()[[2]]
+#
+#     survey_start_date <- floor_date(as.POSIXct(survey_start_date), "day")
+#     message(survey_start_date)
+#
+#     survey_ts <- make_survey_timeseries(surveys_df, 60, survey_data_joined_GOOD, survey_start_date)
+#     survey_cumulative <- ts_to_cumulative(survey_ts)
+#
+#     data <- as.matrix(survey_cumulative[,c(3,4)])
+#     rownames(data) <- survey_cumulative$minute_span
+#
+#     data <- t(data)
+#     cumulation_x_axis_indices <- seq(1, ncol(data), length.out = 12)
+#     cumulation_x_axis_marks <- colnames(data)[cumulation_x_axis_indices]
+#     cumulation_date_labels <- as.POSIXct(as.numeric(cumulation_x_axis_marks), origin = "1970-01-01")
+#     cumulation_date_labels <- c(min(cumulation_date_labels),rep("",length(cumulation_date_labels)-2),max(cumulation_date_labels))
+#
+#     cumulation_y_axis <- c(0, max(survey_cumulative$count))
+#
+#     par(bty="n",
+#         bg="#343E48",
+#         xpd=T,
+#         mar=c(4.1,4.1,2.5,4.1))
+#
+#     barplot(data, col = survey_cumulation_colors, border=NA, space=0, xaxt="n", yaxt="n")
+#     axis(side=1, at=cumulation_x_axis_indices, labels=format(cumulation_date_labels, "%b %d"),
+#          cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#     axis(side=2, at=cumulation_y_axis, cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#     #legend("topleft", legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
+#     legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
+#   })
+#
+#   network_data_prepped <- reactive({invalidateLater(refresh_time)
+#     prep_network_data_igraph(experiment_directory(),participant_group(),assignment_group())
+#   })
+#
+#   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
+#     prep_network_data_d3(experiment_directory(),participant_group(),assignment_group())
+#   })
+#
+#
+#   output$network_graph_d3 <- renderForceNetwork({invalidateLater(refresh_time)
+#     #par(bg="#343E48", fg="grey", mar = c(0,0,0,0))
+#
+#     myNodes <- network_data_prepped_d3()$v %>% add_column(NodeID = 1:nrow(.)-1, .before = 0)
+#
+#     myLinks <- network_data_prepped_d3()$e %>% mutate("source" = nodeIndexer(user, myNodes),
+#                                                       "target" = nodeIndexer(user_id, myNodes),
+#                                                       "value" = 2
+#     )
+#
+#     #MyClickScript <- 'alert("You clicked " + d.name);'
+#
+#     MyClickScript <- "Shiny.setInputValue('user_text', d.name);"
+#
+#     fn <- forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
+#                        linkColour = myLinks$color, charge = -50, zoom = F, linkDistance = 80, clickAction = MyClickScript,
+#                        colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
+#                                             paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
+#                                                                                 placeboed_node_col,
+#                                                                                 treated_node_col)),
+#                                                               collapse = "\', \'"),"\'")
+#                                             ,"]);"))
+#     #make legend text white
+#     htmlwidgets::onRender(
+#       fn,
+#       'function(el, x) {
+#     d3.select("body").style("background-color", "#144370");
+#     d3.selectAll(".legend text").style("fill", "white");
+#   }'
+#     )
+#   })
+#
+#   options_reactive <- reactive({list(pageLength = 5, editable = F,
+#                                      lengthChange = FALSE,
+#                                      search = list(search = input$user_text))})
+#
+#   output$data_table <- renderDataTable(network_data_prepped_d3()[[2]] %>% select(ResponseId, user_id, screen_name, group),
+#                                        options = options_reactive)
+#
+#   # text output
+#   output$text <- renderText({
+#     input$user_text
+#   })
+#
+# }
+#
+# shinyApp(ui, server)
+
