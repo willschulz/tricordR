@@ -27,7 +27,7 @@ Finally, if you intend to use tricordR's automated scraping features, add the fo
 00 03 00 * * Rscript path/to/script.R
 ```
 
-If you're new to cron jobs and use a mac, see this helpful primer: https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/
+If you're new to cron jobs and use a mac, see <a href="https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/">this helpful primer</a>: https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/
 
 ## Collecting Data
 
