@@ -88,147 +88,186 @@ addStudy <- function(study_name){
   dir.create(study_directory)
 }
 
+#' Add a Panel to a Study
+#'
+#' This function creates a new panel in a given study folder of tricordings, specifies desired data types to scrape, and optionally conducts an initial scrape of these data.
+#' @param study_name Name of the study to be added.
+#' @param group_name Name of the panel to be added.
+#' @param user_ids Twitter user ids of users to be added to the new panel.
+#' @param scrape_timelines Should timelines be scraped for this panel?
+#' @param scrape_friends Should friends be scraped for this panel?
+#' @param scrape_followers Should followers be scraped for this panel?
+#' @param scrape_favorites Should favorites be scraped for this panel?
+#' @param first_scrape Should tricordR conduct an initial scrape of the specified data for the specified users?
+#' @param tokens List of tokens to use for initial scrape.  See prepTokens.
+#' @param max_hours Maximum duration of initial scrape.  Defaults to 1 hour.
+#' @param scrape_survey Should tricordR conduct hourly scrapes of survey responses associated with this panel? Defaults to FALSE.
+#' @param qualtrics_survey_id If scrape_survey is TRUE, provide a Qualtrics survey id to identify the relevant survey data.  Note: to use this, you must also install your Qualtrics authentication credentials on your machine.
+#' @keywords management
+#' @export
+#' @examples
+#' addGroup()
 
-# #create group of people to track within a study
-# addGroup <- function(group_name, study_name, user_ids = c(), initial_scrape = T, tokens, max_hours = 1,
-#                      qualtrics_survey_id = NULL,
-#                      scrape_survey = T,
-#                      scrape_timelines = T,
-#                      scrape_friends = T,
-#                      scrape_followers = T,
-#                      scrape_favorites = T){
-#   ###
-#   tricordings_directory <- "~/tricordings/"
-#   ###
-#   #create group directory
-#   group_directory <- paste0(tricordings_directory, "studies/", study_name, "/", group_name)
-#   if (dir.exists(group_directory)){
-#     if (askYesNo(msg = "This group already exists. Do you want to reset?\n")){#if you say no, it still proceeds with everything else... fix this!
-#       unlink(x = paste0(group_directory,"/"), recursive = T)
-#     }
-#   }
-#   dir.create(group_directory)
-#
-#   if (scrape_survey) {
-#     dir.create(paste0(group_directory,"/survey_scrapes"))
-#     dir.create(paste0(group_directory,"/survey_scrape_logs"))
-#     dir.create(paste0(group_directory,"/id_links"))
-#   }
-#
-#   if (any(scrape_timelines,scrape_friends,scrape_followers,scrape_favorites)) {
-#     dir.create(paste0(group_directory,"/twitter_scrapes"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/user_info"))
-#     saveRDS(user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds")) #save any user_ids that are available in the twitter_scrapes folder
-#   }
-#
-#   if (scrape_timelines) {
-#     dir.create(paste0(group_directory,"/twitter_scrapes/timelines"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/first_timelines"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/timeline_attempts"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/timeline_logs"))
-#   }
-#
-#   if (scrape_friends) {
-#     dir.create(paste0(group_directory,"/twitter_scrapes/friends"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/first_friends"))
-#   }
-#   if (scrape_followers) {
-#     dir.create(paste0(group_directory,"/twitter_scrapes/followers"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/first_followers"))
-#   }
-#
-#   if (scrape_favorites) {
-#     dir.create(paste0(group_directory,"/twitter_scrapes/favorites"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/first_favorites"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/favorite_attempts"))
-#     dir.create(paste0(group_directory,"/twitter_scrapes/favorite_logs"))
-#   }
-#
-#   #save scraping settings
-#   scrape_settings <- list(qualtrics_survey_id = qualtrics_survey_id,
-#                           scrape_survey = scrape_survey,
-#                           scrape_timelines = scrape_timelines,
-#                           scrape_friends = scrape_friends,
-#                           scrape_followers = scrape_followers,
-#                           scrape_favorites = scrape_favorites)
-#   saveRDS(scrape_settings, paste0(group_directory, "/scrape_settings.rds"))
-#
-#   if (initial_scrape & (length(user_ids)>0)){
-#     firstScrape(user_ids = user_ids,
-#                 group_directory = group_directory,
-#                 tokens = tokens,
-#                 max_hours = max_hours)
-#   }
-# }
-#
-# editGroup <- function(group_name, study_name,
-#                       add_users = NULL,
-#                       remove_users = NULL,
-#                       qualtrics_survey_id = NULL,
-#                       scrape_survey = NULL,
-#                       scrape_timelines = NULL,
-#                       scrape_friends = NULL,
-#                       scrape_followers = NULL,
-#                       scrape_favorites = NULL,
-#                       first_scrape = FALSE,
-#                       tokens = NULL,
-#                       max_hours = 1){
-#   ###
-#   tricordings_directory <- "~/tricordings/"
-#   ###
-#   #construct group directory path
-#   group_directory <- paste0(tricordings_directory, "studies/", study_name, "/", group_name)
-#
-#   #load scraping settings
-#   scrape_settings <- readRDS(paste0(group_directory, "/scrape_settings.rds"))
-#   #edit scraping settings
-#   if (!is.null(scrape_survey)){scrape_settings$scrape_survey <- scrape_survey}
-#   if (!is.null(scrape_timelines)){scrape_settings$scrape_timelines <- scrape_timelines}
-#   if (!is.null(scrape_friends)){scrape_settings$scrape_friends <- scrape_friends}
-#   if (!is.null(scrape_followers)){scrape_settings$scrape_followers <- scrape_followers}
-#   if (!is.null(scrape_favorites)){scrape_settings$scrape_favorites <- scrape_favorites}
-#   #save scraping settings
-#   saveRDS(scrape_settings, paste0(group_directory, "/scrape_settings.rds"))
-#
-#   #update userid list
-#   if ((!is.null(add_users)) & (length(add_users)>0)){
-#     current_user_ids <- readRDS(paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
-#     updated_user_ids <- unique(c(current_user_ids, add_users))
-#     saveRDS(updated_user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
-#     message((length(updated_user_ids)-length(current_user_ids)), " users added to ", group_name, " in ", study_name,".")
-#     message(sum(add_users %in% current_user_ids), " were already in this group.")
-#     #target
-#     if (first_scrape){
-#       new_userids_toscrape <- updated_user_ids[which(! updated_user_ids %in% current_user_ids)]
-#       firstScrape(new_userids_toscrape, group_directory, tokens, max_hours = max_hours)
-#     }
-#   }
-#
-#   if (!is.null(remove_users)){
-#     current_user_ids <- readRDS(paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
-#     if(any(remove_users %in% current_user_ids)){
-#       updated_user_ids <- unique(current_user_ids[-which(current_user_ids %in% remove_users)])
-#       saveRDS(updated_user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
-#       message((-length(updated_user_ids)+length(current_user_ids)), " users removed from user_id list for ", group_name, " in ", study_name,".")
-#     }
-#     message(sum(!remove_users %in% current_user_ids), " were already not in this user_id list.")
-#
-#     if (file.exists(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
-#       current_user_lookup <- readRDS(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
-#       if(any(remove_users %in% current_user_lookup$user_id)){
-#         updated_user_lookup <- current_user_lookup %>% filter(!user_id %in% remove_users)
-#         saveRDS(updated_user_lookup, paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
-#         message((-nrow(updated_user_lookup)+nrow(current_user_lookup)), " users removed from current_user_lookup file for ", group_name, " in ", study_name,".")
-#       }
-#       message(sum(!remove_users %in% current_user_lookup$user_id), " were already not in this lookup file.")
-#     }
-#     #still need to add something to remove them from the log, but this is dangerous, so I'll do it carefully later
-#   }
-#   print(scrape_settings)
-# }
-#
-#
-#
+addGroup <- function(study_name, group_name, user_ids = c(),
+                     scrape_timelines = T,
+                     scrape_friends = T,
+                     scrape_followers = T,
+                     scrape_favorites = T,
+                     first_scrape = T, tokens, max_hours = 1,
+                     scrape_survey = F,
+                     qualtrics_survey_id = NULL){
+  ###
+  tricordings_directory <- "~/tricordings/"
+  ###
+  #create group directory
+  group_directory <- paste0(tricordings_directory, "studies/", study_name, "/", group_name)
+  if (dir.exists(group_directory)){
+    if (askYesNo(msg = "This group already exists. Do you want to reset?\n")){#if you say no, it still proceeds with everything else... fix this!
+      unlink(x = paste0(group_directory,"/"), recursive = T)
+    }
+  }
+  dir.create(group_directory)
+
+  if (scrape_survey) {
+    dir.create(paste0(group_directory,"/survey_scrapes"))
+    dir.create(paste0(group_directory,"/survey_scrape_logs"))
+    dir.create(paste0(group_directory,"/id_links"))
+  }
+
+  if (any(scrape_timelines,scrape_friends,scrape_followers,scrape_favorites)) {
+    dir.create(paste0(group_directory,"/twitter_scrapes"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/user_info"))
+    saveRDS(user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds")) #save any user_ids that are available in the twitter_scrapes folder
+  }
+
+  if (scrape_timelines) {
+    dir.create(paste0(group_directory,"/twitter_scrapes/timelines"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/first_timelines"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/timeline_attempts"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/timeline_logs"))
+  }
+
+  if (scrape_friends) {
+    dir.create(paste0(group_directory,"/twitter_scrapes/friends"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/first_friends"))
+  }
+  if (scrape_followers) {
+    dir.create(paste0(group_directory,"/twitter_scrapes/followers"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/first_followers"))
+  }
+
+  if (scrape_favorites) {
+    dir.create(paste0(group_directory,"/twitter_scrapes/favorites"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/first_favorites"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/favorite_attempts"))
+    dir.create(paste0(group_directory,"/twitter_scrapes/favorite_logs"))
+  }
+
+  #save scraping settings
+  scrape_settings <- list(qualtrics_survey_id = qualtrics_survey_id,
+                          scrape_survey = scrape_survey,
+                          scrape_timelines = scrape_timelines,
+                          scrape_friends = scrape_friends,
+                          scrape_followers = scrape_followers,
+                          scrape_favorites = scrape_favorites)
+  saveRDS(scrape_settings, paste0(group_directory, "/scrape_settings.rds"))
+
+  if (first_scrape & (length(user_ids)>0)){
+    firstScrape(user_ids = user_ids,
+                group_directory = group_directory,
+                tokens = tokens,
+                max_hours = max_hours)
+  }
+}
+
+#' Edit a Panel's Membership or Scrape Settings
+#'
+#' This function creates a new panel in a given study folder of tricordings, specifies desired data types to scrape, and optionally conducts an initial scrape of these data.
+#' @param study_name Name of the study to be edited.
+#' @param group_name Name of the panel to be edited.
+#' @param add_users Twitter user ids of users to be added to the panel.
+#' @param remove_users Twitter user ids of users to be removed from the panel.
+#' @param scrape_timelines Should timelines be scraped for this panel?
+#' @param scrape_friends Should friends be scraped for this panel?
+#' @param scrape_followers Should followers be scraped for this panel?
+#' @param scrape_favorites Should favorites be scraped for this panel?
+#' @param first_scrape Should tricordR conduct an initial scrape of the specified data for the specified users?
+#' @param tokens List of tokens to use for first scrape.  See prepTokens.
+#' @param max_hours Maximum duration of first scrape.  Defaults to 1 hour.
+#' @param scrape_survey Should tricordR conduct hourly scrapes of survey responses associated with this panel? Defaults to FALSE.
+#' @param qualtrics_survey_id If scrape_survey is TRUE, provide a Qualtrics survey id to identify the relevant survey data.  Note: to use this, you must also install your Qualtrics authentication credentials on your machine.
+#' @keywords management
+#' @export
+#' @examples
+#' editGroup()
+
+editGroup <- function(group_name, study_name,
+                      add_users = NULL,
+                      remove_users = NULL,
+                      scrape_timelines = NULL,
+                      scrape_friends = NULL,
+                      scrape_followers = NULL,
+                      scrape_favorites = NULL,
+                      first_scrape = FALSE,
+                      tokens = NULL,
+                      max_hours = 1,
+                      scrape_survey = NULL,
+                      qualtrics_survey_id = NULL){
+  ###
+  tricordings_directory <- "~/tricordings/"
+  ###
+  #construct group directory path
+  group_directory <- paste0(tricordings_directory, "studies/", study_name, "/", group_name)
+
+  #load scraping settings
+  scrape_settings <- readRDS(paste0(group_directory, "/scrape_settings.rds"))
+  #edit scraping settings
+  if (!is.null(scrape_survey)){scrape_settings$scrape_survey <- scrape_survey}
+  if (!is.null(scrape_timelines)){scrape_settings$scrape_timelines <- scrape_timelines}
+  if (!is.null(scrape_friends)){scrape_settings$scrape_friends <- scrape_friends}
+  if (!is.null(scrape_followers)){scrape_settings$scrape_followers <- scrape_followers}
+  if (!is.null(scrape_favorites)){scrape_settings$scrape_favorites <- scrape_favorites}
+  #save scraping settings
+  saveRDS(scrape_settings, paste0(group_directory, "/scrape_settings.rds"))
+
+  #update userid list
+  if ((!is.null(add_users)) & (length(add_users)>0)){
+    current_user_ids <- readRDS(paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+    updated_user_ids <- unique(c(current_user_ids, add_users))
+    saveRDS(updated_user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+    message((length(updated_user_ids)-length(current_user_ids)), " users added to ", group_name, " in ", study_name,".")
+    message(sum(add_users %in% current_user_ids), " were already in this group.")
+    #target
+    if (first_scrape){
+      new_userids_toscrape <- updated_user_ids[which(! updated_user_ids %in% current_user_ids)]
+      firstScrape(new_userids_toscrape, group_directory, tokens, max_hours = max_hours)
+    }
+  }
+
+  if (!is.null(remove_users)){
+    current_user_ids <- readRDS(paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+    if(any(remove_users %in% current_user_ids)){
+      updated_user_ids <- unique(current_user_ids[-which(current_user_ids %in% remove_users)])
+      saveRDS(updated_user_ids, paste0(group_directory, "/twitter_scrapes/user_ids.rds"))
+      message((-length(updated_user_ids)+length(current_user_ids)), " users removed from user_id list for ", group_name, " in ", study_name,".")
+    }
+    message(sum(!remove_users %in% current_user_ids), " were already not in this user_id list.")
+
+    if (file.exists(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
+      current_user_lookup <- readRDS(paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+      if(any(remove_users %in% current_user_lookup$user_id)){
+        updated_user_lookup <- current_user_lookup %>% filter(!user_id %in% remove_users)
+        saveRDS(updated_user_lookup, paste0(group_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+        message((-nrow(updated_user_lookup)+nrow(current_user_lookup)), " users removed from current_user_lookup file for ", group_name, " in ", study_name,".")
+      }
+      message(sum(!remove_users %in% current_user_lookup$user_id), " were already not in this lookup file.")
+    }
+    #still need to add something to remove them from the log, but this is dangerous, so I'll do it carefully later
+  }
+  print(scrape_settings)
+}
+
+
 # # data management
 #
 # fixSentiment <- function(input, allowed_range = c(-1,1)){
