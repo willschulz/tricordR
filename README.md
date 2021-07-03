@@ -44,7 +44,7 @@ Finally, if you intend to use tricordR's automated scraping features, add the fo
 00 12 00 * * * Rscript path/to/daily_scrape_script.R
 ```
 
-This will prompt tricordR to update all tracked user panels (see below) at 12 noon every day, so long as your computer is not asleep.  If you're new to cron jobs and use a mac, see <a href="https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/">this helpful primer</a>.
+This will prompt tricordR to update all tracked user panels (see below) at 12 noon every day, so long as your computer is not asleep.  If you're new to cron and use a mac, see <a href="https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/">this helpful primer</a>.
 
 ## Collecting Data
 
