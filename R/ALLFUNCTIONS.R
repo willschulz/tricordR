@@ -1177,7 +1177,7 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
 
   this_timecode <- timeCode()
 
-  new_lookup <- try(lookup_users(users = user_ids, token = tokens[[1]]))
+  new_lookup <- try(rtweet::lookup_users(users = user_ids, token = tokens[[1]]))
 
   if (is.data.frame(new_lookup)){
     saveRDS(new_lookup, file = paste0(panel_directory, "/twitter_scrapes/user_info/new_lookup_",this_timecode,".rds"))
