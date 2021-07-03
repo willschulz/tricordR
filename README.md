@@ -10,12 +10,16 @@ These tools are designed to minimize the time and effort required to collect dat
   
 ## Getting Started
 
+### Installation
+
 Since tricordR is still in development, it is only available by invitation to this private repository.  To install it, therefore, you must use Hadley's ```devtools``` package and pass your GitHub personal access token to the install_github function.
   
 ``` r
 # install.packages("devtools")
 devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
 ```
+
+### Initialization
 
 Before collecting any data, run the following code to create tricordR's data folder in your home directory:
   
@@ -25,6 +29,8 @@ initialize()
 ```
 
 This is where scraped data, scraping logs, and token sets will be stored.  Beware: re-initializing will result in deletion of any existing tricordR data that has been collected in this folder!
+
+### Saving Tokens
 
 After initializing, install a set of Twitter tokens by passing the relevant parameters to the ```saveToken``` function:
 
@@ -38,13 +44,31 @@ saveToken(set_name = "my_twitter_tokens",
 
 Repeat this process, keeping ```set_name``` fixed, for all the tokens you have created on your Twitter developer account (up to 9).  This will save all your tokens in a convenient list object, stored in tricordR_data/tokens/my_twitter_tokens.rds, so that high-level scraping functions can cycle through them to speed up data collection.
 
-Finally, if you intend to use tricordR's automated scraping features, add the following line to your crontab:
+### Automated Scraping via Cron
+
+If you intend to use tricordR's automated scraping features, add the following line to your crontab:
 
 ``` bash
-00 12 00 * * * Rscript path/to/daily_scrape_script.R
+00 12 00 * * * usr/local/bin/Rscript /Library/Frameworks/R.framework/Versions/4.0/Resources/library/tricordR/scripts/daily_twitter_scrape.R
 ```
 
-This will prompt tricordR to update all tracked user panels (see below) at 12 noon every day, so long as your computer is not asleep.  If you're new to cron and use a mac, see <a href="https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/" target="_blank">this helpful primer</a>.
+This will prompt tricordR to update all tracked user panels (see below) at 12 noon every day, so long as your computer is not asleep.  If you're new to cron and use a mac, see <a href="https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx/" target="_blank">this helpful primer</a>.  Note: If the above path is not the correct path to your installation of tricordR, replace it with the path returned by the following R command:
+
+``` r
+system.file("scripts", "daily_twitter_scrape.R", package = "tricordR")
+```
+
+Similarly, you may need to specify a different path to your Rscript installation using the following bash command:
+
+``` bash
+which Rscript
+```
+
+Finally, to save logs from automated scrapes, add the following line to the end of your cron job, specifying the path to your tricordings folder (which should be in your home directory).
+
+``` bash
+%> /path/to/tricordings/logs/daily_twitter_scrape_log.txt
+```
 
 ## Collecting Data
 
