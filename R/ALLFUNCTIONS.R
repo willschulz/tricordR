@@ -2377,16 +2377,21 @@ linePlot <- function(data_e, days, volume_smoothing){
 #
 #
 # #wills functions
-#
-# willRescale <- function(input){
-#   return((input-min(input))/max(input))
-# }
-#
-# #made version that's robust to NAs - added 210120
-# willRescale <- function(input){
-#   newinput <- (input-min(input, na.rm = T))
-#   return((newinput)/max(newinput, na.rm = T))
-# }
+
+#' Rescale Variable
+#'
+#' A function to rescale a numeric input to the 0-1 interval.
+#' @param input Numeric input to rescale
+#' @keywords utility
+#' @export
+#' @examples
+#' myRescale()
+
+myRescale <- function(input){
+  newinput <- (input-min(input, na.rm = T))
+  return((newinput)/max(newinput, na.rm = T))
+}
+
 #
 # #make a centered sequence for histogram breaks
 # cSeq <- function(l=-2, u=2, b=.1){
@@ -2408,21 +2413,7 @@ linePlot <- function(data_e, days, volume_smoothing){
 #   if(class(input)=="dgCMatrix"){return(rbind(cbind(rownames(input)[my_order[1:n]],input[my_order[1:n]]), c("...","..."), cbind(rownames(input)[my_order[(my_length-n):my_length]],input[my_order[(my_length-n):my_length]])))}
 #   if(is.vector(input)){return(rbind(cbind(names(input)[my_order[1:n]],input[my_order[1:n]]), c("...","..."), cbind(names(input)[my_order[(my_length-n):my_length]],input[my_order[(my_length-n):my_length]])))}
 # }
-#
-# timeCode <- function(){ #add this function to schulzFunctions?
-#   require(tidyverse)
-#   return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
-# }
-#
-#
-# ##pick set by fold
-# pickTrain <- function(input, k=1, negate=F){
-#   if (negate==F & is.null(dim(input))) {output <- input[which((m$fold)==k)]}
-#   if (negate==F & !is.null(dim(input))) {output <- input[which((m$fold)==k),]}
-#   if (negate==T & is.null(dim(input))) {output <- input[which((m$fold)!=k)]}
-#   if (negate==T & !is.null(dim(input))) {output <- input[which((m$fold)!=k),]}
-#   return(output)
-# }
+
 #
 # #####
 #
@@ -2503,6 +2494,8 @@ linePlot <- function(data_e, days, volume_smoothing){
 # }
 #
 
+
+
 #' Gradients for Plots
 #'
 #' A function to make color gradients for plots.
@@ -2512,54 +2505,40 @@ linePlot <- function(data_e, days, volume_smoothing){
 #' @examples
 #' plotGradient()
 
-plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5)){
-  input <- willRescale(input)
+
+# version below should be robust to NAs in the input, allow custom selection of backup color for NAs
+plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5), NA_color=c(.5,.5,.5,.5), transparency = NULL, reference_scale = NA){
+  input <- myRescale(input)
   input_length <- length(input)
+  input_std <- (input-min(input, na.rm=TRUE))/max(input, na.rm=TRUE) #Why isn't this line redundant with myRescale in the first line...?
+  if (!is.na(reference_scale)){
+    input <- myRescale(c(input,reference_scale))
+    input_std <- (input-min(input, na.rm=TRUE))/max(input, na.rm=TRUE)
+    input_std <- input_std[1:input_length]
+  }
   lr_diff <- right_color-left_color
-  input_std <- (input-min(input))/max(input)
   l_values <- matrix(rep(left_color, input_length), nrow = input_length, ncol = 4, byrow = T)
   c_values <- input_std %*% t(lr_diff) + l_values
   out <- rep(NA, input_length)
+  if (!is.null(transparency)){
+    transparency_rescaled <- myRescale(transparency)
+  }
   for(i in 1:input_length){
-    out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
+    if(any(is.na(c_values[i,]))){
+      out[i] <- rgb(NA_color[1], NA_color[2], NA_color[3], NA_color[4])
+    } else {
+      if (is.null(transparency)) {out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
+      } else {
+        out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], transparency_rescaled[i])
+      }
+    }
   }
   return(out)
 }
 
-#
-# # version below should be robust to NAs in the input, allow custom selection of backup color for NAs
-# plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5), NA_color=c(.5,.5,.5,.5), transparency = NULL, reference_scale = NA){
-#   input <- willRescale(input)
-#   input_length <- length(input)
-#   input_std <- (input-min(input, na.rm=TRUE))/max(input, na.rm=TRUE) #Why isn't this line redundant with willRescale in the first line...?
-#   if (!is.na(reference_scale)){
-#     input <- willRescale(c(input,reference_scale))
-#     input_std <- (input-min(input, na.rm=TRUE))/max(input, na.rm=TRUE)
-#     input_std <- input_std[1:input_length]
-#   }
-#   lr_diff <- right_color-left_color
-#   l_values <- matrix(rep(left_color, input_length), nrow = input_length, ncol = 4, byrow = T)
-#   c_values <- input_std %*% t(lr_diff) + l_values
-#   out <- rep(NA, input_length)
-#   if (!is.null(transparency)){
-#     transparency_rescaled <- willRescale(transparency)
-#   }
-#   for(i in 1:input_length){
-#     if(any(is.na(c_values[i,]))){
-#       out[i] <- rgb(NA_color[1], NA_color[2], NA_color[3], NA_color[4])
-#     } else {
-#       if (is.null(transparency)) {out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
-#       } else {
-#         out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], transparency_rescaled[i])
-#       }
-#     }
-#   }
-#   return(out)
-# }
-#
-#
-#
-#
+
+
+
 # ################################
 # # FEATURIZATION FUNCTIONS (NEEDS MODELS TO BE READ IN)
 # ################################

@@ -7,7 +7,10 @@
 plotGradient(
   input,
   left_color = c(0, 0, 1, 0.5),
-  right_color = c(1, 0, 0, 0.5)
+  right_color = c(1, 0, 0, 0.5),
+  NA_color = c(0.5, 0.5, 0.5, 0.5),
+  transparency = NULL,
+  reference_scale = NA
 )
 }
 \arguments{
