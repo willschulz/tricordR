@@ -1596,210 +1596,238 @@ scrapeStudy <- function(study_name, tokens,
 #
 # # shiny dashboard functions
 #
-# # SETTINGS
-#
-# refresh_time=5*60*1000 #(milliseconds)
-#
-# #screen_name_label_cols <- rgb(.6,.6,1,1)
-# #screen_name_label_cols <- rgb(.9,.9,.9,1)
-# screen_name_label_cols <- c("white", "white", "red")
-# screen_name_fonts <- c(2, 2, 4)
-#
-# point_cex <- .9
-# default_axis_cex <- 1
-# default_screen_name_cex <- .8
-# default_point_color <- rgb(1,1,1,.7)
-#
-# # my_red <- rgb(1,.5,.5)
-# # my_blue <- rgb(.5,.5,1)
-# my_red <- rgb(1,1,1,.7)
-# my_blue <- rgb(1,1,1,.7)
-#
-# my_sentiment_reference_scale = c(-1,1)
-# my_sentiment_reference_scale = NA
-# sentiment_left_color = c(1,.2,0,.7)
-# sentiment_right_color = c(0,1,0,.7)
-#
-# #my_ideo_reference_scale = c(-.1,.1)
-# my_ideo_reference_scale = NA
-# ideo_left_color = c(.5,.5,1,.3)
-# ideo_right_color = c(.9,0,0,.3)
-#
-# sure_left_color = c(.3,.5,.9,.7)
-# sure_right_color = c(.7,.7,0,.7)
-#
-# survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
-#
-# spinner_size <- .5
-#
-# #survey_start_date <- "2021-04-21 12:00:00 EST"
 #
 #
 # # FUNCTIONS
-#
-# fixSentiment <- function(input, allowed_range = c(-1,1)){
-#   input[which(input<allowed_range[1])] <- allowed_range[1]
-#   input[which(input>allowed_range[2])] <- allowed_range[2]
-#   return(input)
-# }
-#
-# myIndexer <- function(input, reference){
-#   myvec <- rep(NA, length(input))
-#   for (i in 1:length(input)){
-#     myvec[i] <- which(reference==input[i])
-#   }
-#   return(myvec)
-# }
-#
-# read_and_session <- function(input){
-#   return(readRDS(input) %>% mutate(scrape_session = str_remove_all(input, ".*timelines_|.rds")))
-# }
-#
-# prep_timeline_data <- function(panel_directory, sessions_back, include_historical = FALSE, load_all_since_first = FALSE){
-#   user_ids <- readRDS(file = paste0(panel_directory, "/twitter_scrapes/user_ids.rds")) #bind to available data
-#   current_lookup <- readRDS(file = paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
-#
-#   scrape_dir <- dir(paste0(panel_directory,"/twitter_scrapes/timelines/"), full.names = TRUE) %>% str_subset("timelines_")
-#   if (!load_all_since_first){
-#     scrape_dir <- scrape_dir %>% .[(length(.)-min((sessions_back-1), (length(.)-1))):length(.)]
-#     scrape_dir <- scrape_dir[-which(is.na(scrape_dir))]
-#   }
-#
-#   if (include_historical){
-#     first_timelines_dir <- dir(paste0(panel_directory,"/twitter_scrapes/first_timelines/"), full.names = TRUE)
-#     scrape_dir <- c(scrape_dir, first_timelines_dir)
-#   }
-#
-#   timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
-#
-#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
-#
-#   e <- timelines_bound %>%
-#     distinct(status_id, .keep_all = T) %>%
-#     select(colnames(timelines_bound)[which(colnames(timelines_bound) %in% keep_if_there)]) %>%
-#     mutate(scrape_session=as.numeric(scrape_session))
-#
-#   missing <- keep_if_there[which(! keep_if_there %in% colnames(e))]
-#   missing_cols <- array(dim = c(nrow(e),length(missing)))
-#   colnames(missing_cols) <- missing
-#   e <- cbind(e, missing_cols)
-#
-#   unique_sessions <- unique(e$scrape_session)
-#   unique_users <- unique(e$user_id)
-#   e$session_index <- myIndexer(input=e$scrape_session, reference=unique_sessions)
-#   e$user_index <- myIndexer(input=e$user_id, reference=unique_users)
-#
-#   e_f <- e %>% group_by(user_id) %>% summarise(screen_name = screen_name[1],
-#                                                user_id = user_id[1],
-#                                                last=max(created_at),
-#                                                index=user_index[1])
-#
-#   subset_current_lookup <- current_lookup %>% filter(!(user_id %in% e_f$user_id)) %>% transmute(screen_name, user_id, index = NA)
-#   for (i in 1:nrow(subset_current_lookup)){
-#     subset_current_lookup$index[i] <- i + max(e_f$index)
-#   }
-#   e_f <- bind_rows(e_f,subset_current_lookup)
-#
-#   return(list(e, e_f))
-# }
-#
-# make_timeseries <- function(input, volume_smoothing, midnight_today, time_range){
-#   output <- input %>%
-#     mutate(minute_span = round_date(created_at, unit = paste(volume_smoothing,"minutes"))) %>%
-#     group_by(minute_span) %>%
-#     summarise(count = n())
-#   all_minutes <- seq.POSIXt(min(output$minute_span, na.rm=T), midnight_today, by = paste(volume_smoothing,"min"))
-#   other_minutes <- all_minutes[which(!all_minutes %in% output$minute_span)]
-#   output <- bind_rows(output, data.frame("minute_span"=other_minutes,"count"=rep(0, length(other_minutes)))) %>% arrange(minute_span) %>% filter(minute_span>time_range[1])
-# }
-#
-#
-# dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex, sentiment_reference_scale = NA, ideo_reference_scale = NA){
-#
-#   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
-#   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
-#
-#   date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
-#
-#   #par(xpd=T, bg="#222222", mfrow = c(2,1))
-#   #layout(matrix(matrix(c(1,2,2,2)), nrow=4, ncol=1, byrow = TRUE))
-#   #par(xpd=T, bg="#222222")
-#   par(xpd=F, bg="#343E48")
-#   par(bty="n")
-#
-#   par(mar=c(4.1, 4.1, 0.1, 4.1))
-#   if (color_variable=="none") {plot(x=data_e$created_at, y=data_e$user_index,
-#                                     ylim = range(data_e_f$index),
-#                                     col=default_point_color,
-#                                     xlim = time_range,
-#                                     yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
-#   if (color_variable=="sentiment") {plot(x=data_e$created_at, y=data_e$user_index,
-#                                          ylim = range(data_e_f$index),
-#                                          col=plotGradient(input = fixSentiment(data_e$score), left_color = sentiment_left_color, right_color = sentiment_right_color, reference_scale = sentiment_reference_scale),
-#                                          xlim = time_range,
-#                                          yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
-#   if (color_variable=="ideology") {plot(x=data_e$created_at, y=data_e$user_index,
-#                                         ylim = range(data_e_f$index),
-#                                         col=plotGradient(input = data_e$p_i, left_color = ideo_left_color, right_color = ideo_right_color, reference_scale = ideo_reference_scale),
-#                                         xlim = time_range,
-#                                         yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
-#   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-#   if(show_names){
-#     par(xpd=T)
-#     data_e_f$status <- 3
-#     data_e_f$status[which(data_e_f$last<min(date_axis))] <- 2
-#     data_e_f$status[which(data_e_f$last>=min(date_axis))] <- 1
-#     data_e_f$tpos <- 4
-#     data_e_f$tpos[which(data_e_f$status>1)] <- 2
-#     data_e_f$xpos <- data_e_f$last
-#     data_e_f$xpos[which(data_e_f$status>1)] <- min(date_axis)
-#     text(x=data_e_f$xpos, y=data_e_f$index,
-#          labels = data_e_f$screen_name,
-#          cex = default_screen_name_cex,
-#          pos = data_e_f$tpos,
-#          col=screen_name_label_cols[data_e_f$status],
-#          font = screen_name_fonts[data_e_f$status])
-#   }
-#   #if(show_now){
-#   par(xpd=F)
-#   time_now <- Sys.time()
-#   abline(v = time_now, col = "gray")
-#   par(xpd=T)
-#   text(x = time_now, y=0, labels = format(time_now, format = "%H:%M"), col = "gray", pos = 1)
-#   #}
-# }
-#
-# linePlot <- function(data_e, days, volume_smoothing){
-#
-#   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
-#   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
-#
-#   date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
-#
-#   panel_timeseries <- make_timeseries(data_e, volume_smoothing, midnight_today, time_range)
-#
-#   #par(xpd=T, bg="#222222", mfrow = c(2,1))
-#
-#   #par(xpd=T, bg="#222222")
-#   par(xpd=T, bg="#343E48")
-#   par(bty="n")
-#
-#   par(mar=c(2.1, 4.1, 0.1, 4.1))
-#   plot(panel_timeseries$minute_span, panel_timeseries$count,
-#        type="l",
-#        col="gray", xlab="",
-#        xaxt="n",
-#        ylab = "",
-#        yaxt = "n",
-#        col.axis = "gray",
-#        fg = "gray",
-#        ylim = range(c(panel_timeseries$count, panel_timeseries$count), na.rm = T),
-#        xlim = time_range)
-#   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-#   #axis(side=2, at=range(panel_timeseries$count), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-# }
-#
-#
+
+#' Fix Sentiment
+#'
+#' A function to fix sentiment values.
+#' @param input Sentiment values to fix
+#' @keywords dashboard
+#' @export
+#' @examples
+#' fixSentiment()
+
+fixSentiment <- function(input, allowed_range = c(-1,1)){
+  input[which(input<allowed_range[1])] <- allowed_range[1]
+  input[which(input>allowed_range[2])] <- allowed_range[2]
+  return(input)
+}
+
+#' Indexer
+#'
+#' A function to make index values.
+#' @param input Input values to index
+#' @param reference Reference values against which to index
+#' @keywords dashboard
+#' @export
+#' @examples
+#' myIndexer()
+
+myIndexer <- function(input, reference){
+  myvec <- rep(NA, length(input))
+  for (i in 1:length(input)){
+    myvec[i] <- which(reference==input[i])
+  }
+  return(myvec)
+}
+
+#' Read and Session
+#'
+#' A function to read timeline scrapes and append their session ids.
+#' @param input Directory from which to read scrapes
+#' @keywords dashboard
+#' @export
+#' @examples
+#' read_and_session()
+
+read_and_session <- function(input){
+  return(readRDS(input) %>% mutate(scrape_session = str_remove_all(input, ".*timelines_|.rds")))
+}
+
+#' Prep Timeline Data
+#'
+#' A function to read timeline data into R.
+#' @param panel_directory The directory in which panel data is stored.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' prep_timeline_data()
+
+prep_timeline_data <- function(panel_directory, sessions_back, include_historical = FALSE, load_all_since_first = FALSE){
+  user_ids <- readRDS(file = paste0(panel_directory, "/twitter_scrapes/user_ids.rds")) #bind to available data
+  current_lookup <- readRDS(file = paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+
+  scrape_dir <- dir(paste0(panel_directory,"/twitter_scrapes/timelines/"), full.names = TRUE) %>% str_subset("timelines_")
+  if (!load_all_since_first){
+    scrape_dir <- scrape_dir %>% .[(length(.)-min((sessions_back-1), (length(.)-1))):length(.)]
+    scrape_dir <- scrape_dir[-which(is.na(scrape_dir))]
+  }
+
+  if (include_historical){
+    first_timelines_dir <- dir(paste0(panel_directory,"/twitter_scrapes/first_timelines/"), full.names = TRUE)
+    scrape_dir <- c(scrape_dir, first_timelines_dir)
+  }
+
+  timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
+
+  keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+
+  e <- timelines_bound %>%
+    distinct(status_id, .keep_all = T) %>%
+    select(colnames(timelines_bound)[which(colnames(timelines_bound) %in% keep_if_there)]) %>%
+    mutate(scrape_session=as.numeric(scrape_session))
+
+  missing <- keep_if_there[which(! keep_if_there %in% colnames(e))]
+  missing_cols <- array(dim = c(nrow(e),length(missing)))
+  colnames(missing_cols) <- missing
+  e <- cbind(e, missing_cols)
+
+  unique_sessions <- unique(e$scrape_session)
+  unique_users <- unique(e$user_id)
+  e$session_index <- myIndexer(input=e$scrape_session, reference=unique_sessions)
+  e$user_index <- myIndexer(input=e$user_id, reference=unique_users)
+
+  e_f <- e %>% group_by(user_id) %>% summarise(screen_name = screen_name[1],
+                                               user_id = user_id[1],
+                                               last=max(created_at),
+                                               index=user_index[1])
+
+  subset_current_lookup <- current_lookup %>% filter(!(user_id %in% e_f$user_id)) %>% transmute(screen_name, user_id, index = NA)
+  for (i in 1:nrow(subset_current_lookup)){
+    subset_current_lookup$index[i] <- i + max(e_f$index)
+  }
+  e_f <- bind_rows(e_f,subset_current_lookup)
+
+  return(list(e, e_f))
+}
+
+#' Make Time Series
+#'
+#' A function to make time series data.
+#' @param input Input data to reformat as time series.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' make_timeseries()
+
+make_timeseries <- function(input, volume_smoothing, midnight_today, time_range){
+  output <- input %>%
+    mutate(minute_span = round_date(created_at, unit = paste(volume_smoothing,"minutes"))) %>%
+    group_by(minute_span) %>%
+    summarise(count = n())
+  all_minutes <- seq.POSIXt(min(output$minute_span, na.rm=T), midnight_today, by = paste(volume_smoothing,"min"))
+  other_minutes <- all_minutes[which(!all_minutes %in% output$minute_span)]
+  output <- bind_rows(output, data.frame("minute_span"=other_minutes,"count"=rep(0, length(other_minutes)))) %>% arrange(minute_span) %>% filter(minute_span>time_range[1])
+}
+
+
+#' Dot Plot
+#'
+#' A function to visualize timeline scrapes as dot plots.
+#' @param data_e Timeline data to plot.
+#' @param data_e_f Timeline metadata to plot.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' dotPlot()
+
+dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex, sentiment_reference_scale = NA, ideo_reference_scale = NA){
+
+  midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
+  time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
+
+  date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
+
+  #par(xpd=T, bg="#222222", mfrow = c(2,1))
+  #layout(matrix(matrix(c(1,2,2,2)), nrow=4, ncol=1, byrow = TRUE))
+  #par(xpd=T, bg="#222222")
+  par(xpd=F, bg="#343E48")
+  par(bty="n")
+
+  par(mar=c(4.1, 4.1, 0.1, 4.1))
+  if (color_variable=="none") {plot(x=data_e$created_at, y=data_e$user_index,
+                                    ylim = range(data_e_f$index),
+                                    col=default_point_color,
+                                    xlim = time_range,
+                                    yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
+  if (color_variable=="sentiment") {plot(x=data_e$created_at, y=data_e$user_index,
+                                         ylim = range(data_e_f$index),
+                                         col=plotGradient(input = fixSentiment(data_e$score), left_color = sentiment_left_color, right_color = sentiment_right_color, reference_scale = sentiment_reference_scale),
+                                         xlim = time_range,
+                                         yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
+  if (color_variable=="ideology") {plot(x=data_e$created_at, y=data_e$user_index,
+                                        ylim = range(data_e_f$index),
+                                        col=plotGradient(input = data_e$p_i, left_color = ideo_left_color, right_color = ideo_right_color, reference_scale = ideo_reference_scale),
+                                        xlim = time_range,
+                                        yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
+  axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  if(show_names){
+    par(xpd=T)
+    data_e_f$status <- 3
+    data_e_f$status[which(data_e_f$last<min(date_axis))] <- 2
+    data_e_f$status[which(data_e_f$last>=min(date_axis))] <- 1
+    data_e_f$tpos <- 4
+    data_e_f$tpos[which(data_e_f$status>1)] <- 2
+    data_e_f$xpos <- data_e_f$last
+    data_e_f$xpos[which(data_e_f$status>1)] <- min(date_axis)
+    text(x=data_e_f$xpos, y=data_e_f$index,
+         labels = data_e_f$screen_name,
+         cex = default_screen_name_cex,
+         pos = data_e_f$tpos,
+         col=screen_name_label_cols[data_e_f$status],
+         font = screen_name_fonts[data_e_f$status])
+  }
+  #if(show_now){
+  par(xpd=F)
+  time_now <- Sys.time()
+  abline(v = time_now, col = "gray")
+  par(xpd=T)
+  text(x = time_now, y=0, labels = format(time_now, format = "%H:%M"), col = "gray", pos = 1)
+  #}
+}
+
+#' Line Plot
+#'
+#' A function to visualize timeline scrapes as line plots.
+#' @param data_e timeline data to plot
+#' @keywords dashboard
+#' @export
+#' @examples
+#' linePlot()
+
+linePlot <- function(data_e, days, volume_smoothing){
+
+  midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
+  time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
+
+  date_axis <- seq(time_range[1], time_range[2], by = 60*60*24)
+
+  panel_timeseries <- make_timeseries(data_e, volume_smoothing, midnight_today, time_range)
+
+  #par(xpd=T, bg="#222222", mfrow = c(2,1))
+
+  #par(xpd=T, bg="#222222")
+  par(xpd=T, bg="#343E48")
+  par(bty="n")
+
+  par(mar=c(2.1, 4.1, 0.1, 4.1))
+  plot(panel_timeseries$minute_span, panel_timeseries$count,
+       type="l",
+       col="gray", xlab="",
+       xaxt="n",
+       ylab = "",
+       yaxt = "n",
+       col.axis = "gray",
+       fg = "gray",
+       ylim = range(c(panel_timeseries$count, panel_timeseries$count), na.rm = T),
+       xlim = time_range)
+  axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  #axis(side=2, at=range(panel_timeseries$count), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+}
+
+
 # # Survey stuff
 #
 # prep_survey_data <- function(experiment_directory, participant_panel){

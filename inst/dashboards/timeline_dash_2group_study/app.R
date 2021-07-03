@@ -16,6 +16,42 @@ library(shinydashboard)
 #library(dashboardthemes)
 library(shinycssloaders)
 
+# SETTINGS
+
+refresh_time=5*60*1000 #(milliseconds)
+
+screen_name_label_cols <- c("white", "white", "red")
+screen_name_fonts <- c(2, 2, 4)
+
+point_cex <- .9
+default_axis_cex <- 1
+default_screen_name_cex <- .8
+default_point_color <- rgb(1,1,1,.7)
+
+# my_red <- rgb(1,.5,.5)
+# my_blue <- rgb(.5,.5,1)
+my_red <- rgb(1,1,1,.7)
+my_blue <- rgb(1,1,1,.7)
+
+my_sentiment_reference_scale = c(-1,1)
+my_sentiment_reference_scale = NA
+sentiment_left_color = c(1,.2,0,.7)
+sentiment_right_color = c(0,1,0,.7)
+
+#my_ideo_reference_scale = c(-.1,.1)
+my_ideo_reference_scale = NA
+ideo_left_color = c(.5,.5,1,.3)
+ideo_right_color = c(.9,0,0,.3)
+
+sure_left_color = c(.3,.5,.9,.7)
+sure_right_color = c(.7,.7,0,.7)
+
+survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
+
+spinner_size <- .5
+
+#survey_start_date <- "2021-04-21 12:00:00 EST"
+
 tricordings_directory <- "~/tricordings/studies/"
 
 study_names <- dir("~/tricordings/studies", full.names = T) %>%
