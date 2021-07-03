@@ -1,4 +1,4 @@
-# tricordR <img src='man/figures/logo.svg' align="right" height="160" />
+# tricordR <img src='man/figures/logo.png' align="right" height="160" />
 
 tricordR is an R-based system that helps automate and monitor Twitter scraping and related data collection activities, designed particularly for studies that involve tracking the same sets of users over a period of time.  It is built upon ```rtweet```, providing several key features that make large-scale data collection faster, simpler, and more manageable:
   
