@@ -106,6 +106,11 @@ editPanel(study_name = "my_first_study",
 
 ### Visualizing Data Collection
 
+To check whether timeline scraping is up-to-date, launch the Timeline Dashboard using the following function:
+
+``` r
+runTimelineDash()
+```
 
 
 ### A La Carte Scraping with Workhorse Functions
