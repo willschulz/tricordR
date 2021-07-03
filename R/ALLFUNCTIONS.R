@@ -481,12 +481,13 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #' @param users Either a character vector of user_ids, or a dataframe containing a user_id column.
 #' @param n The maximum number of friends to scrape for each user.  Defaults to 20,000
 #' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
+#' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
 #' @keywords
 #' @export
 #' @examples
-#' get_friends_rotate_maxToken_BIG()
+#' getFriendsBig()
 
-get_friends_rotate_maxToken_BIG <- function(users, n=20000, list_tokens, max_hours=1){
+getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
   require(tidyverse)
   require(rtweet)
   n_tokens <- length(list_tokens)
@@ -579,7 +580,7 @@ get_friends_rotate_maxToken_BIG <- function(users, n=20000, list_tokens, max_hou
 #   message("Scraping friends...")
 #   today <- timeCode()
 #   users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
-#   new_friends <- get_friends_rotate_maxToken_BIG(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+#   new_friends <- getFriendsBig(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
 #   #new_friends <- get_friends_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
 #   saveRDS(new_friends, file = paste0(user_dir,"twitter_scrapes/friends/friends_",today,".rds"))
 # }
@@ -1196,7 +1197,7 @@ get_friends_rotate_maxToken_BIG <- function(users, n=20000, list_tokens, max_hou
 #     # code to immediately scrape friend lists
 #     if (scrape_settings$scrape_friends){
 #       message("Scraping first friends...")
-#       new_friends <- get_friends_rotate_maxToken_BIG(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
+#       new_friends <- getFriendsBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
 #       colnames(new_friends) <- c("user_id", "friends", "scraped_at")
 #       saveRDS(new_friends, paste0(group_directory,"/twitter_scrapes/first_friends/friends_",this_timecode,".rds"))
 #     }
