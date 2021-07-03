@@ -627,7 +627,7 @@ scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit
   message("Scraping friends...")
   today <- timeCode()
   users <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
-  new_friends <- getFriendsBig(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+  new_friends <- getFriendsBig(users=users, n=n, list_tokens=list_tokens, max_hours=max_hours)
   #new_friends <- get_friends_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
   saveRDS(new_friends, file = paste0(panel_directory,"twitter_scrapes/friends/friends_",today,".rds"))
 }
