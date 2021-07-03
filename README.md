@@ -62,15 +62,15 @@ This simply creates a new folder in the tricordR_data/studies directory, where u
 ``` r
 my_tokens <- tricordR::prep_tokens("my_twitter_tokens", 1:9)
 
-rtweet::stream_tweets()
+user_ids <– rtweet::stream_tweets(timeout = 30, token = my_tokens[[1]])$user_id %>% unique() #get some random user ids by streaming tweets for 30 seconds
 
 tricordR::addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
                    user_ids = user_ids,
-                   initial_scrape = T,
                    scrape_timelines = T,
                    scrape_friends = T,
                    scrape_followers = F,
                    scrape_favorites = F,
+                   initial_scrape = T,
                    tokens = my_tokens)
 ```
 
