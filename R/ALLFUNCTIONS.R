@@ -2598,7 +2598,7 @@ scrapeStudy <- function(study_name, tokens,
 # scrape_settings_paths <- all_panels_contents[str_detect(all_panels_contents, "scrape_settings.rds")]
 # panel_directories <- str_remove_all(scrape_settings_paths,"scrape_settings.rds")
 #
-# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 #
 # for (i in 1:length(panel_directories)) {
 #   message("Scraping ", str_remove_all(panel_directories[i], ".*studies/"))
@@ -2633,7 +2633,7 @@ scrapeStudy <- function(study_name, tokens,
 #
 # source("functions/qualtrics_functions.R") #also loads twitter_scraping and general functions
 #
-# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 # tokens <- prepTokens(tokenset, 1:9)
 #
 # all_panels_contents <- dir("~/tricordings/studies", full.names = T) %>% dir(full.names = T) %>% dir(full.names = T)
@@ -2696,7 +2696,7 @@ scrapeStudy <- function(study_name, tokens,
 # source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
 #
 # #this takes the alphabetical first token set on the machine
-# tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 # twitter_tokens <- prepTokens(tokenset, 1:9)
 #
 # px_panel_1 <- 300
@@ -2963,7 +2963,7 @@ scrapeStudy <- function(study_name, tokens,
 # # source("~/Documents/GitRprojects/LaForge/functions/qualtrics_functions.R")
 # #
 # # #this takes the alphabetical first token set on the machine
-# # tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
+# # tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 # # twitter_tokens <- prepTokens(tokenset, 1:9)
 #
 # dash_theme = "grey_dark"
