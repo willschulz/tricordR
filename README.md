@@ -21,6 +21,15 @@ library(tricordR)
 install_tricordR()
 ```
 
+Then install a set of Twitter tokens by passing the relevant parameters to the ```saveToken``` function:
+
+``` r
+saveToken(set_name = "my_twitter_tokens", consumer_key, consumer_secret, access_token, access_secret)
+```
+
+Repeat this process for all the tokens you have created on your account (up to 9).  This will save all your tokens in a convenient list object, so that high-level scraping functions can cycle through your tokens, to speed up data collection.
+
+
 Finally, if you intend to use tricordR's automated scraping features, add the following line to your crontab:
 
 ``` bash
