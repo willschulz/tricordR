@@ -5,7 +5,7 @@
 \title{Scrape Timelines of a Panel}
 \usage{
 scrapeTimelines(
-  user_dir,
+  panel_directory,
   N = 3200,
   list_tokens,
   max_hours = 12,
@@ -16,7 +16,7 @@ scrapeTimelines(
 )
 }
 \arguments{
-\item{user_dir}{The path to the panel folder corresponding to the set of users to be scraped.}
+\item{panel_directory}{The path to the panel folder corresponding to the set of users to be scraped.}
 
 \item{N}{The number of tweets to be scraped.  Defaults to 3200, the maximum.}
 

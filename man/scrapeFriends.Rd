@@ -5,7 +5,7 @@
 \title{Scrape Friends of a Panel}
 \usage{
 scrapeFriends(
-  user_dir,
+  panel_directory,
   list_tokens,
   n = 20000,
   per_token_limit = 15,
@@ -13,7 +13,7 @@ scrapeFriends(
 )
 }
 \arguments{
-\item{user_dir}{The path to the panel folder corresponding to the set of users to be scraped.}
+\item{panel_directory}{The path to the panel folder corresponding to the set of users to be scraped.}
 
 \item{list_tokens}{The list of tokens to be used for scraping.  See prepTokens().}
 
