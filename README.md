@@ -27,7 +27,11 @@ tricordR::initialize()
 Then install a set of Twitter tokens by passing the relevant parameters to the ```saveToken``` function:
 
 ``` r
-saveToken(set_name = "my_twitter_tokens", consumer_key, consumer_secret, access_token, access_secret)
+saveToken(set_name = "my_twitter_tokens",
+          consumer_key = YOUR_CONSUMER_KEY,
+          consumer_secret = YOUR_CONSUMER_SECRET,
+          access_token = YOUR_ACCESS_TOKEN,
+          access_secret = YOUR_ACCESS_SECRET)
 ```
 
 Repeat this process, keeping ```set_name``` fixed, for all the tokens you have created on your account (up to 9).  This will save all your tokens in a convenient list object, so that high-level scraping functions can cycle through them to speed up data collection.
