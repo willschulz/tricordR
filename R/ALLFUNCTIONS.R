@@ -2502,19 +2502,30 @@ linePlot <- function(data_e, days, volume_smoothing){
 #   return(out_vector)
 # }
 #
-# plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5)){
-#   input <- willRescale(input)
-#   input_length <- length(input)
-#   lr_diff <- right_color-left_color
-#   input_std <- (input-min(input))/max(input)
-#   l_values <- matrix(rep(left_color, input_length), nrow = input_length, ncol = 4, byrow = T)
-#   c_values <- input_std %*% t(lr_diff) + l_values
-#   out <- rep(NA, input_length)
-#   for(i in 1:input_length){
-#     out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
-#   }
-#   return(out)
-# }
+
+#' Gradients for Plots
+#'
+#' A function to make color gradients for plots.
+#' @param input Input values to map to a color spectrum
+#' @keywords graphics
+#' @export
+#' @examples
+#' plotGradient()
+
+plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5)){
+  input <- willRescale(input)
+  input_length <- length(input)
+  lr_diff <- right_color-left_color
+  input_std <- (input-min(input))/max(input)
+  l_values <- matrix(rep(left_color, input_length), nrow = input_length, ncol = 4, byrow = T)
+  c_values <- input_std %*% t(lr_diff) + l_values
+  out <- rep(NA, input_length)
+  for(i in 1:input_length){
+    out[i] <- rgb(c_values[i,1], c_values[i,2], c_values[i,3], c_values[i,4])
+  }
+  return(out)
+}
+
 #
 # # version below should be robust to NAs in the input, allow custom selection of backup color for NAs
 # plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5), NA_color=c(.5,.5,.5,.5), transparency = NULL, reference_scale = NA){
