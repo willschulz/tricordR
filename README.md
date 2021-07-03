@@ -54,7 +54,7 @@ addStudy("my_first_study")
 This simply creates a new folder in the tricordR_data/studies directory, where user panels can be added.  Adding a user panel is more involved, since it requires specifying the set of users you wish to track, and the data you wish to collect about them.  For example:
 
 ``` r
-addGroup(study_name = "my_first_study", panel_name = "my_first_panel",
+addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
          user_ids = user_ids,
          initial_scrape = T,
          scrape_timelines = T,
