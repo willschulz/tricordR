@@ -6,7 +6,7 @@
 \usage{
 firstScrape(
   user_ids,
-  group_directory,
+  panel_directory,
   tokens,
   max_hours = 1,
   sentiment = "none",
@@ -16,7 +16,7 @@ firstScrape(
 \arguments{
 \item{user_ids}{A dataframe containing a user_id column and a penultimate_id column.}
 
-\item{group_directory}{The path to the panel folder to which users are being added.}
+\item{panel_directory}{The path to the panel folder to which users are being added.}
 
 \item{tokens}{The list of tokens to be used for scraping.  See prepTokens().}
 
