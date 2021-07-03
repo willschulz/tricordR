@@ -21,7 +21,7 @@ Before collecting any data, run the following code to create tricordR's data fol
   
 ``` r
 library(tricordR)
-tricordR::initialize()
+initialize()
 ```
 
 This is where scraped data, scraping logs, and token sets will be stored.  Beware: re-initializing will result in deletion of any existing tricordR data that has been collected in this folder!
@@ -55,7 +55,7 @@ Data collection in tricordR is organized with respect to user panels, which are 
 So, to begin collecting data, first create a study:
 
 ``` r
-tricordR::addStudy("my_first_study")
+addStudy("my_first_study")
 ```
 
 This simply creates a new folder in the tricordR_data/studies directory, where user panels can be added.  Adding a user panel is more involved, since it requires specifying the set of users you wish to track, and the data you wish to collect about them.  For example:
@@ -63,34 +63,34 @@ This simply creates a new folder in the tricordR_data/studies directory, where u
 ``` r
 library(dplyr)
 
-my_tokens <- tricordR::prep_tokens("my_twitter_tokens", 1:9) #prepare all nine of your tokens for usage
+my_tokens <- prep_tokens("my_twitter_tokens", 1:9) #prepare all nine of your tokens for usage
 
 user_ids <– rtweet::stream_tweets(timeout = 10, #get some random user ids by streaming tweets for 10 seconds
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% pull(user_id) %>% unique()
 
-tricordR::addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
-                   user_ids = user_ids,
-                   scrape_timelines = TRUE,
-                   scrape_friends = TRUE,
-                   scrape_followers = FALSE,
-                   scrape_favorites = FALSE,
-                   initial_scrape = TRUE,
-                   tokens = my_tokens) #use all nine of your tokens for this
+addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
+         user_ids = user_ids,
+         scrape_timelines = TRUE,
+         scrape_friends = TRUE,
+         scrape_followers = FALSE,
+         scrape_favorites = FALSE,
+         initial_scrape = TRUE,
+         tokens = my_tokens) #use all nine of your tokens for this
 ```
 
 By calling addPanel, we create a new panel ("my_first_panel") within the study we just created ("my_first_study"), and specify the kinds of data we would like to collect: we want to scrape their timelines (AKA their tweets), and their friends (AKA the people the follow), but not their followers or their favorites (AKA their likes). By passing the value TRUE for ```initial_scrape```, we tell tricordR to go ahead and collect this data immediately, using the list of tokens we prepared above.  When scrape_timelines is TRUE, this initial scrape will include the last 3200 tweets available from each user.  Moreover, these settings are saved, and if you have added the daily_scrape_script.R to your crontab as instructed above, tricordR will automatically update these datasets daily: in this case, we would collect daily snapshots of the accounts these users follow (their friends), and download any new tweets from these users that have been tweeted since the previous timeline scrape.
 
 ``` r
-tricordR::editPanel(study_name = "my_first_study", panel_name = "my_first_panel",
-                    add_users = user_ids,
-                    remove_users = user_ids,
-                    scrape_timelines = TRUE,
-                    scrape_friends = TRUE,
-                    scrape_followers = FALSE,
-                    scrape_favorites = FALSE,
-                    initial_scrape = TRUE,
-                    tokens = my_tokens)
+editPanel(study_name = "my_first_study", panel_name = "my_first_panel",
+          add_users = user_ids,
+          remove_users = user_ids,
+          scrape_timelines = TRUE,
+          scrape_friends = TRUE,
+          scrape_followers = FALSE,
+          scrape_favorites = FALSE,
+          initial_scrape = TRUE,
+          tokens = my_tokens)
 ```
 
 ### Visualizing Data Collection
@@ -104,7 +104,7 @@ Sometimes we want to collect Twitter data in an isolated batch, without initiati
 
 ## Reading Data for Analysis
 
-
+When we want to read in the full datasets to R for analysis, we need convenient access to the data we have collected.
 
 
 
