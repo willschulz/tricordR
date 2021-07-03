@@ -48,19 +48,23 @@ Data collection in tricordR is organized with respect to user panels, which are 
 So, to begin collecting data, first create a study:
 
 ``` r
-addStudy("my_first_study")
+tricordR::addStudy("my_first_study")
 ```
 
 This simply creates a new folder in the tricordR_data/studies directory, where user panels can be added.  Adding a user panel is more involved, since it requires specifying the set of users you wish to track, and the data you wish to collect about them.  For example:
 
 ``` r
-addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
-         user_ids = user_ids,
-         initial_scrape = T,
-         scrape_timelines = T,
-         scrape_friends = T,
-         scrape_followers = F,
-         scrape_favorites = F,
-         tokens = prep_tokens("my_twitter_tokens", 1:9))
+my_tokens <- tricordR::prep_tokens("my_twitter_tokens", 1:9)
+
+rtweet::stream_tweets()
+
+tricordR::addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
+                   user_ids = user_ids,
+                   initial_scrape = T,
+                   scrape_timelines = T,
+                   scrape_friends = T,
+                   scrape_followers = F,
+                   scrape_favorites = F,
+                   tokens = my_tokens)
 ```
 
