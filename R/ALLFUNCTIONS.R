@@ -1733,7 +1733,7 @@ make_timeseries <- function(input, volume_smoothing, midnight_today, time_range)
 #' @examples
 #' dotPlot()
 
-dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex, default_screen_name_cex, default_screen_name_cols, sentiment_reference_scale = NA, ideo_reference_scale = NA){
+dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, axis_cex, screen_name_cex, screen_name_cols, sentiment_reference_scale = NA, ideo_reference_scale = NA){
 
   midnight_today <- as.POSIXct(paste0(as.character(Sys.Date()), " 00:00:00 EST"))
   time_range <- c((midnight_today-((days )*60*60*24)),midnight_today + 60*60*24)
@@ -1762,7 +1762,7 @@ dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentimen
                                         col=plotGradient(input = data_e$p_i, left_color = ideo_left_color, right_color = ideo_right_color, reference_scale = ideo_reference_scale),
                                         xlim = time_range,
                                         yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
-  axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
   if(show_names){
     par(xpd=T)
     data_e_f$status <- 3
@@ -1774,9 +1774,9 @@ dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentimen
     data_e_f$xpos[which(data_e_f$status>1)] <- min(date_axis)
     text(x=data_e_f$xpos, y=data_e_f$index,
          labels = data_e_f$screen_name,
-         cex = default_screen_name_cex,
+         cex = screen_name_cex,
          pos = data_e_f$tpos,
-         col=screen_name_label_cols[data_e_f$status],
+         col=screen_name_cols[data_e_f$status],
          font = screen_name_fonts[data_e_f$status])
   }
   #if(show_now){
@@ -1823,8 +1823,8 @@ linePlot <- function(data_e, days, volume_smoothing){
        fg = "gray",
        ylim = range(c(panel_timeseries$count, panel_timeseries$count), na.rm = T),
        xlim = time_range)
-  axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-  #axis(side=2, at=range(panel_timeseries$count), cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  #axis(side=2, at=range(panel_timeseries$count), cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
 }
 
 
@@ -2747,7 +2747,7 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 #        col = "grey",
 #        yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")
 #   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"),
-#        cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#        cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
 # }
 #
 #
@@ -2896,7 +2896,7 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 #   output$panel_1s_ts_d <- renderPlot({
 #     invalidateLater(refresh_time)
 #     timeline_data <- timeline_data_panel_1s()
-#     dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, default_axis_cex,
+#     dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, axis_cex,
 #             sentiment_reference_scale = my_sentiment_reference_scale,
 #             ideo_reference_scale = my_ideo_reference_scale)
 #   })
@@ -3091,8 +3091,8 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 #
 #     barplot(data, col = survey_cumulation_colors, border=NA, space=0, xaxt="n", yaxt="n")
 #     axis(side=1, at=cumulation_x_axis_indices, labels=format(cumulation_date_labels, "%b %d"),
-#          cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-#     axis(side=2, at=cumulation_y_axis, cex.axis = default_axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#          cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+#     axis(side=2, at=cumulation_y_axis, cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
 #     #legend("topleft", legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
 #     legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
 #   })

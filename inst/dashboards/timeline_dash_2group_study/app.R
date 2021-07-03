@@ -233,9 +233,9 @@ server <- function(input, output) {
             ideo_left_color = ideo_left_color,
             ideo_right_color = ideo_right_color,
             point_cex = point_cex,
-            default_axis_cex = default_axis_cex,
-            default_screen_name_cex = default_screen_name_cex,
-            default_screen_name_label_cols= screen_name_label_cols,
+            axis_cex = default_axis_cex,
+            screen_name_cex = default_screen_name_cex,
+            screen_name_cols = screen_name_label_cols,
             sentiment_reference_scale = my_sentiment_reference_scale,
             ideo_reference_scale = my_ideo_reference_scale)
   })
@@ -259,9 +259,9 @@ server <- function(input, output) {
             ideo_left_color = ideo_left_color,
             ideo_right_color = ideo_right_color,
             point_cex = point_cex,
-            default_axis_cex = default_axis_cex,
-            default_screen_name_cex = default_screen_name_cex,
-            default_screen_name_label_cols= screen_name_label_cols,
+            axis_cex = default_axis_cex,
+            screen_name_cex = default_screen_name_cex,
+            screen_name_cols = screen_name_label_cols,
             sentiment_reference_scale = my_sentiment_reference_scale,
             ideo_reference_scale = my_ideo_reference_scale)
   })
