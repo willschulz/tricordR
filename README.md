@@ -14,11 +14,11 @@
 devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
 ```
 
-  Before collecting any data, run the following code to install tricordR's data folder in your home directory:
+  Before collecting any data, run the following code to create tricordR's data folder in your home directory:
   
 ``` r
 library(tricordR)
-install_tricordR()
+tricordR::initialize()
 ```
 
 Then install a set of Twitter tokens by passing the relevant parameters to the ```saveToken``` function:
@@ -45,7 +45,7 @@ Data collection in tricordR is organized with respect to user groups, which are 
 So, to begin collecting data, first create a study:
 
 ``` r
-add_study("my_first_study")
+addStudy("my_first_study")
 ```
 
 This simply creates a new folder in the tricordR_data/studies directory, where user groups can be added.  Adding a user group is more involved, since it requires specifying the set of users to track, and the data you wish to collect about them.  For example:
