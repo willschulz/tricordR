@@ -8,7 +8,7 @@
 options(warn=-1)
 
 options(tidyverse.quiet = TRUE)
-library(tidyverse)
+library(tricordR)
 options(dplyr.summarise.inform = FALSE)
 library(lubridate)
 library(shiny)
