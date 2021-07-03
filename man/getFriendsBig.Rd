@@ -21,3 +21,4 @@ Scrapes friend lists for users, rotating through tokens, and using pagination to
 \examples{
 getFriendsBig()
 }
+\keyword{scraping}

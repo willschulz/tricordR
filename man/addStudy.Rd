@@ -15,3 +15,4 @@ This function creates a new study in the studies folder of tricordings, to which
 \examples{
 addStudy()
 }
+\keyword{management}

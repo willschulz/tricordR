@@ -6,7 +6,7 @@
 #'
 #' This function initializes tricordR by creating the tricordings directory to save data, tokens, and scraping logs.
 #' @param location Location of tricordings directory, defaults to home directory (~/) and should not be changed at this time.
-#' @keywords
+#' @keywords initialization
 #' @export
 #' @examples
 #' initialize()
@@ -40,7 +40,7 @@ initialize <- function(location = "~/"){
 #' @param consumer_secret Your app's consumer secret string
 #' @param access_token Your app's access token string
 #' @param access_secret Your app's access secret string
-#' @keywords
+#' @keywords scraping
 #' @export
 #' @examples
 #' saveToken()
@@ -69,7 +69,7 @@ saveToken <- function(set_name, consumer_key, consumer_secret, access_token, acc
 #'
 #' This function creates a new study in the studies folder of tricordings, to which panels can be added.
 #' @param study_name Name of the study to be added.
-#' @keywords
+#' @keywords management
 #' @export
 #' @examples
 #' addStudy()
@@ -320,7 +320,7 @@ addStudy <- function(study_name){
 #' This function loads tokens as a list, for use by cycling functions
 #' @param tokenset Name of token set to load
 #' @param which_tokens A numeric vector indicating which tokens to load from the set.  Defaults to 1:9, loading all tokens.
-#' @keywords
+#' @keywords scraping
 #' @export
 #' @examples
 #' prepTokens()
@@ -339,7 +339,7 @@ prepTokens <- function(tokenset, which_tokens = 1:9){
 #' Order an input by numeric value and return the Nth largest element
 #' @param x Numeric vector
 #' @param N An integer specifying which element to return. Defaults to 2, returning the second-greatest element.
-#' @keywords
+#' @keywords utility
 #' @export
 #' @examples
 #' maxN()
@@ -358,7 +358,7 @@ maxN <- function(x, N=2){
 #' Order a character input by alphanumeric value and return the Nth largest element as a character string
 #' @param x Character vector
 #' @param N An integer specifying which element to return. Defaults to 2, returning the second-greatest element.
-#' @keywords
+#' @keywords utility
 #' @export
 #' @examples
 #' maxNchar()
@@ -378,7 +378,7 @@ maxNchar <- function(x, N=2){
 #' Make Date Code
 #'
 #' Returns the current date as a string of numbers.
-#' @keywords
+#' @keywords utility
 #' @export
 #' @examples
 #' dateCode()
@@ -391,7 +391,7 @@ dateCode <- function(){ #add this function to schulzFunctions?
 #' Make Time Code
 #'
 #' Returns the current time as a string of numbers.
-#' @keywords
+#' @keywords utility
 #' @export
 #' @examples
 #' timeCode()
@@ -482,7 +482,7 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #' @param n The maximum number of friends to scrape for each user.  Defaults to 20,000
 #' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
 #' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
-#' @keywords
+#' @keywords scraping
 #' @export
 #' @examples
 #' getFriendsBig()
@@ -575,16 +575,28 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
   return(friends_megadf)
 }
 
-#
-# ws_scrape_friends <- function(user_dir, list_tokens, n=5000, per_token_limit=15, max_hours=1){
-#   message("Scraping friends...")
-#   today <- timeCode()
-#   users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
-#   new_friends <- getFriendsBig(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
-#   #new_friends <- get_friends_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
-#   saveRDS(new_friends, file = paste0(user_dir,"twitter_scrapes/friends/friends_",today,".rds"))
-# }
-#
+
+#' Scrape Friends of a Panel
+#'
+#' A high-level function to scrape friends of users in a given panel, and save the resulting data in that panel folder.
+#' @param user_dir The path to the panel folder corresponding to the set of users to be scraped.
+#' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
+#' @param n The maximum number of friends to scrape for each user.  Defaults to 20,000
+#' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
+#' @keywords scraping
+#' @export
+#' @examples
+#' scrapeFriends()
+
+scrapeFriends <- function(user_dir, list_tokens, n=20000, per_token_limit=15, max_hours=1){
+  message("Scraping friends...")
+  today <- timeCode()
+  users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
+  new_friends <- getFriendsBig(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+  #new_friends <- get_friends_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+  saveRDS(new_friends, file = paste0(user_dir,"twitter_scrapes/friends/friends_",today,".rds"))
+}
+
 # #generally speaking, better to use maxToken_BIG
 # get_followers_rotate_maxToken <- function(users, n=5000, list_tokens, per_token_limit=15, max_hours=1){
 #   require(tidyverse)
@@ -654,122 +666,148 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
 #   #return(list(followers_megadf, attempted))
 #   return(followers_megadf)
 # }
-#
-# get_followers_rotate_maxToken_BIG <- function(users, n=15000, list_tokens, per_token_limit=15, max_hours=1){
-#   require(tidyverse)
-#   require(rtweet)
-#   n_tokens <- length(list_tokens)
-#   start_time <- Sys.time()
-#   message("Started: ", start_time)
-#   if (is.data.frame(users)){
-#     users_df <- users
-#   }
-#   if (!is.data.frame(users)){
-#     users_df <- data.frame(user_id=users, other=NA)
-#   }
-#   users_remaining <- users_df
-#   followers_list <- list()
-#   followers_megalist <- list()
-#   already <- c()
-#   attempted <- c()
-#   batch <- 0
-#   prior_divisible <- FALSE
-#   already_cycled <- FALSE
-#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
-#     batch <- batch + 1
-#     message("Batch: ", batch)
-#     for (i in 1:n_tokens) {
-#       if (i == n_tokens){already_cycled <- TRUE}
-#       message("\nToken: ", i)
-#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
-#       if (! length(already) < nrow(users_df)) {break}
-#       rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
-#       if (rl$remaining < 5) { #calibrate this
-#         if(already_cycled){
-#           wait <- rl$reset + 0.1
-#           message(paste("Waiting for", round(wait,2),"minutes..."))
-#           Sys.sleep(wait * 60)
-#         }
-#         if(!already_cycled){
-#           next
-#         }
-#       }
-#       slice_size <- min(per_token_limit,nrow(users_remaining))
-#       users_remaining_subset <- users_remaining[1:slice_size,]
-#       individual_followers_list <- list()
-#       prior_followers_scraped_length <- NA
-#       for (j in 1:slice_size) {
-#         if (j>1) {prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]])}
-#         warned <- FALSE
-#         warning_text <- ""
-#
-#         tryCatch({individual_followers_list[[j]] <- get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
-#                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
-#
-#         if(str_detect(warning_text, "rate limit")){
-#           if(j>1){j <- j-1}
-#           message("Rate limit reached!  Moving on to next token...")
-#           break
-#         }
-#         if(!warned){
-#           if(nrow(individual_followers_list[[j]])==0){
-#             if(j>1){
-#               if((prior_followers_scraped_length %% 5000)==0){
-#                 message("No followers scraped and prior attempt divisible by 5000!  Moving on to next token and reattempting both...")
-#                 j <- j-2
-#                 break
-#               }
-#             }
-#             if(j==1){
-#               "Zero followers scraped with a fresh token!  Assuming zero followers and continuing..."
-#               #might need to add something here to handle true zeroes at the transmutation stage
-#               break
-#             }
-#           }
-#           if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (!prior_divisible)){
-#             message("Number of followers scraped divisible by 5000!  Moving on to next token and reattempting once...")
-#             j <- j-1
-#             prior_divisible <- TRUE
-#             break
-#           }
-#           message(paste("Successfully scraped", nrow(individual_followers_list[[j]]), "followers from user", users_remaining_subset$user_id[j]))
-#           individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)
-#           prior_divisible <- FALSE #is this in the right place?
-#         }
-#       }
-#       attempted_now <- users_remaining_subset$user_id[1:j]
-#       attempted <- unique(c(attempted, attempted_now))
-#       if (length(individual_followers_list)>0) {
-#         #followers_list[[i]] <- do.call(rbind, individual_followers_list)
-#         followers_list[[i]] <- do.call(rbind, individual_followers_list[1:j])
-#         already <- c(already, unique(followers_list[[i]]$user))
-#       }
-#       set.seed(as.POSIXct(Sys.time()))
-#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
-#     }
-#     followers_df <- do.call(rbind, followers_list)
-#     followers_megalist[[batch]] <- followers_df
-#     if(all(users_df$user_id %in% attempted)){break}
-#   }
-#   followers_megadf <- do.call(rbind, followers_megalist)
-#   followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
-#   #return(list(followers_megadf, attempted))
-#   return(followers_megadf)
-# }
-#
-# ws_scrape_followers <- function(user_dir, list_tokens, n=20000, per_token_limit=15, max_hours=1){#so unless you set n explicitly to be small, it will use the "BIG" function
-#   message("Scraping followers...")
-#   today <- timeCode()
-#   users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
-#   if (n>5000){
-#     new_followers <- get_followers_rotate_maxToken_BIG(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
-#   }
-#   if (n<=5000){
-#     new_followers <- get_followers_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
-#   }
-#   saveRDS(new_followers, file = paste0(user_dir,"twitter_scrapes/followers/followers_",today,".rds"))
-# }
-#
+
+#' Get Followers (>5k)
+#'
+#' Scrapes follower lists for users, rotating through tokens, and detecting truncation due to rate limits, to collect all followers, even when a user has more than 5,000 followers.
+#' @param users Either a character vector of user_ids, or a dataframe containing a user_id column.
+#' @param n The maximum number of followers to scrape for each user.  Defaults to 20,000.
+#' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
+#' @param per_token_limit Batch size to reduce rate limit errors.  Defaults to 15 users per token.
+#' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
+#' @keywords scraping
+#' @export
+#' @examples
+#' getFollowersBig()
+
+getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max_hours=1){
+  require(tidyverse)
+  require(rtweet)
+  n_tokens <- length(list_tokens)
+  start_time <- Sys.time()
+  message("Started: ", start_time)
+  if (is.data.frame(users)){
+    users_df <- users
+  }
+  if (!is.data.frame(users)){
+    users_df <- data.frame(user_id=users, other=NA)
+  }
+  users_remaining <- users_df
+  followers_list <- list()
+  followers_megalist <- list()
+  already <- c()
+  attempted <- c()
+  batch <- 0
+  prior_divisible <- FALSE
+  already_cycled <- FALSE
+  while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+    batch <- batch + 1
+    message("Batch: ", batch)
+    for (i in 1:n_tokens) {
+      if (i == n_tokens){already_cycled <- TRUE}
+      message("\nToken: ", i)
+      message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+      if (! length(already) < nrow(users_df)) {break}
+      rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+      if (rl$remaining < 5) { #calibrate this
+        if(already_cycled){
+          wait <- rl$reset + 0.1
+          message(paste("Waiting for", round(wait,2),"minutes..."))
+          Sys.sleep(wait * 60)
+        }
+        if(!already_cycled){
+          next
+        }
+      }
+      slice_size <- min(per_token_limit,nrow(users_remaining))
+      users_remaining_subset <- users_remaining[1:slice_size,]
+      individual_followers_list <- list()
+      prior_followers_scraped_length <- NA
+      for (j in 1:slice_size) {
+        if (j>1) {prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]])}
+        warned <- FALSE
+        warning_text <- ""
+
+        tryCatch({individual_followers_list[[j]] <- get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+                 warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+
+        if(str_detect(warning_text, "rate limit")){
+          if(j>1){j <- j-1}
+          message("Rate limit reached!  Moving on to next token...")
+          break
+        }
+        if(!warned){
+          if(nrow(individual_followers_list[[j]])==0){
+            if(j>1){
+              if((prior_followers_scraped_length %% 5000)==0){
+                message("No followers scraped and prior attempt divisible by 5000!  Moving on to next token and reattempting both...")
+                j <- j-2
+                break
+              }
+            }
+            if(j==1){
+              "Zero followers scraped with a fresh token!  Assuming zero followers and continuing..."
+              #might need to add something here to handle true zeroes at the transmutation stage
+              break
+            }
+          }
+          if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (!prior_divisible)){
+            message("Number of followers scraped divisible by 5000!  Moving on to next token and reattempting once...")
+            j <- j-1
+            prior_divisible <- TRUE
+            break
+          }
+          message(paste("Successfully scraped", nrow(individual_followers_list[[j]]), "followers from user", users_remaining_subset$user_id[j]))
+          individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)
+          prior_divisible <- FALSE #is this in the right place?
+        }
+      }
+      attempted_now <- users_remaining_subset$user_id[1:j]
+      attempted <- unique(c(attempted, attempted_now))
+      if (length(individual_followers_list)>0) {
+        #followers_list[[i]] <- do.call(rbind, individual_followers_list)
+        followers_list[[i]] <- do.call(rbind, individual_followers_list[1:j])
+        already <- c(already, unique(followers_list[[i]]$user))
+      }
+      set.seed(as.POSIXct(Sys.time()))
+      users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+    }
+    followers_df <- do.call(rbind, followers_list)
+    followers_megalist[[batch]] <- followers_df
+    if(all(users_df$user_id %in% attempted)){break}
+  }
+  followers_megadf <- do.call(rbind, followers_megalist)
+  followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
+  #return(list(followers_megadf, attempted))
+  return(followers_megadf)
+}
+
+#' Scrape Followers of a Panel
+#'
+#' A high-level function to scrape followers of users in a given panel, and save the resulting data in that panel folder.
+#' @param user_dir The path to the panel folder corresponding to the set of users to be scraped.
+#' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
+#' @param n The maximum number of followers to scrape for each user.  Defaults to 20,000.
+#' @param per_token_limit Batch size to reduce rate limit errors.  Defaults to 15 users per token.
+#' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
+#' @keywords scraping
+#' @export
+#' @examples
+#' scrapeFollowers()
+
+scrapeFollowers <- function(user_dir, list_tokens, n=20000, per_token_limit=15, max_hours=1){
+  message("Scraping followers...")
+  today <- timeCode()
+  users <- readRDS(paste0(user_dir,"twitter_scrapes/user_ids.rds"))
+  # if (n>5000){ # unless you set n explicitly to be small, it will use the "BIG" function by default
+    new_followers <- getFollowersBig(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+  # }
+  # if (n<=5000){ # is the non-big function still useful for anything
+  #   new_followers <- get_followers_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
+  # }
+  saveRDS(new_followers, file = paste0(user_dir,"twitter_scrapes/followers/followers_",today,".rds"))
+}
+
 # # Favorites (likes) functions
 #
 # get_favorites_since <- function(users, n=3000, list_tokens, days_back = 1, per_token_limit=15, max_hours=1){
@@ -1206,7 +1244,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
 #     # and immediately scrape followers
 #     if (scrape_settings$scrape_followers){
 #       message("Scraping first followers...")
-#       new_followers <- get_followers_rotate_maxToken_BIG(users = new_lookup, list_tokens=tokens)
+#       new_followers <- getFollowersBig(users = new_lookup, list_tokens=tokens)
 #       #colnames(new_followers) <- c("user_id", "followers", "scraped_at") #this line fucks everything up, don't use it
 #       saveRDS(new_followers, paste0(group_directory,"/twitter_scrapes/first_followers/followers_",this_timecode,".rds"))
 #     }
@@ -1371,11 +1409,11 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
 #                          max_hours = 2, sentiment = "sentimentR", lasso = TRUE, max_token = TRUE)
 #   }
 #   if (scrape_settings$scrape_friends & include_friends){
-#     ws_scrape_friends(user_dir = group_directory,
+#     scrapeFriends(user_dir = group_directory,
 #                       list_tokens = tokens, n = 5000) #can't go higher than 5k yet
 #   }
 #   if (scrape_settings$scrape_followers & include_followers){
-#     ws_scrape_followers(user_dir = group_directory,
+#     scrapeFollowers(user_dir = group_directory,
 #                         list_tokens = tokens, n = 5000) #this can go bigger than 5k
 #   }
 #   if (scrape_settings$scrape_favorites & include_favorites){
@@ -2193,7 +2231,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
 #   #fetch treatment followers
 #   message("Scraping all treatment followers...")
 #   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
-#   treatment_followers_current_scrape <- get_followers_rotate_maxToken_BIG(treatment_acct_info, list_tokens = treatment_tokens, n = max_treat_followers)
+#   treatment_followers_current_scrape <- getFollowersBig(treatment_acct_info, list_tokens = treatment_tokens, n = max_treat_followers)
 #   saveRDS(treatment_followers_current_scrape, file = paste0(assignment_dir,"/twitter_scrapes/followers/followers_",this_timecode,".rds"))
 #
 #   prior_responses_path <- max(dir(paste0(user_dir,"/survey_scrapes"), full.names = T))

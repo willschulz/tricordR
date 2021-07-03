@@ -17,3 +17,4 @@ Order an input by numeric value and return the Nth largest element
 \examples{
 maxN()
 }
+\keyword{utility}

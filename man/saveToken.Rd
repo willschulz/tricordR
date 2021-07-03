@@ -23,3 +23,4 @@ This function initializes tricordR by creating the tricordings directory to save
 \examples{
 saveToken()
 }
+\keyword{scraping}

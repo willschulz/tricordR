@@ -15,3 +15,4 @@ This function initializes tricordR by creating the tricordings directory to save
 \examples{
 initialize()
 }
+\keyword{initialization}

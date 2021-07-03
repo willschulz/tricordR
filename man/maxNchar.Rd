@@ -17,3 +17,4 @@ Order a character input by alphanumeric value and return the Nth largest element
 \examples{
 maxNchar()
 }
+\keyword{utility}

@@ -12,3 +12,4 @@ Returns the current date as a string of numbers.
 \examples{
 dateCode()
 }
+\keyword{utility}

@@ -12,3 +12,4 @@ Returns the current time as a string of numbers.
 \examples{
 timeCode()
 }
+\keyword{utility}
