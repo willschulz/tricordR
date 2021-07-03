@@ -1,16 +1,19 @@
 Package: tricordR
-Title: What the Package Does (One Line, Title Case)
+Title: Twitter Study Management via R
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Will",
+           family = "Schulz",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "wschulz@princeton.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: tricordR is an R-based system that helps automate and monitor Twitter scraping and related data collection activities, designed particularly for studies that involve tracking the same sets of users over a period of time.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to
     pick a license
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Imports: 
+    rtweet,
+    dplyr

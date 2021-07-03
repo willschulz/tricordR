@@ -468,7 +468,7 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #       message("\nToken: ", i)
 #       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
 #       if (! length(already) < nrow(users_df)) {break}
-#       rl <- rate_limit(query = "get_friends", token = list_tokens[[i]])
+#       rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
 #       if (rl$remaining < 2) {# used to be 15
 #         wait <- rl$reset + 0.1
 #         message(paste("Waiting for", round(wait,2),"minutes..."))
@@ -481,7 +481,7 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #         warned <- FALSE
 #         warning_text <- ""
 #
-#         tryCatch({individual_friends_list[[j]] <- get_friends(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#         tryCatch({individual_friends_list[[j]] <- rtweet::get_friends(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
 #                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 #
 #         if(str_detect(warning_text, "rate limit")){
@@ -556,18 +556,18 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
       warned <- FALSE
       warning_text <- ""
 
-      tryCatch({friends_unparsed <- get_friends(user = users_remaining_subset$user_id,
-                                                n = n,
-                                                token = list_tokens[[i]],
-                                                page = prior_request_pagination_string,
-                                                parse = FALSE)},
+      tryCatch({friends_unparsed <- rtweet::get_friends(user = users_remaining_subset$user_id,
+                                                        n = n,
+                                                        token = list_tokens[[i]],
+                                                        page = prior_request_pagination_string,
+                                                        parse = FALSE)},
                warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 
       if(str_detect(warning_text, "rate|Rate")){
         message("Rate limit reached!  Moving on to next token...")
         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
         # rate limit waiting time code -- is this the best place to put it?
-        rl <- rate_limit(query = "get_friends", token = list_tokens[[i]])
+        rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
         if (rl$remaining < 5) { #calibrate this
           if(already_cycled){
             wait <- rl$reset + 0.1
@@ -658,7 +658,7 @@ scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit
 #       message("\nToken: ", i)
 #       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
 #       if (! length(already) < nrow(users_df)) {break}
-#       rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+#       rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
 #       if (rl$remaining < 15) {
 #         wait <- rl$reset + 0.1
 #         message(paste("Waiting for", round(wait,2),"minutes..."))
@@ -671,7 +671,7 @@ scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit
 #         warned <- FALSE
 #         warning_text <- ""
 #
-#         tryCatch({individual_followers_list[[j]] <- get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#         tryCatch({individual_followers_list[[j]] <- rtweet::get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
 #                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 #
 #         if(str_detect(warning_text, "rate limit")){
@@ -743,7 +743,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       message("\nToken: ", i)
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
-      rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+      rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
       if (rl$remaining < 5) { #calibrate this
         if(already_cycled){
           wait <- rl$reset + 0.1
@@ -763,7 +763,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
         warned <- FALSE
         warning_text <- ""
 
-        tryCatch({individual_followers_list[[j]] <- get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+        tryCatch({individual_followers_list[[j]] <- rtweet::get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 
         if(str_detect(warning_text, "rate limit")){
@@ -870,7 +870,7 @@ scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_lim
 #       message("\nToken: ", i)
 #       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
 #       if (! length(already) < nrow(users_df)) {break}
-#       rl <- rate_limit(query = "get_favorites", token = list_tokens[[i]])
+#       rl <- rtweet::rate_limit(query = "get_favorites", token = list_tokens[[i]])
 #       if (rl$remaining < 30) {
 #         wait <- rl$reset + 0.1
 #         message(paste("Waiting for", round(wait,2),"minutes..."))
@@ -884,11 +884,11 @@ scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_lim
 #         warning_text <- ""
 #
 #         if (!is.na(users_remaining_subset$penultimate_tweet[j])){
-#           tryCatch({individual_favorites_list[[j]] <- get_favorites(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], since_id = ts_tid(days_back))}, #target
+#           tryCatch({individual_favorites_list[[j]] <- rtweet::get_favorites(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], since_id = ts_tid(days_back))}, #target
 #                    error=function(e) {warning_text <<- (e$message); warned <<- TRUE})
 #         }
 #         if (is.na(users_remaining_subset$penultimate_tweet[j])){
-#           tryCatch({individual_favorites_list[[j]] <- get_favorites(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
+#           tryCatch({individual_favorites_list[[j]] <- rtweet::get_favorites(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
 #                    error=function(e) {warning_text <<- (e$message); warned <<- TRUE})
 #         }
 #
@@ -1059,7 +1059,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       message("\nToken: ", i)
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
-      rl <- rate_limit(query = "get_timeline", token = list_tokens[[i]])
+      rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
       if (rl$remaining < 5) { #used to be 100, but seems like a waste since I already check for rate limit errors in this function
         wait <- rl$reset + 0.1
         message(paste("Waiting for", round(wait,2),"minutes..."))
@@ -1072,11 +1072,11 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
         warned <- FALSE
         warning_text <- ""
         if (!is.na(users_remaining_subset$penultimate_tweet[j])){
-          tryCatch({individual_timelines_list[[j]] <- get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE, since_id = users_remaining_subset$penultimate_tweet[j])},
+          tryCatch({individual_timelines_list[[j]] <- rtweet::get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE, since_id = users_remaining_subset$penultimate_tweet[j])},
                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
         }
         if (is.na(users_remaining_subset$penultimate_tweet[j])){
-          tryCatch({individual_timelines_list[[j]] <- get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE)},
+          tryCatch({individual_timelines_list[[j]] <- rtweet::get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE)},
                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
         }
         if(str_detect(warning_text, "rate limit")){
@@ -1133,7 +1133,7 @@ getTimelinesHistorical <- function(users_df, n=3200, list_tokens, per_token_limi
       message("\nToken: ", i)
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
-      rl <- rate_limit(query = "get_timeline", token = list_tokens[[i]])
+      rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
       if (rl$remaining < 500) {
         wait <- rl$reset + 0.1
         message(paste("Waiting for", round(wait,2),"minutes..."))
@@ -1141,7 +1141,7 @@ getTimelinesHistorical <- function(users_df, n=3200, list_tokens, per_token_limi
       }
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
-      {timelines_list[[i]] <- get_timeline(user = users_remaining_subset$user_id, n = n, token = list_tokens[[i]], check = FALSE)}
+      {timelines_list[[i]] <- rtweet::get_timeline(user = users_remaining_subset$user_id, n = n, token = list_tokens[[i]], check = FALSE)}
       attempted_now <- users_remaining_subset$user_id
       attempted <- unique(c(attempted, attempted_now))
       already <- c(already, unique(timelines_list[[i]]$user_id))
@@ -1521,7 +1521,7 @@ scrapeStudy <- function(study_name, tokens,
 # #     message("\nToken: ", i)
 # #     message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
 # #     if (! length(already) < nrow(users_df)) {break}
-# #     rl <- rate_limit(query = "get_followers", token = list_tokens[[i]])
+# #     rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
 # #     if (rl$remaining < 5) { #calibrate this
 # #       if(already_cycled){
 # #         wait <- rl$reset + 0.1
