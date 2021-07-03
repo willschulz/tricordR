@@ -7,7 +7,7 @@
   - A set of ```shiny``` dashboards visualize data collection at-a-glance, helping identify failures in data collection early, and providing peace of mind to the researcher
   
 ## Installation
-  Since tricordR is still in development, itis only available by invitation to this private repository.  To install it, therefore, you must use Hadley's ```devtools``` package and pass your GitHub personal access token to the install_github function.
+  Since tricordR is still in development, it is only available by invitation to this private repository.  To install it, therefore, you must use Hadley's ```devtools``` package and pass your GitHub personal access token to the install_github function.
   
 ``` r
 # install.packages("devtools")
