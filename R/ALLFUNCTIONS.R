@@ -1728,6 +1728,19 @@ make_timeseries <- function(input, volume_smoothing, midnight_today, time_range)
 #' A function to visualize timeline scrapes as dot plots.
 #' @param data_e Timeline data to plot.
 #' @param data_e_f Timeline metadata to plot.
+#' @param days days back
+#' @param color_variable which variable to color by
+#' @param show_names show names?
+#' @param sentiment_left_color left end of sentiment color spectrum
+#' @param sentiment_right_color right end of sentiment color spectrum
+#' @param ideo_left_color left end of ideo color spectrum
+#' @param ideo_right_color right end of ideo color spectrum
+#' @param point_cex point size
+#' @param axis_cex axis size
+#' @param screen_name_cex screen name size
+#' @param screen_name_cols screen name colors
+#' @param sentiment_reference_scale sentiment reference scale
+#' @param ideo_reference_scale ideo reference scale
 #' @keywords dashboard
 #' @export
 #' @examples

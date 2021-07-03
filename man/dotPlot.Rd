@@ -26,6 +26,32 @@ dotPlot(
 \item{data_e}{Timeline data to plot.}
 
 \item{data_e_f}{Timeline metadata to plot.}
+
+\item{days}{days back}
+
+\item{color_variable}{which variable to color by}
+
+\item{show_names}{show names?}
+
+\item{sentiment_left_color}{left end of sentiment color spectrum}
+
+\item{sentiment_right_color}{right end of sentiment color spectrum}
+
+\item{ideo_left_color}{left end of ideo color spectrum}
+
+\item{ideo_right_color}{right end of ideo color spectrum}
+
+\item{point_cex}{point size}
+
+\item{axis_cex}{axis size}
+
+\item{screen_name_cex}{screen name size}
+
+\item{screen_name_cols}{screen name colors}
+
+\item{sentiment_reference_scale}{sentiment reference scale}
+
+\item{ideo_reference_scale}{ideo reference scale}
 }
 \description{
 A function to visualize timeline scrapes as dot plots.
