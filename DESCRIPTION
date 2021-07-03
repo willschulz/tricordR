@@ -21,4 +21,5 @@ Imports:
     lubridate,
     shiny,
     shinycssloaders,
-    shinydashboard
+    shinydashboard,
+    dashboardthemes

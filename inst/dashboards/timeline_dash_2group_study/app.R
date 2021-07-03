@@ -13,7 +13,7 @@ options(dplyr.summarise.inform = FALSE)
 library(lubridate)
 library(shiny)
 library(shinydashboard)
-#library(dashboardthemes)
+library(dashboardthemes)
 library(shinycssloaders)
 
 # SETTINGS
