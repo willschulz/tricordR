@@ -51,17 +51,16 @@ saveToken <- function(set_name, consumer_key, consumer_secret, access_token, acc
   tricordings_directory <- "~/tricordings/"
   ###
   new_token <- create_token(consumer_key = consumer_key, consumer_secret = consumer_secret, access_token = access_token, access_secret = access_secret, set_renv = FALSE)
-  ifelse(file.exists(paste0(tricordings_directory, "tokens/", set_name, ".rds")),
-         yes = {
-           token_list <- readRDS(paste0(tricordings_directory, "tokens/", set_name, ".rds"))
-           #if (list(new_token) %in% token_list) {stop("This token is already in this set.")} #for some reason this fires whether or not the token is already in the set
-           message("Appending to existing token set.")
-           token_list <- c(token_list, new_token)
-         },
-         no = {
-           message("Adding to new token set.")
-           token_list <- list(new_token)
-         })
+  if(file.exists(paste0(tricordings_directory, "tokens/", set_name, ".rds"))) {
+    token_list <- readRDS(paste0(tricordings_directory, "tokens/", set_name, ".rds"))
+    #if (list(new_token) %in% token_list) {stop("This token is already in this set.")} #for some reason this fires whether or not the token is already in the set
+    message("Appending to existing token set.")
+    token_list <- c(token_list, new_token)
+    }
+  else {
+    message("Adding to new token set.")
+    token_list <- list(new_token)
+    }
   saveRDS(token_list, file = paste0(tricordings_directory, "tokens/", set_name, ".rds"))
 }
 
@@ -587,15 +586,14 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
         prior_request_pagination_string <- friends_unparsed$next_cursor_str #save cursor for next pass through while loop
       }
     }
-    ifelse(length(individual_ids)>0,
+    if(length(individual_ids)>0)
            {#if
              friends_list[[batch]] <- data.frame(user = users_remaining_subset$user_id, user_id = individual_ids)
              message(paste("Successfully scraped", nrow(friends_list[[batch]]), "friends from user", users_remaining_subset$user_id))
              already <- c(already, unique(friends_list[[batch]]$user))
-           },
-           {#else
+           } else{#else
              message(paste("Zero friends scraped from user", users_remaining_subset$user_id))
-           })
+           }
 
     attempted_now <- users_remaining_subset$user_id
     attempted <- unique(c(attempted, attempted_now))
