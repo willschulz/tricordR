@@ -314,47 +314,93 @@ addStudy <- function(study_name){
 # require(tidyverse)
 # require(rtweet)
 #
-# prep_tokens <- function(tokenset, which_tokens){
-#   list_tokens <- readRDS(file = paste0("~/tricordings/tokens/",tokenset,"_tokenslist.rds"))
-#   list_tokens <- list_tokens[which_tokens]
-#   num_tokens <- length(which_tokens)
-#   assign(x = "num_tokens", value = num_tokens, envir = .GlobalEnv)
-#   message(paste("Loaded", num_tokens, "tokens from", tokenset, "\n"), which_tokens)
-#   return(list_tokens)
-# }
-#
-# maxN <- function(x, N=2){ #put this in a script
-#   len <- length(x)
-#   if(N>len){
-#     #warning('N greater than length(x).  Setting N=length(x)')
-#     N <- length(x)
-#   }
-#   sort(x,partial=len-N+1)[len-N+1]
-# }
-#
-# #this is a version of maxNchar that orders by numeric value but returns character
-# maxNchar <- function(x, N=2){ #put this in a script
-#   x <- x[which(!is.na(x))]
-#   len <- length(x)
-#   if(N>len){
-#     #warning('N greater than length(x).  Setting N=length(x)')
-#     N <- length(x)
-#   }
-#   sorted_indices <- sort(as.numeric(x), index.return=T)$ix
-#   sorted_character_vector <- x[sorted_indices]
-#   return(sorted_character_vector[len-N+1])
-# }
-#
-# dateCode <- function(){ #add this function to schulzFunctions?
-#   require(tidyverse)
-#   return(as.character(Sys.Date()) %>% str_remove_all(pattern="-") %>% str_sub(., 3))
-# }
-#
-# timeCode <- function(){ #add this function to schulzFunctions?
-#   require(tidyverse)
-#   return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
-# }
-#
+
+#' Prepare Tokens for Cycling
+#'
+#' This function loads tokens as a list, for use by cycling functions
+#' @param tokenset Name of token set to load
+#' @param which_tokens A numeric vector indicating which tokens to load from the set.  Defaults to 1:9, loading all tokens.
+#' @keywords
+#' @export
+#' @examples
+#' prepTokens()
+
+prepTokens <- function(tokenset, which_tokens = 1:9){
+  list_tokens <- readRDS(file = paste0("~/tricordings/tokens/",tokenset,"_tokenslist.rds"))
+  list_tokens <- list_tokens[which_tokens]
+  num_tokens <- length(which_tokens)
+  assign(x = "num_tokens", value = num_tokens, envir = .GlobalEnv)
+  message(paste("Loaded", num_tokens, "tokens from", tokenset, "\n"), which_tokens)
+  return(list_tokens)
+}
+
+#' Return Nth Max
+#'
+#' Order an input by numeric value and return the Nth largest element
+#' @param x Numeric vector
+#' @param N An integer specifying which element to return. Defaults to 2, returning the second-greatest element.
+#' @keywords
+#' @export
+#' @examples
+#' maxN()
+
+maxN <- function(x, N=2){
+  len <- length(x)
+  if(N>len){
+    #warning('N greater than length(x).  Setting N=length(x)')
+    N <- length(x)
+  }
+  sort(x,partial=len-N+1)[len-N+1]
+}
+
+#' Return Nth Max of Character Vector
+#'
+#' Order a character input by alphanumeric value and return the Nth largest element as a character string
+#' @param x Character vector
+#' @param N An integer specifying which element to return. Defaults to 2, returning the second-greatest element.
+#' @keywords
+#' @export
+#' @examples
+#' maxNchar()
+
+maxNchar <- function(x, N=2){
+  x <- x[which(!is.na(x))]
+  len <- length(x)
+  if(N>len){
+    #warning('N greater than length(x).  Setting N=length(x)')
+    N <- length(x)
+  }
+  sorted_indices <- sort(as.numeric(x), index.return=T)$ix
+  sorted_character_vector <- x[sorted_indices]
+  return(sorted_character_vector[len-N+1])
+}
+
+#' Make Date Code
+#'
+#' Returns the current date as a string of numbers.
+#' @keywords
+#' @export
+#' @examples
+#' dateCode()
+
+dateCode <- function(){ #add this function to schulzFunctions?
+  require(tidyverse)
+  return(as.character(Sys.Date()) %>% str_remove_all(pattern="-") %>% str_sub(., 3))
+}
+
+#' Make Time Code
+#'
+#' Returns the current time as a string of numbers.
+#' @keywords
+#' @export
+#' @examples
+#' timeCode()
+
+timeCode <- function(){ #add this function to schulzFunctions?
+  require(tidyverse)
+  return(as.character(Sys.time()) %>% str_remove_all(pattern="-| |:"))
+}
+
 # ts_tid <- function(days_back = 1){
 #   this_date <- Sys.Date()
 #   return(system(paste0("/usr/local/bin/python3 ~/Documents/GitRprojects/LaForge/functions/ts_to_tid.py -y ", year(this_date), " -m ", month(this_date), " -d ", (day(this_date) - days_back)), intern = T))
@@ -2480,7 +2526,7 @@ addStudy <- function(study_name){
 #
 # for (i in 1:length(group_directories)) {
 #   message("Scraping ", str_remove_all(group_directories[i], ".*studies/"))
-#   scrapeGroup(group_directories[i], tokens = prep_tokens(tokenset, 1:9))
+#   scrapeGroup(group_directories[i], tokens = prepTokens(tokenset, 1:9))
 # }
 #
 #
@@ -2512,7 +2558,7 @@ addStudy <- function(study_name){
 # source("functions/qualtrics_functions.R") #also loads twitter_scraping and general functions
 #
 # tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
-# tokens <- prep_tokens(tokenset, 1:9)
+# tokens <- prepTokens(tokenset, 1:9)
 #
 # all_groups_contents <- dir("~/tricordings/studies", full.names = T) %>% dir(full.names = T) %>% dir(full.names = T)
 # scrape_settings_paths <- all_groups_contents[str_detect(all_groups_contents, "scrape_settings.rds")]
@@ -2573,7 +2619,7 @@ addStudy <- function(study_name){
 #
 # #this takes the alphabetical first token set on the machine
 # tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
-# twitter_tokens <- prep_tokens(tokenset, 1:9)
+# twitter_tokens <- prepTokens(tokenset, 1:9)
 #
 # px_group_1 <- 300
 # px_group_2 <- 300
@@ -2785,7 +2831,7 @@ addStudy <- function(study_name){
 #
 # #this takes the alphabetical first token set on the machine
 # tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
-# twitter_tokens <- prep_tokens(tokenset, 1:9)
+# twitter_tokens <- prepTokens(tokenset, 1:9)
 #
 # px_group_1 <- 300
 # px_group_2 <- 300
@@ -3052,7 +3098,7 @@ addStudy <- function(study_name){
 # #
 # # #this takes the alphabetical first token set on the machine
 # # tokenset <- str_remove_all(dir("~/tricordings/tokens"), "_tokenslist.rds")[1]
-# # twitter_tokens <- prep_tokens(tokenset, 1:9)
+# # twitter_tokens <- prepTokens(tokenset, 1:9)
 #
 # dash_theme = "grey_dark"
 #
