@@ -32,6 +32,38 @@ initialize <- function(location = "~/"){
   dir.create(paste0(tricordings_directory, "logs"))
 }
 
+#' Save Tokens for Cycling Functions
+#'
+#' This function initializes tricordR by creating the tricordings directory to save data, tokens, and scraping logs.
+#' @param set_name Name of token set (sets should correspond to Twitter developer accounts)
+#' @param consumer_key Your app's consumer key string
+#' @param consumer_secret Your app's consumer secret string
+#' @param access_token Your app's access token string
+#' @param access_secret Your app's access secret string
+#' @keywords
+#' @export
+#' @examples
+#' saveToken()
+
+saveToken <- function(set_name, consumer_key, consumer_secret, access_token, access_secret){
+  require(rtweet)
+  ###
+  tricordings_directory <- "~/tricordings/"
+  ###
+  new_token <- create_token(consumer_key = consumer_key, consumer_secret = consumer_secret, access_token = access_token, access_secret = access_secret, set_renv = FALSE)
+  ifelse(file.exists(paste0(tricordings_directory, "tokens/", set_name, ".rds")),
+         yes = {
+           token_list <- readRDS(paste0(tricordings_directory, "tokens/", set_name, ".rds"))
+           #if (list(new_token) %in% token_list) {stop("This token is already in this set.")} #for some reason this fires whether or not the token is already in the set
+           message("Appending to existing token set.")
+           token_list <- c(token_list, new_token)
+         },
+         no = {
+           message("Adding to new token set.")
+           token_list <- list(new_token)
+         })
+  saveRDS(token_list, file = paste0(tricordings_directory, "tokens/", set_name, ".rds"))
+}
 
 #' Add a Study
 #'
@@ -195,27 +227,6 @@ addStudy <- function(study_name){
 #   print(scrape_settings)
 # }
 #
-# #Token management
-#
-# saveToken <- function(set_name, consumer_key, consumer_secret, access_token, access_secret){
-#   require(rtweet)
-#   ###
-#   tricordings_directory <- "~/tricordings/"
-#   ###
-#   new_token <- create_token(consumer_key = consumer_key, consumer_secret = consumer_secret, access_token = access_token, access_secret = access_secret, set_renv = FALSE)
-#   ifelse(file.exists(paste0(tricordings_directory, "tokens/", set_name, ".rds")),
-#          yes = {
-#            token_list <- readRDS(paste0(tricordings_directory, "tokens/", set_name, ".rds"))
-#            #if (list(new_token) %in% token_list) {stop("This token is already in this set.")} #for some reason this fires whether or not the token is already in the set
-#            message("Appending to existing token set.")
-#            token_list <- c(token_list, new_token)
-#          },
-#          no = {
-#            message("Adding to new token set.")
-#            token_list <- list(new_token)
-#          })
-#   saveRDS(token_list, file = paste0(tricordings_directory, "tokens/", set_name, ".rds"))
-# }
 #
 #
 # # data management
