@@ -326,7 +326,7 @@ addStudy <- function(study_name){
 #' prepTokens()
 
 prepTokens <- function(tokenset, which_tokens = 1:9){
-  list_tokens <- readRDS(file = paste0("~/tricordings/tokens/",tokenset,"_tokenslist.rds"))
+  list_tokens <- readRDS(file = paste0("~/tricordings/tokens/",tokenset,".rds"))
   list_tokens <- list_tokens[which_tokens]
   num_tokens <- length(which_tokens)
   assign(x = "num_tokens", value = num_tokens, envir = .GlobalEnv)
@@ -474,93 +474,106 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #   return(friends_megadf)
 # }
 #
-# get_friends_rotate_maxToken_BIG <- function(users, n=20000, list_tokens, max_hours=1){
-#   require(tidyverse)
-#   require(rtweet)
-#   n_tokens <- length(list_tokens)
-#   start_time <- Sys.time()
-#   message("Started: ", start_time)
-#   if (is.data.frame(users)){
-#     users_df <- users
-#   }
-#   if (!is.data.frame(users)){
-#     users_df <- data.frame(user_id=users, other=NA)
-#   }
-#   users_remaining <- users_df
-#   friends_list <- list()
-#   friends_megalist <- list()
-#   already <- c()
-#   attempted <- c()
-#   batch <- 0
-#   i = 1
-#   #prior_divisible <- FALSE
-#   already_cycled <- FALSE
-#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
-#     batch <- batch + 1
-#     message("Batch: ", batch)
-#     message("Users Remaining: ", nrow(users_remaining))
-#     users_remaining_subset <- users_remaining %>% sample_n(., 1)
-#     prior_request_pagination_string <- "-1"
-#     individual_ids <- c()
-#     while (prior_request_pagination_string != "0") {
-#       message("\nToken: ", i)
-#
-#       warned <- FALSE
-#       warning_text <- ""
-#
-#       tryCatch({friends_unparsed <- get_friends(user = users_remaining_subset$user_id,
-#                                                 n = n,
-#                                                 token = list_tokens[[i]],
-#                                                 page = prior_request_pagination_string,
-#                                                 parse = FALSE)},
-#                warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
-#
-#       if(str_detect(warning_text, "rate|Rate")){
-#         message("Rate limit reached!  Moving on to next token...")
-#         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
-#         # rate limit waiting time code -- is this the best place to put it?
-#         rl <- rate_limit(query = "get_friends", token = list_tokens[[i]])
-#         if (rl$remaining < 5) { #calibrate this
-#           if(already_cycled){
-#             wait <- rl$reset + 0.1
-#             message(paste("Waiting for", round(wait,2),"minutes..."))
-#             Sys.sleep(wait * 60)
-#           }
-#         }
-#         next
-#       }
-#       if(!warned){
-#         if(length(friends_unparsed$ids)==0){
-#           "Zero friends scraped!  Assuming zero friends and continuing..."
-#           prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
-#           next
-#         }
-#         individual_ids <- c(individual_ids, friends_unparsed$ids) #save new ids gotten
-#         prior_request_pagination_string <- friends_unparsed$next_cursor_str #save cursor for next pass through while loop
-#       }
-#     }
-#     ifelse(length(individual_ids)>0,
-#            {#if
-#              friends_list[[batch]] <- data.frame(user = users_remaining_subset$user_id, user_id = individual_ids)
-#              message(paste("Successfully scraped", nrow(friends_list[[batch]]), "friends from user", users_remaining_subset$user_id))
-#              already <- c(already, unique(friends_list[[batch]]$user))
-#            },
-#            {#else
-#              message(paste("Zero friends scraped from user", users_remaining_subset$user_id))
-#            })
-#
-#     attempted_now <- users_remaining_subset$user_id
-#     attempted <- unique(c(attempted, attempted_now))
-#
-#     set.seed(as.POSIXct(Sys.time()))
-#     users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
-#
-#     if(all(users_df$user_id %in% attempted)){break}
-#   }
-#   friends_megadf <- do.call(rbind, friends_list)
-#   friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
-#   return(friends_megadf)
-# }
+
+#' Get Friends (>5k)
+#'
+#' Scrapes friend lists for users, rotating through tokens, and using pagination to collect all friends, even when a user has more than 5,000 friends.
+#' @param users Either a character vector of user_ids, or a dataframe containing a user_id column.
+#' @param n The maximum number of friends to scrape for each user.  Defaults to 20,000
+#' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
+#' @keywords
+#' @export
+#' @examples
+#' get_friends_rotate_maxToken_BIG()
+
+get_friends_rotate_maxToken_BIG <- function(users, n=20000, list_tokens, max_hours=1){
+  require(tidyverse)
+  require(rtweet)
+  n_tokens <- length(list_tokens)
+  start_time <- Sys.time()
+  message("Started: ", start_time)
+  if (is.data.frame(users)){
+    users_df <- users
+  }
+  if (!is.data.frame(users)){
+    users_df <- data.frame(user_id=users, other=NA)
+  }
+  users_remaining <- users_df
+  friends_list <- list()
+  friends_megalist <- list()
+  already <- c()
+  attempted <- c()
+  batch <- 0
+  i = 1
+  #prior_divisible <- FALSE
+  already_cycled <- FALSE
+  while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+    batch <- batch + 1
+    message("Batch: ", batch)
+    message("Users Remaining: ", nrow(users_remaining))
+    users_remaining_subset <- users_remaining %>% sample_n(., 1)
+    prior_request_pagination_string <- "-1"
+    individual_ids <- c()
+    while (prior_request_pagination_string != "0") {
+      message("\nToken: ", i)
+
+      warned <- FALSE
+      warning_text <- ""
+
+      tryCatch({friends_unparsed <- get_friends(user = users_remaining_subset$user_id,
+                                                n = n,
+                                                token = list_tokens[[i]],
+                                                page = prior_request_pagination_string,
+                                                parse = FALSE)},
+               warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+
+      if(str_detect(warning_text, "rate|Rate")){
+        message("Rate limit reached!  Moving on to next token...")
+        ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
+        # rate limit waiting time code -- is this the best place to put it?
+        rl <- rate_limit(query = "get_friends", token = list_tokens[[i]])
+        if (rl$remaining < 5) { #calibrate this
+          if(already_cycled){
+            wait <- rl$reset + 0.1
+            message(paste("Waiting for", round(wait,2),"minutes..."))
+            Sys.sleep(wait * 60)
+          }
+        }
+        next
+      }
+      if(!warned){
+        if(length(friends_unparsed$ids)==0){
+          "Zero friends scraped!  Assuming zero friends and continuing..."
+          prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
+          next
+        }
+        individual_ids <- c(individual_ids, friends_unparsed$ids) #save new ids gotten
+        prior_request_pagination_string <- friends_unparsed$next_cursor_str #save cursor for next pass through while loop
+      }
+    }
+    ifelse(length(individual_ids)>0,
+           {#if
+             friends_list[[batch]] <- data.frame(user = users_remaining_subset$user_id, user_id = individual_ids)
+             message(paste("Successfully scraped", nrow(friends_list[[batch]]), "friends from user", users_remaining_subset$user_id))
+             already <- c(already, unique(friends_list[[batch]]$user))
+           },
+           {#else
+             message(paste("Zero friends scraped from user", users_remaining_subset$user_id))
+           })
+
+    attempted_now <- users_remaining_subset$user_id
+    attempted <- unique(c(attempted, attempted_now))
+
+    set.seed(as.POSIXct(Sys.time()))
+    users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+
+    if(all(users_df$user_id %in% attempted)){break}
+  }
+  friends_megadf <- do.call(rbind, friends_list)
+  friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
+  return(friends_megadf)
+}
+
 #
 # ws_scrape_friends <- function(user_dir, list_tokens, n=5000, per_token_limit=15, max_hours=1){
 #   message("Scraping friends...")
