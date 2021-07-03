@@ -48,6 +48,8 @@ This will prompt tricordR to update all tracked user panels (see below) at 12 no
 
 ## Collecting Data
 
+### Adding Studies and Panels
+
 Data collection in tricordR is organized with respect to user panels, which are nested within studies.  Panels serve to organize sets of users in a shared category (for example, study participants) within studies where other panels of users (for example, the users followed by the study participants) are also being tracked as part of the same research project.
 
 So, to begin collecting data, first create a study:
