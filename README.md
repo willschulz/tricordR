@@ -21,14 +21,14 @@ devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_AC
 
 ### Initialization
 
-Before collecting any data, run the following code to create tricordR's data folder in your home directory:
+Before collecting any data, run the following code to create tricordR's data folder (which is called "tricordings") in your home directory:
   
 ``` r
 library(tricordR)
 initialize()
 ```
 
-This is where scraped data, scraping logs, and token sets will be stored.  Beware: re-initializing will result in deletion of any existing tricordR data that has been collected in this folder!
+The tricordings folder is where scraped data, scraping logs, and token sets will be stored.  Beware: re-initializing will result in deletion of any existing tricordR data that has been collected in tricordings!
 
 ### Saving Tokens
 
@@ -141,6 +141,12 @@ runTimelineDash()
 
 Sometimes we want to collect Twitter data in an isolated batch, without initiating these processes to track panels of users.  To do this, while still taking advantage of tricordR's token efficiencies, we use the mid-level workhorse functions shown below.
 
+``` r
+getTimelines()
+getFollowers()
+getFriends()
+getFavorites()
+```
 
 ## Reading Data for Analysis
 
