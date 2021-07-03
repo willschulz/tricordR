@@ -48,7 +48,7 @@ This will prompt tricordR to update all tracked user panels (see below) at 12 no
 
 ## Collecting Data
 
-### Adding Studies and Panels
+### Studies and Panels
 
 Data collection in tricordR is organized with respect to user panels, which are nested within studies.  Panels serve to organize sets of users in a shared category (for example, study participants) within studies where other panels of users (for example, the users followed by the study participants) are also being tracked as part of the same research project.
 
@@ -63,18 +63,49 @@ This simply creates a new folder in the tricordR_data/studies directory, where u
 ``` r
 library(dplyr)
 
-my_tokens <- tricordR::prep_tokens("my_twitter_tokens", 1:9)
+my_tokens <- tricordR::prep_tokens("my_twitter_tokens", 1:9) #prepare all nine of your tokens for usage
 
 user_ids <– rtweet::stream_tweets(timeout = 10, #get some random user ids by streaming tweets for 10 seconds
-                                  token = my_tokens[[1]]) %>% pull(user_id) %>% unique()
+                                  token = my_tokens[[1]], #you'll only need one of your tokens for this
+                                  ) %>% pull(user_id) %>% unique()
 
 tricordR::addPanel(study_name = "my_first_study", panel_name = "my_first_panel",
                    user_ids = user_ids,
-                   scrape_timelines = T,
-                   scrape_friends = T,
-                   scrape_followers = F,
-                   scrape_favorites = F,
-                   initial_scrape = T,
-                   tokens = my_tokens)
+                   scrape_timelines = TRUE,
+                   scrape_friends = TRUE,
+                   scrape_followers = FALSE,
+                   scrape_favorites = FALSE,
+                   initial_scrape = TRUE,
+                   tokens = my_tokens) #use all nine of your tokens for this
 ```
+
+By calling addPanel, we create a new panel ("my_first_panel") within the study we just created ("my_first_study"), and specify the kinds of data we would like to collect: we want to scrape their timelines (AKA their tweets), and their friends (AKA the people the follow), but not their followers or their favorites (AKA their likes). By passing the value TRUE for ```initial_scrape```, we tell tricordR to go ahead and collect this data immediately, using the list of tokens we prepared above.  When scrape_timelines is TRUE, this initial scrape will include the last 3200 tweets available from each user.  Moreover, these settings are saved, and if you have added the daily_scrape_script.R to your crontab as instructed above, tricordR will automatically update these datasets daily: in this case, we would collect daily snapshots of the accounts these users follow (their friends), and download any new tweets from these users that have been tweeted since the previous timeline scrape.
+
+``` r
+tricordR::editPanel(study_name = "my_first_study", panel_name = "my_first_panel",
+                    add_users = user_ids,
+                    remove_users = user_ids,
+                    scrape_timelines = TRUE,
+                    scrape_friends = TRUE,
+                    scrape_followers = FALSE,
+                    scrape_favorites = FALSE,
+                    initial_scrape = TRUE,
+                    tokens = my_tokens)
+```
+
+### Visualizing Data Collection
+
+
+
+### A La Carte Scraping with Workhorse Functions
+
+Sometimes we want to collect Twitter data in an isolated batch, without initiating these processes to track panels of users.  To do this, while still taking advantage of tricordR's token efficiencies, we use the mid-level workhorse functions shown below.
+
+
+## Reading Data for Analysis
+
+
+
+
+
 
