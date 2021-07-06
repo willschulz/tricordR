@@ -22,6 +22,9 @@ library(tricordR)
 refresh_time=5*60*1000 #(milliseconds)
 spinner_size <- .5
 
+assignment_node_col <- "gray50"
+participant_node_col <- "dodgerblue2"
+
 screen_name_label_cols <- c("white", "white", "red")
 default_screen_name_fonts <- c(2, 2, 4)
 
@@ -209,10 +212,9 @@ server <- function(input, output) {
 
     fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
                        linkColour = myLinks$color, charge = -50, zoom = F, linkDistance = 80, clickAction = MyClickScript,
-                       colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
+                       colourScale = paste0("d3.scaleOrdinal().domain(['assignment','participant']).range([",
                                             paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
-                                                                                placeboed_node_col,
-                                                                                treated_node_col)),
+                                                                                participant_node_col)),
                                                               collapse = "\', \'"),"\'")
                                             ,"]);"))
     #make legend text white

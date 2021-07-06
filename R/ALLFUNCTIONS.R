@@ -1929,9 +1929,7 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 # # NETWORK STUFF
 # require(igraph)
 #
-# assignment_node_col <- "gray50"
-# placeboed_node_col <- "plum"
-# treated_node_col <- "dodgerblue2"
+
 #
 # id_to_sn <- function(id, lookup){
 #   require(dplyr)
