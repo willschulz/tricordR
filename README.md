@@ -137,7 +137,7 @@ user_ids <- rtweet::stream_tweets(timeout = 10, #get some random user ids by str
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% filter(lang == "en") %>% pull(user_id) %>% unique() #pull unique user_ids of people tweeting in english
 
-if (length(user_ids)>100) {user_ids <- user_ids[1:100]} #if there are more than 100, take the first 100 for a rapid demonstration
+if (length(user_ids)>25) {user_ids <- user_ids[1:25]} #if there are more than 25, take the first 25 for a rapid demonstration
 
 addPanel(study_name = "my_first_study",
          panel_name = "random_tweeters",
@@ -198,7 +198,7 @@ editPanel(study_name = "my_first_study",
 We can also add a second panel to this study by calling addPanel again.
 Let’s also take advantage of this opportunity to make use of the data we
 just collected. For example, let’s read in the data we scraped on users’
-friends (accounts they follow) and pull out the top 100 people followed
+friends (accounts they follow) and pull out the top 25 people followed
 by more than one person in our first panel. Then, we’ll add them to a
 new panel, called “popular\_friends,” where we’ll only scrape their
 timelines.
@@ -208,7 +208,7 @@ first_friends <- dir("~/tricordings/studies/my_first_study/random_tweeters/twitt
 
 popular_friends <- first_friends %>% group_by(user_id) %>% summarise(count = n()) %>% filter(count>1) %>% arrange(desc(count)) #get the most popular friends
 
-if (nrow(popular_friends)>100) {popular_friends <- popular_friends[1:100,]} #if there are more than 100, take the 100 most popular
+if (nrow(popular_friends)>25) {popular_friends <- popular_friends[1:25,]} #if there are more than 25, take the 25 most popular
 
 addPanel(study_name = "my_first_study",
          panel_name = "popular_friends",
@@ -220,6 +220,11 @@ addPanel(study_name = "my_first_study",
          first_scrape = TRUE,
          tokens = my_tokens) #use all nine of your tokens for this
 ```
+
+We can continue adding more panels to this study if we want, as there is
+no formal limit to the number of panels per study, however the scraping
+dashboards (see next section) are currently optimized for studies with
+two panels (this may be generalized in future updates to this package).
 
 ### Visualizing Data Collection
 
