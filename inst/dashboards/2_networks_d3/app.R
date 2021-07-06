@@ -17,7 +17,7 @@ library(dashboardthemes)
 library(shinycssloaders)
 library(tricordR)
 
-survey_start_date <- "2021-06-01 12:00:00 EST"
+#survey_start_date <- "2021-06-01 12:00:00 EST"
 
 refresh_time=5*60*1000 #(milliseconds)
 spinner_size <- .5
@@ -116,22 +116,32 @@ server <- function(input, output) {
     panels()[2]
   })
 
+  # participant_panel <- reactive({
+  #   for (i in 1:2){
+  #     if (!is.null(readRDS(paste0(experiment_directory(), panels()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+  #       participant_panel <- panels()[i]
+  #     }
+  #   }
+  #   return(participant_panel)
+  # })
+  #
+  # assignment_panel <- reactive({#this could be made more intelligent, but good enough for now
+  #   for (i in 1:2){
+  #     if (is.null(readRDS(paste0(experiment_directory(), panels()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+  #       assignment_panel <- panels()[i]
+  #     }
+  #   }
+  #   return(assignment_panel)
+  # })
+
   participant_panel <- reactive({
-    for (i in 1:2){
-      if (!is.null(readRDS(paste0(experiment_directory(), panels()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-        participant_panel <- panels()[i]
-      }
-    }
-    return(participant_panel)
+    panels_ordered <- file.info((paste0(experiment_directory(), panels(), "/scrape_settings.rds"))) %>% arrange(desc(mtime)) %>% rownames %>% str_remove_all("/scrape_settings.rds") %>% str_remove_all(".*/")
+    return(panels_ordered[1])
   })
 
   assignment_panel <- reactive({#this could be made more intelligent, but good enough for now
-    for (i in 1:2){
-      if (is.null(readRDS(paste0(experiment_directory(), panels()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-        assignment_panel <- panels()[i]
-      }
-    }
-    return(assignment_panel)
+    panels_ordered <- file.info((paste0(experiment_directory(), panels(), "/scrape_settings.rds"))) %>% arrange(desc(mtime)) %>% rownames %>% str_remove_all("/scrape_settings.rds") %>% str_remove_all(".*/")
+    return(panels_ordered[2])
   })
 
   survey_data_prepped <- reactive({invalidateLater(refresh_time)
@@ -174,9 +184,9 @@ server <- function(input, output) {
     legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
   })
 
-  network_data_prepped <- reactive({invalidateLater(refresh_time)
-    prep_network_data_igraph(experiment_directory(),participant_panel(),assignment_panel())
-  })
+  # network_data_prepped <- reactive({invalidateLater(refresh_time)
+  #   prep_network_data_igraph(experiment_directory(),participant_panel(),assignment_panel())
+  # })
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
     prep_network_data_d3(experiment_directory(),participant_panel(),assignment_panel())

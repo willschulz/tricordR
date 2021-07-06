@@ -2117,6 +2117,18 @@ prep_network_data_d3 <- function(experiment_directory, participant_panel, assign
   return(list("e" = data, "v" = vertex_metadata))
 }
 
+#' Index Single Network Nodes
+#'
+#' A workhorse function for nodeIndexer
+#' @param twitter_user_id The twitter user_id to look up.
+#' @param metadata The metadata in which to look up the twitter user_id.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' singleNodeIndexer()
+
+singleNodeIndexer <- function(twitter_user_id, thismetadata = metadata){return(thismetadata$NodeID[which(thismetadata$user_id==twitter_user_id)])}
+
 #' Index Network Nodes
 #'
 #' A function to index network nodes for visualization
@@ -2128,7 +2140,6 @@ prep_network_data_d3 <- function(experiment_directory, participant_panel, assign
 #' nodeIndexer()
 
 nodeIndexer <- function(twitter_user_id, metadata){
-  singleNodeIndexer <- function(twitter_user_id, thismetadata = metadata){return(thismetadata$NodeID[which(thismetadata$user_id==twitter_user_id)])}
   if (length(twitter_user_id)==1){
     return(singeNodeIndexer(twitter_user_id,metadata))
   }
