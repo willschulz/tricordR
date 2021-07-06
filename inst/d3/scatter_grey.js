@@ -151,7 +151,7 @@ Tooltip
   ;
 d3.select(this)
   .style('transition', '0.4s all cubic-bezier(0.5,0.8,0,1.7)')
-  //.style('fill', options.colour)
+  .style('fill', options.colour)
   .attr("r", function (d) { return d.size; })
   ;
 };

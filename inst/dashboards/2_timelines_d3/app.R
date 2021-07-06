@@ -131,19 +131,19 @@ sidebar <- dashboardSidebar(#width=12,
   selectInput("study_name", "Study Name", choices = study_names), #target
   numericInput("days_back", "Days Back", value = 50, min = 1, max = 365, step = 1),
   #br(),#br(),br(),
-  selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
-              c("Sentiment" = "sentiment",
-                "Lasso Ideology" = "ideology",
-                #"Lasso Sureness" = "sureness",
-                "None" = "none")),
-  numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
+  # selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
+  #             c("Sentiment" = "sentiment",
+  #               "Lasso Ideology" = "ideology",
+  #               #"Lasso Sureness" = "sureness",
+  #               "None" = "none")),
+  # numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
   checkboxInput(inputId = "show_names", label = "Show Names", value = TRUE),
   checkboxInput(inputId = "load_all_since_first", label = "Load All", value = TRUE),
   checkboxInput(inputId = "include_historical", label = "Include Historical", value = TRUE),
 
   br(),
-  actionButton("fetch_tweets","Fetch Tweets", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67"),
-  actionButton("fetch_survey","Fetch Survey", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")
+  actionButton("fetch_tweets","Fetch Tweets", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")#,
+  #actionButton("fetch_survey","Fetch Survey", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")
   #br(),br(),br(),
 
 )
@@ -206,7 +206,7 @@ server <- function(input, output) {
                 include_favorites = F)
     showModal(modalDialog(
       title = "Twitter scrape completed",
-      paste0("X new tweets collected.")
+      paste0("Refresh dashboard to view new tweets.")
     ))
   })
 
