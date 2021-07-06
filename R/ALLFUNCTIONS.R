@@ -2141,7 +2141,7 @@ singleNodeIndexer <- function(twitter_user_id, thismetadata){return(thismetadata
 
 nodeIndexer <- function(twitter_user_id, metadata){
   if (length(twitter_user_id)==1){
-    return(singeNodeIndexer(twitter_user_id,thismetadata=metadata))
+    return(singleNodeIndexer(twitter_user_id,thismetadata=metadata))
   }
   if (length(twitter_user_id)>1){
     return(sapply(twitter_user_id,thismetadata=singleNodeIndexer))
