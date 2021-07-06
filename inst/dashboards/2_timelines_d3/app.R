@@ -49,8 +49,10 @@ dash_theme = "grey_dark"
 row_height = 200
 
 
+scatter_script_path <- system.file("d3", "scatter5.js", package = "tricordR")
+
 ##### FUNCTIONS TEMP
-require(r2d3)
+#require(r2d3)
 
 dotPlot_simple <- function(data_e, data_e_f, days, point_cex){
 
@@ -130,7 +132,7 @@ body <- dashboardBody(
                   box(title=textOutput("panel_2_name"),
                       width = 12,
                       div(id = "htmlwidget_container",
-                          d3Output("panel_2s_ts_d", height = px_panel_2, width = "100%")
+                          r2d3::d3Output("panel_2s_ts_d", height = px_panel_2, width = "100%")
                       )
                   )),
            box(title="Tweet Details",
@@ -224,7 +226,7 @@ server <- function(input, output) {
             ideo_reference_scale = my_ideo_reference_scale)
   })
 
-  output$panel_2s_ts_d <- renderD3({
+  output$panel_2s_ts_d <- r2d3::renderD3({
     invalidateLater(refresh_time)
     timeline_data <- timeline_data_panel_2s()
     timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
@@ -239,8 +241,8 @@ server <- function(input, output) {
       background = "#343E48",
       foreground = "#808080")
     )
-    r2d3(data=data,
-         script = "~/Documents/GitRprojects/LaForge/dev/d3_scripts/scatter5.js",
+    r2d3::r2d3(data=data,
+         script = "scatter_script_path",
          options = list(margin_top = 6,
                         margin_bottom = 60,
                         margin_sides = 20,

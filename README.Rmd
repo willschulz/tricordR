@@ -34,10 +34,7 @@ Since tricordR is still in development, it is only available by invitation to th
 
 ```{r}
 # install.packages("devtools")
-devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
-
-remove.packages("tricordR")
-devtools::install_github("https://github.com/willschulz/tricordR/", auth_token = "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")
+devtools::install_github("willschulz/tricordR", auth_token = "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") #YOUR_GH_PERSONAL_ACCESS_TOKEN
 library(tricordR)
 ```
 

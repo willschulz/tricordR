@@ -22,4 +22,6 @@ Imports:
     shiny,
     shinycssloaders,
     shinydashboard,
-    dashboardthemes
+    dashboardthemes,
+    r2d3,
+    networkD3
