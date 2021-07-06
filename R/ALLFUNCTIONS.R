@@ -1624,6 +1624,38 @@ fixSentiment <- function(input, allowed_range = c(-1,1)){
   return(input)
 }
 
+#' Run Timeline Dashboard
+#'
+#' A convenient function to launch the interactive timeline data collection dashboard.
+#' @param port Specify the port to run the dashboard on.  Defaults to 4201.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' runTimelineDashD3()
+
+runTimelineDashD3 <- function(port = 4202) {
+  appDir <- system.file("dashboards/2_timelines_d3", "app.R", package = "tricordR")
+  if (appDir == "") {
+    stop("Could not find example directory. Try re-installing `tricordR`.", call. = FALSE)
+  }
+  shiny::runApp(appDir, display.mode = "normal", port = port)
+}
+
+#' Fix Sentiment
+#'
+#' A function to fix sentiment values.
+#' @param input Sentiment values to fix
+#' @keywords dashboard
+#' @export
+#' @examples
+#' fixSentiment()
+
+fixSentiment <- function(input, allowed_range = c(-1,1)){
+  input[which(input<allowed_range[1])] <- allowed_range[1]
+  input[which(input>allowed_range[2])] <- allowed_range[2]
+  return(input)
+}
+
 #' Indexer
 #'
 #' A function to make index values.

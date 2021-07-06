@@ -5,14 +5,19 @@
 \title{Fix Sentiment}
 \usage{
 fixSentiment(input, allowed_range = c(-1, 1))
+
+fixSentiment(input, allowed_range = c(-1, 1))
 }
 \arguments{
 \item{input}{Sentiment values to fix}
 }
 \description{
 A function to fix sentiment values.
+
+A function to fix sentiment values.
 }
 \examples{
+fixSentiment()
 fixSentiment()
 }
 \keyword{dashboard}
