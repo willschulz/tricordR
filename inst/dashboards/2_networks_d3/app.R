@@ -207,7 +207,7 @@ server <- function(input, output) {
 
     MyClickScript <- "Shiny.setInputValue('user_text', d.name);"
 
-    fn <- forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
+    fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
                        linkColour = myLinks$color, charge = -50, zoom = F, linkDistance = 80, clickAction = MyClickScript,
                        colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
                                             paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
