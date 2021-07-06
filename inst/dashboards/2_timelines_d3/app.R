@@ -80,7 +80,7 @@ dash_theme = "grey_dark"
 row_height = 200
 
 
-scatter_script_path <- system.file("d3", "scatter5.js", package = "tricordR")
+scatter_script_path <- system.file("d3", "scatter_grey.js", package = "tricordR")
 
 ##### FUNCTIONS TEMP
 #require(r2d3)
@@ -273,7 +273,7 @@ server <- function(input, output) {
       foreground = "#808080")
     )
     r2d3::r2d3(data=data,
-         script = "scatter_script_path",
+         script = scatter_script_path,
          options = list(margin_top = 6,
                         margin_bottom = 60,
                         margin_sides = 20,
