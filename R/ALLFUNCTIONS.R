@@ -1604,7 +1604,7 @@ scrapeStudy <- function(study_name, tokens,
 runTimelineDash <- function(port = 4201) {
   appDir <- system.file("dashboards/timeline_dash_2group_study", "app.R", package = "tricordR")
   if (appDir == "") {
-    stop("Could not find example directory. Try re-installing `mypackage`.", call. = FALSE)
+    stop("Could not find example directory. Try re-installing `tricordR`.", call. = FALSE)
   }
   shiny::runApp(appDir, display.mode = "normal", port = port)
 }
