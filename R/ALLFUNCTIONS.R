@@ -2097,6 +2097,8 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 prep_network_data_d3 <- function(experiment_directory, participant_panel, assignment_panel){
   p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+
   par_info <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
   ass_info <- dir(paste0(experiment_directory, assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
   all_info <- rbind(par_info, ass_info)

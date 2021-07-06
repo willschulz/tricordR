@@ -147,45 +147,45 @@ server <- function(input, output) {
     return(panels_ordered[2])
   })
 
-  survey_data_prepped <- reactive({invalidateLater(refresh_time)
-    prep_survey_data(experiment_directory(),participant_panel())
-  })
-
-
-  output$survey_ts <- renderPlot({invalidateLater(refresh_time)
-
-    surveys_df <- survey_data_prepped()[[1]]
-    survey_data_joined_GOOD <- survey_data_prepped()[[2]]
-
-    survey_start_date <- floor_date(as.POSIXct(survey_start_date), "day")
-    message(survey_start_date)
-
-    survey_ts <- make_survey_timeseries(surveys_df, 60, survey_data_joined_GOOD, survey_start_date)
-    survey_cumulative <- ts_to_cumulative(survey_ts)
-
-    data <- as.matrix(survey_cumulative[,c(3,4)])
-    rownames(data) <- survey_cumulative$minute_span
-
-    data <- t(data)
-    cumulation_x_axis_indices <- seq(1, ncol(data), length.out = 12)
-    cumulation_x_axis_marks <- colnames(data)[cumulation_x_axis_indices]
-    cumulation_date_labels <- as.POSIXct(as.numeric(cumulation_x_axis_marks), origin = "1970-01-01")
-    cumulation_date_labels <- c(min(cumulation_date_labels),rep("",length(cumulation_date_labels)-2),max(cumulation_date_labels))
-
-    cumulation_y_axis <- c(0, max(survey_cumulative$count))
-
-    par(bty="n",
-        bg="#343E48",
-        xpd=T,
-        mar=c(4.1,4.1,2.5,4.1))
-
-    barplot(data, col = survey_cumulation_colors, border=NA, space=0, xaxt="n", yaxt="n")
-    axis(side=1, at=cumulation_x_axis_indices, labels=format(cumulation_date_labels, "%b %d"),
-         cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-    axis(side=2, at=cumulation_y_axis, cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-    #legend("topleft", legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
-    legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
-  })
+  # survey_data_prepped <- reactive({invalidateLater(refresh_time)
+  #   prep_survey_data(experiment_directory(),participant_panel())
+  # })
+  #
+  #
+  # output$survey_ts <- renderPlot({invalidateLater(refresh_time)
+  #
+  #   surveys_df <- survey_data_prepped()[[1]]
+  #   survey_data_joined_GOOD <- survey_data_prepped()[[2]]
+  #
+  #   survey_start_date <- floor_date(as.POSIXct(survey_start_date), "day")
+  #   message(survey_start_date)
+  #
+  #   survey_ts <- make_survey_timeseries(surveys_df, 60, survey_data_joined_GOOD, survey_start_date)
+  #   survey_cumulative <- ts_to_cumulative(survey_ts)
+  #
+  #   data <- as.matrix(survey_cumulative[,c(3,4)])
+  #   rownames(data) <- survey_cumulative$minute_span
+  #
+  #   data <- t(data)
+  #   cumulation_x_axis_indices <- seq(1, ncol(data), length.out = 12)
+  #   cumulation_x_axis_marks <- colnames(data)[cumulation_x_axis_indices]
+  #   cumulation_date_labels <- as.POSIXct(as.numeric(cumulation_x_axis_marks), origin = "1970-01-01")
+  #   cumulation_date_labels <- c(min(cumulation_date_labels),rep("",length(cumulation_date_labels)-2),max(cumulation_date_labels))
+  #
+  #   cumulation_y_axis <- c(0, max(survey_cumulative$count))
+  #
+  #   par(bty="n",
+  #       bg="#343E48",
+  #       xpd=T,
+  #       mar=c(4.1,4.1,2.5,4.1))
+  #
+  #   barplot(data, col = survey_cumulation_colors, border=NA, space=0, xaxt="n", yaxt="n")
+  #   axis(side=1, at=cumulation_x_axis_indices, labels=format(cumulation_date_labels, "%b %d"),
+  #        cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  #   axis(side=2, at=cumulation_y_axis, cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
+  #   #legend("topleft", legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
+  #   legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
+  # })
 
   # network_data_prepped <- reactive({invalidateLater(refresh_time)
   #   prep_network_data_igraph(experiment_directory(),participant_panel(),assignment_panel())

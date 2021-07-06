@@ -109,18 +109,20 @@ user_ids <- rtweet::stream_tweets(timeout = 5, #get some random user ids by stre
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% pull(user_id) %>% unique()
 
+if (length(user_ids)>20) {user_ids <- user_ids[1:20]} #if there are more than 20, take the first 20 for a rapid demonstration
+
 addPanel(study_name = "my_first_study",
-         panel_name = "my_first_panel",
+         panel_name = "random_tweeters",
          user_ids = user_ids,
          scrape_timelines = TRUE,
          scrape_friends = TRUE,
          scrape_followers = TRUE,
          scrape_favorites = FALSE,
          first_scrape = TRUE,
-         tokens = my_tokens) #use all nine of your tokens for this
+         tokens = my_tokens) #use all nine of your tokens for this (it can take a few minutes)
 ```
 
-By calling addPanel, we create a new panel ("my_first_panel") within the study we just created ("my_first_study"), and specify the kinds of data we would like to collect: we want to scrape their timelines (AKA their tweets), and their friends (AKA the people the follow), but not their followers or their favorites (AKA their likes). By passing the value TRUE for ```initial_scrape```, we tell tricordR to go ahead and collect this data immediately, using the list of tokens we prepared above.  When scrape_timelines is TRUE, this initial scrape will include the last 3200 tweets available from each user.
+By calling addPanel, we create a new panel ("random_tweeters") within the study we just created ("my_first_study"), and specify the kinds of data we would like to collect: we want to scrape their timelines (AKA their tweets), and their friends (AKA the people the follow), but not their followers or their favorites (AKA their likes). By passing the value TRUE for ```initial_scrape```, we tell tricordR to go ahead and collect this data immediately, using the list of tokens we prepared above.  When scrape_timelines is TRUE, this initial scrape will include the last 3200 tweets available from each user.
 
 Moreover, these settings are saved, and if you have added the daily_scrape_script.R to your crontab as instructed above, tricordR will automatically update these datasets daily: in this case, we would collect daily snapshots of the accounts these users follow (their friends), and download any new tweets from these users that have been tweeted since the previous timeline scrape.
 
@@ -128,28 +130,59 @@ If we subsequently want to edit the panel, we can call editPanel() and pass a se
 
 ```{r}
 editPanel(study_name = "my_first_study",
-          panel_name = "my_first_panel",
-          add_users = user_ids)
+          panel_name = "random_tweeters",
+          add_users = user_ids[1:3]) #tricordR will automatically stop you from adding duplicate users
+
+editPanel(study_name = "my_first_study",
+          panel_name = "random_tweeters",
+          remove_users = user_ids[1:3])
           
 editPanel(study_name = "my_first_study",
-          panel_name = "my_first_panel",
-          remove_users = user_ids)
-          
-editPanel(study_name = "my_first_study",
-          panel_name = "my_first_panel",
+          panel_name = "random_tweeters",
           scrape_followers = TRUE)
           
 #calling editPanel with no optional arguments will print the panel's current settings
 editPanel(study_name = "my_first_study",
-          panel_name = "my_first_panel")
+          panel_name = "random_tweeters")
 ```
+
+We can also add a second panel to this study by calling addPanel again.  Let's also take advantage of this opportunity to make use of the data we just collected.  For example, let's read in the data we scraped on users' friends (accounts they follow) and pull out the top 20 people followed by more than one person in our first panel.
+
+```{r}
+first_friends <- dir("~/tricordings/studies/my_first_study/random_tweeters/twitter_scrapes/first_friends/", full.names = T)[1] %>% readRDS(.)
+
+popular_friends <- first_friends %>% group_by(user_id) %>% summarise(count = n()) %>% filter(count>1) %>% arrange(desc(count)) #get the most popular friends
+
+if (nrow(popular_friends)>20) {popular_friends <- popular_friends[1:20,]} #if there are more than 20, take the 20 most popular
+
+addPanel(study_name = "my_first_study",
+         panel_name = "popular_friends",
+         user_ids = popular_friends$user_id,
+         scrape_timelines = TRUE,
+         scrape_friends = TRUE,
+         scrape_followers = FALSE,
+         scrape_favorites = FALSE,
+         first_scrape = TRUE,
+         tokens = my_tokens) #use all nine of your tokens for this
+
+```
+
 
 ### Visualizing Data Collection
 
 To check whether timeline scraping is up-to-date, launch the Timeline Dashboard using the following function:
 
 ```{r}
-runTimelineDash()
+runTimelineDash() #a static version
+
+runTimelineDashD3() #an experimental interactive version
+```
+
+
+To visualize the network structure of the users we are tracking, launch the Network Dashboard using the following function:
+
+```{r}
+runNetworkDash()
 ```
 
 
@@ -158,6 +191,9 @@ runTimelineDash()
 Sometimes we want to collect Twitter data in an isolated batch, without initiating these processes to track panels of users.  To do this, while still taking advantage of tricordR's token efficiencies, we use the mid-level workhorse functions shown below.
 
 ```{r}
+
+"18906561"
+
 getTimelines()
 getFollowers()
 getFriends()
