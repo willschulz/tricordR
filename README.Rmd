@@ -34,7 +34,7 @@ Since tricordR is still in development, it is only available by invitation to th
 
 ```{r}
 # install.packages("devtools")
-devtools::install_github("willschulz/tricordR", auth_token = "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") #YOUR_GH_PERSONAL_ACCESS_TOKEN
+devtools::install_github("willschulz/tricordR", auth_token = "YOUR_GH_PERSONAL_ACCESS_TOKEN")
 library(tricordR)
 ```
 
@@ -109,7 +109,7 @@ user_ids <- rtweet::stream_tweets(timeout = 5, #get some random user ids by stre
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% filter(lang == "en") %>% pull(user_id) %>% unique()
 
-if (length(user_ids)>50) {user_ids <- user_ids[1:50]} #if there are more than 50, take the first 50 for a rapid demonstration
+if (length(user_ids)>100) {user_ids <- user_ids[1:100]} #if there are more than 100, take the first 100 for a rapid demonstration
 
 addPanel(study_name = "my_first_study",
          panel_name = "random_tweeters",
@@ -146,14 +146,14 @@ editPanel(study_name = "my_first_study",
           panel_name = "random_tweeters")
 ```
 
-We can also add a second panel to this study by calling addPanel again.  Let's also take advantage of this opportunity to make use of the data we just collected.  For example, let's read in the data we scraped on users' friends (accounts they follow) and pull out the top 100 people followed by more than one person in our first panel.  Then, we'll add them to a new panel, called "popular_friends," where we'll only scrape timelines.
+We can also add a second panel to this study by calling addPanel again.  Let's also take advantage of this opportunity to make use of the data we just collected.  For example, let's read in the data we scraped on users' friends (accounts they follow) and pull out the top 100 people followed by more than one person in our first panel.  Then, we'll add them to a new panel, called "popular_friends," where we'll only scrape their timelines.
 
 ```{r}
 first_friends <- dir("~/tricordings/studies/my_first_study/random_tweeters/twitter_scrapes/first_friends/", full.names = T)[1] %>% readRDS(.)
 
 popular_friends <- first_friends %>% group_by(user_id) %>% summarise(count = n()) %>% filter(count>1) %>% arrange(desc(count)) #get the most popular friends
 
-if (nrow(popular_friends)>50) {popular_friends <- popular_friends[1:50,]} #if there are more than 50, take the 50 most popular
+if (nrow(popular_friends)>100) {popular_friends <- popular_friends[1:100,]} #if there are more than 100, take the 100 most popular
 
 addPanel(study_name = "my_first_study",
          panel_name = "popular_friends",
@@ -202,6 +202,8 @@ When we want to read in the full timeline datasets to R for analysis, we need co
 
 ```{r}
 all_timeline_data <- prep_timeline_data(panel_directory = "~/tricordings/studies/my_first_study/random_tweeters", sessions_back = 1, load_all_since_first = T, include_historical = T, all_columns = T)
+
+head(all_timeline_data)
 ```
 
 
