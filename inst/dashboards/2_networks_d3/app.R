@@ -139,12 +139,12 @@ server <- function(input, output) {
 
   participant_panel <- reactive({
     panels_ordered <- file.info((paste0(experiment_directory(), panels(), "/scrape_settings.rds"))) %>% arrange(desc(mtime)) %>% rownames %>% str_remove_all("/scrape_settings.rds") %>% str_remove_all(".*/")
-    return(panels_ordered[1])
+    return(panels_ordered[2])
   })
 
   assignment_panel <- reactive({#this could be made more intelligent, but good enough for now
     panels_ordered <- file.info((paste0(experiment_directory(), panels(), "/scrape_settings.rds"))) %>% arrange(desc(mtime)) %>% rownames %>% str_remove_all("/scrape_settings.rds") %>% str_remove_all(".*/")
-    return(panels_ordered[2])
+    return(panels_ordered[1])
   })
 
   # survey_data_prepped <- reactive({invalidateLater(refresh_time)

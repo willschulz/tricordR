@@ -1102,7 +1102,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
 #' Get Historical Timelines (up to 3200 Tweets into the Past)
 #'
 #' The workhorse function of historical timeline collection, takes a dataframe of containing a user_id column, and scrapes as many tweets into the past as specified, up to 3200.  This function is only sometimes used on its own, but plays an important part in higher-level scraping functions.
-#' @param users_df A dataframe containing a user_id column and a penultimate_id column.
+#' @param users A dataframe containing a user_id column, or a character vector of user ids.
 #' @param n The maximum number of followers to scrape for each user.  Defaults to 3,200.
 #' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
 #' @param per_token_limit Batch size to reduce rate limit errors.  Defaults to 100 users per token.
@@ -1112,11 +1112,17 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
 #' @examples
 #' getTimelinesHistorical()
 
-getTimelinesHistorical <- function(users_df, n=3200, list_tokens, per_token_limit=100, max_hours=4){
+getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=100, max_hours=4){
   require(tidyverse)
   require(rtweet)
   start_time <- Sys.time()
   message("Started: ", start_time)
+  if (is.data.frame(users)){
+    users_df <- users
+  }
+  if (!is.data.frame(users)){
+    users_df <- data.frame(user_id=users, other=NA)
+  }
   users_remaining <- users_df
   n_tokens=length(list_tokens)
   timelines_list <- list()
@@ -1353,7 +1359,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
     data_list <- updateTimelines(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
   }
   if (allHistory==TRUE){
-    data_list <- getTimelinesHistorical(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
+    data_list <- getTimelinesHistorical(users=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
   }
   data <- data_list[[1]]
   attempted <- data_list[[2]]
@@ -1712,12 +1718,16 @@ read_and_session <- function(input){
 #'
 #' A function to read timeline data into R.
 #' @param panel_directory The directory in which panel data is stored.
+#' @param sessions_back How many sessions back do you want to read in? Irrelevant if load_all_since_first is TRUE.
+#' @param include_historical Should the historical timeline scrapes collected in the "first_timelines" folder be included?  Defaults to FALSE.
+#' @param load_all_since_first Should all sessions be loaded?  Defaults to FALSE.
+#' @param all_columns Should all timeline variables be included, or only those needed for dashboard visualizations?  Defaults to FALSE.
 #' @keywords dashboard
 #' @export
 #' @examples
 #' prep_timeline_data()
 
-prep_timeline_data <- function(panel_directory, sessions_back, include_historical = FALSE, load_all_since_first = FALSE){
+prep_timeline_data <- function(panel_directory, sessions_back, include_historical = FALSE, load_all_since_first = FALSE, all_columns = FALSE){
   user_ids <- readRDS(file = paste0(panel_directory, "/twitter_scrapes/user_ids.rds")) #bind to available data
   current_lookup <- readRDS(file = paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
 
@@ -1734,7 +1744,11 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
 
   timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
 
-  keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+  if(all_columns){
+    keep_if_there <- colnames(timelines_bound)
+  } else {
+    keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+    }
 
   e <- timelines_bound %>%
     distinct(status_id, .keep_all = T) %>%

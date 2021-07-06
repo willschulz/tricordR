@@ -8,11 +8,20 @@ prep_timeline_data(
   panel_directory,
   sessions_back,
   include_historical = FALSE,
-  load_all_since_first = FALSE
+  load_all_since_first = FALSE,
+  all_columns = FALSE
 )
 }
 \arguments{
 \item{panel_directory}{The directory in which panel data is stored.}
+
+\item{sessions_back}{How many sessions back do you want to read in? Irrelevant if load_all_since_first is TRUE.}
+
+\item{include_historical}{Should the historical timeline scrapes collected in the "first_timelines" folder be included?  Defaults to FALSE.}
+
+\item{load_all_since_first}{Should all sessions be loaded?  Defaults to FALSE.}
+
+\item{all_columns}{Should all timeline variables be included, or only those needed for dashboard visualizations?  Defaults to FALSE.}
 }
 \description{
 A function to read timeline data into R.

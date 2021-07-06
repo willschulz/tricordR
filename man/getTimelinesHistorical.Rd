@@ -5,7 +5,7 @@
 \title{Get Historical Timelines (up to 3200 Tweets into the Past)}
 \usage{
 getTimelinesHistorical(
-  users_df,
+  users,
   n = 3200,
   list_tokens,
   per_token_limit = 100,
@@ -13,7 +13,7 @@ getTimelinesHistorical(
 )
 }
 \arguments{
-\item{users_df}{A dataframe containing a user_id column and a penultimate_id column.}
+\item{users}{A dataframe containing a user_id column, or a character vector of user ids.}
 
 \item{n}{The maximum number of followers to scrape for each user.  Defaults to 3,200.}
 

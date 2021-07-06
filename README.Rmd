@@ -107,9 +107,9 @@ my_tokens <- prepTokens("my_twitter_tokens", 1:9) #prepare all nine of your toke
 
 user_ids <- rtweet::stream_tweets(timeout = 5, #get some random user ids by streaming tweets for 5 seconds
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
-                                  ) %>% pull(user_id) %>% unique()
+                                  ) %>% filter(lang == "en") %>% pull(user_id) %>% unique()
 
-if (length(user_ids)>20) {user_ids <- user_ids[1:20]} #if there are more than 20, take the first 20 for a rapid demonstration
+if (length(user_ids)>50) {user_ids <- user_ids[1:50]} #if there are more than 50, take the first 50 for a rapid demonstration
 
 addPanel(study_name = "my_first_study",
          panel_name = "random_tweeters",
@@ -146,20 +146,20 @@ editPanel(study_name = "my_first_study",
           panel_name = "random_tweeters")
 ```
 
-We can also add a second panel to this study by calling addPanel again.  Let's also take advantage of this opportunity to make use of the data we just collected.  For example, let's read in the data we scraped on users' friends (accounts they follow) and pull out the top 20 people followed by more than one person in our first panel.
+We can also add a second panel to this study by calling addPanel again.  Let's also take advantage of this opportunity to make use of the data we just collected.  For example, let's read in the data we scraped on users' friends (accounts they follow) and pull out the top 100 people followed by more than one person in our first panel.  Then, we'll add them to a new panel, called "popular_friends," where we'll only scrape timelines.
 
 ```{r}
 first_friends <- dir("~/tricordings/studies/my_first_study/random_tweeters/twitter_scrapes/first_friends/", full.names = T)[1] %>% readRDS(.)
 
 popular_friends <- first_friends %>% group_by(user_id) %>% summarise(count = n()) %>% filter(count>1) %>% arrange(desc(count)) #get the most popular friends
 
-if (nrow(popular_friends)>20) {popular_friends <- popular_friends[1:20,]} #if there are more than 20, take the 20 most popular
+if (nrow(popular_friends)>50) {popular_friends <- popular_friends[1:50,]} #if there are more than 50, take the 50 most popular
 
 addPanel(study_name = "my_first_study",
          panel_name = "popular_friends",
          user_ids = popular_friends$user_id,
          scrape_timelines = TRUE,
-         scrape_friends = TRUE,
+         scrape_friends = FALSE,
          scrape_followers = FALSE,
          scrape_favorites = FALSE,
          first_scrape = TRUE,
@@ -191,13 +191,9 @@ runNetworkDash()
 Sometimes we want to collect Twitter data in an isolated batch, without initiating these processes to track panels of users.  To do this, while still taking advantage of tricordR's token efficiencies, we use the mid-level workhorse functions shown below.
 
 ```{r}
-
-"18906561"
-
-getTimelines()
-getFollowers()
-getFriends()
-getFavorites()
+getTimelinesHistorical(users = user_ids)
+getFollowersBig(users = "18906561", n = 20000, list_tokens = my_tokens, max_hours = 1)
+getFriendsBig(users = "18906561", n = 20000, list_tokens = my_tokens, max_hours = 1)
 ```
 
 ## Reading Data for Analysis
