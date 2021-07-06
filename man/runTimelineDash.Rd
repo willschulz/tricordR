@@ -4,10 +4,10 @@
 \alias{runTimelineDash}
 \title{Run Timeline Dashboard}
 \usage{
-runTimelineDash(port = 4711)
+runTimelineDash(port = 4201)
 }
 \arguments{
-\item{port}{Specify the port to run the dashboard on.  Defaults to 4711.}
+\item{port}{Specify the port to run the dashboard on.  Defaults to 4201.}
 }
 \description{
 A convenient function to launch the interactive timeline data collection dashboard.
