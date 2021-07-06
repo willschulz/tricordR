@@ -135,7 +135,7 @@ Tooltip
   ;
 d3.select(this)
   .style('transition', '0.4s all cubic-bezier(0.5,0.8,0,1.7)')
-  //.style('fill', options.hovercolour)
+  .style('fill', options.hovercolour)
   .attr("r", function (d) { return d.size + 2; })
   ;
   Shiny.setInputValue('tweet_text', d3.select(this).attr("text"));

@@ -26,7 +26,8 @@ default_screen_name_fonts <- c(2, 2, 4)
 point_cex <- .9
 default_axis_cex <- 1
 default_screen_name_cex <- .8
-default_point_color <- rgb(1,1,1,.7)
+default_point_color <- "rgba(200,200,200,.5)"
+default_point_hover_color <- "rgba(108, 196, 20,.9)"
 
 # my_red <- rgb(1,.5,.5)
 # my_blue <- rgb(.5,.5,1)
@@ -154,18 +155,25 @@ body <- dashboardBody(
   shinyDashboardThemes(theme = dash_theme),
 
   fluidRow(column(width = 8,
+                  # box(title=textOutput("panel_1_name"),
+                  #     width = 12,
+                  #     plotOutput("panel_1s_ts_d", height = px_panel_1, width = "100%") %>%
+                  #       withSpinner(color="#777777", type=8, size = spinner_size),
+                  # )
                   box(title=textOutput("panel_1_name"),
                       width = 12,
-                      plotOutput("panel_1s_ts_d", height = px_panel_1, width = "100%") %>%
-                        withSpinner(color="#777777", type=8, size = spinner_size),
+                      div(id = "htmlwidget_container",
+                          r2d3::d3Output("panel_1s_ts_d", height = px_panel_1, width = "100%") %>% withSpinner(color="#777777", type=8, size = spinner_size)
+                      )
                   ),
 
                   box(title=textOutput("panel_2_name"),
                       width = 12,
                       div(id = "htmlwidget_container",
-                          r2d3::d3Output("panel_2s_ts_d", height = px_panel_2, width = "100%")
+                          r2d3::d3Output("panel_2s_ts_d", height = px_panel_2, width = "100%") %>% withSpinner(color="#777777", type=8, size = spinner_size)
                       )
-                  )),
+                  )
+                  ),
            box(title="Tweet Details",
                width = 4,
                htmlOutput("tweet_viewer"))
@@ -249,12 +257,45 @@ server <- function(input, output) {
                        load_all_since_first = input$load_all_since_first)
   })
 
-  output$panel_1s_ts_d <- renderPlot({
+  # output$panel_1s_ts_d <- renderPlot({
+  #   invalidateLater(refresh_time)
+  #   timeline_data <- timeline_data_panel_1s()
+  #   dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, axis_cex,
+  #           sentiment_reference_scale = my_sentiment_reference_scale,
+  #           ideo_reference_scale = my_ideo_reference_scale)
+  # })
+
+  output$panel_1s_ts_d <- r2d3::renderD3({
     invalidateLater(refresh_time)
     timeline_data <- timeline_data_panel_1s()
-    dotPlot(timeline_data[[1]], timeline_data[[2]], input$days_back, input$color_variable, input$show_names, sentiment_left_color, sentiment_right_color, ideo_left_color, ideo_right_color, point_cex, axis_cex,
-            sentiment_reference_scale = my_sentiment_reference_scale,
-            ideo_reference_scale = my_ideo_reference_scale)
+    timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
+    data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
+                       y = timeline_data[[1]]$user_index,
+                       text = timeline_data[[1]]$text,
+                       sentiment = timeline_data[[1]]$score,
+                       screen_name = timeline_data[[1]]$screen_name,
+                       created_at = timeline_data[[1]]$created_at,
+                       size = 4)
+    options(r2d3.theme = list(
+      background = "#343E48",
+      foreground = "#808080")
+    )
+    r2d3::r2d3(data=data,
+               script = scatter_script_path,
+               options = list(margin_top = 6,
+                              margin_bottom = 60,
+                              margin_sides = 20,
+                              colour = c(default_point_color),
+                              hovercolour = c(default_point_hover_color),
+                              xLabel = "",
+                              yLabel = "",
+                              xmin = min(data$x),
+                              xmax = max(data$x),
+                              ymin = min(data$y),
+                              ymax = max(data$y),
+                              chartTitle = ""
+               )
+    )
   })
 
   output$panel_2s_ts_d <- r2d3::renderD3({
@@ -273,12 +314,12 @@ server <- function(input, output) {
       foreground = "#808080")
     )
     r2d3::r2d3(data=data,
-         script = scatter_script_path,
+          script = scatter_script_path,
          options = list(margin_top = 6,
                         margin_bottom = 60,
                         margin_sides = 20,
-                        colour = c("rgba(0,255,0,1)"),
-                        hovercolour = "green",
+                        colour = c(default_point_color),
+                        hovercolour = c(default_point_hover_color),
                         xLabel = "",
                         yLabel = "",
                         xmin = min(data$x),
