@@ -1604,10 +1604,31 @@ scrapeStudy <- function(study_name, tokens,
 runTimelineDash <- function(port = 4201) {
   appDir <- system.file("dashboards/timeline_dash_2group_study", "app.R", package = "tricordR")
   if (appDir == "") {
-    stop("Could not find example directory. Try re-installing `tricordR`.", call. = FALSE)
+    stop("Could not find dashboard directory. Try re-installing `tricordR`.", call. = FALSE)
   }
   shiny::runApp(appDir, display.mode = "normal", port = port)
 }
+
+
+#' Run Network Dashboard
+#'
+#' A convenient function to launch the interactive network graph dashboard.
+#' @param port Specify the port to run the dashboard on.  Defaults to 4202.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' runNetworkDash()
+
+runNetworkDash <- function(port=4202){
+  appDir <- system.file("dashboards/2_networks_d3",
+                        "app.R", package = "tricordR")
+  if (appDir == "") {
+    stop("Could not find dashboard directory. Try re-installing `tricordR`.",
+         call. = FALSE)
+  }
+  shiny::runApp(appDir, display.mode = "normal", port = port)
+}
+
 
 #' Fix Sentiment
 #'
