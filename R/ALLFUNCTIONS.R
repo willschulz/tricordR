@@ -2127,7 +2127,7 @@ prep_network_data_d3 <- function(experiment_directory, participant_panel, assign
 #' @examples
 #' singleNodeIndexer()
 
-singleNodeIndexer <- function(twitter_user_id, thismetadata = metadata){return(thismetadata$NodeID[which(thismetadata$user_id==twitter_user_id)])}
+singleNodeIndexer <- function(twitter_user_id, thismetadata){return(thismetadata$NodeID[which(thismetadata$user_id==twitter_user_id)])}
 
 #' Index Network Nodes
 #'

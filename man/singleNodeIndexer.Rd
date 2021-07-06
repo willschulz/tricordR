@@ -4,12 +4,12 @@
 \alias{singleNodeIndexer}
 \title{Index Single Network Nodes}
 \usage{
-singleNodeIndexer(twitter_user_id, thismetadata = metadata)
+singleNodeIndexer(twitter_user_id, thismetadata)
 }
 \arguments{
 \item{twitter_user_id}{The twitter user_id to look up.}
 
-\item{metadata}{The metadata in which to look up the twitter user_id.}
+\item{thismetadata}{The metadata in which to look up the twitter user_id.}
 }
 \description{
 A workhorse function for nodeIndexer
