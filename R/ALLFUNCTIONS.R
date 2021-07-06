@@ -2121,7 +2121,7 @@ prep_network_data_d3 <- function(experiment_directory, participant_panel, assign
 #'
 #' A workhorse function for nodeIndexer
 #' @param twitter_user_id The twitter user_id to look up.
-#' @param metadata The metadata in which to look up the twitter user_id.
+#' @param thismetadata The metadata in which to look up the twitter user_id.
 #' @keywords dashboard
 #' @export
 #' @examples
