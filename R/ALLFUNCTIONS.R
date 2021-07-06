@@ -1776,7 +1776,7 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
   }
   e_f <- bind_rows(e_f,subset_current_lookup)
 
-  return(list(e, e_f))
+  if (all_columns) {return(e)} else {return(list(e, e_f))}
 }
 
 #' Make Time Series
