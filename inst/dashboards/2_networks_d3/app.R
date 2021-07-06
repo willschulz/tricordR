@@ -90,20 +90,7 @@ sidebar <- dashboardSidebar(#width=12,
 body <- dashboardBody(
   shinyDashboardThemes(theme = dash_theme),
 
-  fluidRow(
-    column(width=4,
-           box(title="Survey Data Collection (Cumulative)",
-               width = 12,
-               plotOutput("survey_ts", height = paste0(150, "px"), width = "100%") %>%
-                 withSpinner(color="#777777", type=8)
-           )
-           # ,box(title="Lookup",
-           #     width = 12, height = "600px",
-           #     dataTableOutput("data_table") %>%
-           #       withSpinner(color="#777777", type=8)
-           # )
-    ),
-    column(width=8,
+  fluidRow(width=12,
            box(title="Network",
                width = 12,
                networkD3::forceNetworkOutput("network_graph_d3", height = paste0(650, "px"), width = "100%") %>%
@@ -111,7 +98,6 @@ body <- dashboardBody(
                ,dataTableOutput("data_table") %>%
                  withSpinner(color="#777777", type=8)
            ),
-    )
   )
 )#prop_followers_assigned
 
