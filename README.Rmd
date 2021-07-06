@@ -35,6 +35,10 @@ Since tricordR is still in development, it is only available by invitation to th
 ```{r}
 # install.packages("devtools")
 devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_ACCESS_TOKEN)
+
+remove.packages("tricordR")
+devtools::install_github("https://github.com/willschulz/tricordR/", auth_token = "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")
+library(tricordR)
 ```
 
 ### Initialization
@@ -42,7 +46,6 @@ devtools::install_github("willschulz/tricordR", auth_token = YOUR_GH_PERSONAL_AC
 Before collecting any data, run the following code to create tricordR's data folder (which is called "tricordings") in your home directory:
   
 ```{r}
-library(tricordR)
 initialize()
 ```
 
@@ -103,9 +106,9 @@ addStudy("my_first_study")
 This simply creates a new folder in the tricordR_data/studies directory, where user panels can be added.  Adding a user panel is more involved, since it requires specifying the set of users you wish to track, and the data you wish to collect about them.  For example:
 
 ```{r}
-my_tokens <- prepTokens("ws_botexp", 1:9) #prepare all nine of your tokens for usage
+my_tokens <- prepTokens("my_twitter_tokens", 1:9) #prepare all nine of your tokens for usage
 
-user_ids <- rtweet::stream_tweets(timeout = 5, #get some random user ids by streaming tweets for 10 seconds
+user_ids <- rtweet::stream_tweets(timeout = 5, #get some random user ids by streaming tweets for 5 seconds
                                   token = my_tokens[[1]], #you'll only need one of your tokens for this
                                   ) %>% pull(user_id) %>% unique()
 
