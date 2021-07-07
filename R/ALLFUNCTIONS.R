@@ -48,7 +48,7 @@ sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
     user_ids <- unique(c(user_ids, streamed_tweets %>% filter(lang == "en", followers_count>4999) %>% pull(user_id) %>% unique()))
   }
   message(paste0(length(user_ids), " user_ids collected now."))
-  user_ids <- user_ids[!which(user_ids %in% prior_user_ids)]
+  user_ids <- user_ids[-which(user_ids %in% prior_user_ids)]
   message(paste0(length(user_ids), " user_ids collected are novel."))
   if (length(user_ids)>0){
     saveRDS(user_ids, file = paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed/user_ids_",time_code,".rds"))

@@ -79,6 +79,52 @@ head(user_friends)
 ```
 
 
+# Friend Getting function
+
+```{r}
+
+study_name = "spirals_assignment_sampling"
+
+getSampledUsersFriends <- function(study_name, token, minutes = 1){
+  sampled <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS)
+  done <- dir(paste0("~/tricordings/studies/",study_name,"/2_friends_scraped"), full.names = T) %>% map_dfr(., readRDS) %>% pull(user) %>% unique
+  to_do <- sampled[-which(sampled %in% done)]
+  time_code <- timeCode()
+  getFriendsBig()
+  message(paste0(length(user_ids), " user_ids collected now."))
+  user_ids <- user_ids[!which(user_ids %in% prior_user_ids)]
+  message(paste0(length(user_ids), " user_ids collected are novel."))
+  if (length(user_ids)>0){
+    saveRDS(user_ids, file = paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed/user_ids_",time_code,".rds"))
+  }
+}
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+#############
+
+
+
+
 
 ```{r}
 tokens <- prep_tokens("ws_tw", 1:9)
@@ -94,28 +140,5 @@ while (as.numeric(difftime(Sys.time(), start, units = "mins")) < 240){
 ```
 
 
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
 
 
