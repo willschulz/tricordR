@@ -4,12 +4,12 @@
 \alias{getSampledUsersFriends}
 \title{Friend Scraping for Sampled Users}
 \usage{
-getSampledUsersFriends(study_name, n = 1e+06, tokens, max_hours)
+getSampledUsersFriends(study_name, n = 250000, tokens, max_hours)
 }
 \arguments{
 \item{study_name}{The name of the study folder to sample into.}
 
-\item{n}{Maximum number of friends to scrape.  Defaults to 1 million.}
+\item{n}{Maximum number of friends to scrape.  Defaults to 250,000.}
 
 \item{tokens}{Tokens prepared using prepTokens().}
 

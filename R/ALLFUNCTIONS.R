@@ -59,7 +59,7 @@ sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
 #'
 #' This function scrapes users' friends, and is designed to work through a large volume robustly.
 #' @param study_name The name of the study folder to sample into.
-#' @param n Maximum number of friends to scrape.  Defaults to 1 million.
+#' @param n Maximum number of friends to scrape.  Defaults to 250,000.
 #' @param tokens Tokens prepared using prepTokens().
 #' @param max_hours Maximum time to spend scraping friends.
 #' @keywords sampling
@@ -67,7 +67,7 @@ sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
 #' @examples
 #' getSampledUsersFriends()
 
-getSampledUsersFriends <- function(study_name, n = 1000000, tokens, max_hours){
+getSampledUsersFriends <- function(study_name, n = 250000, tokens, max_hours){
   time_code <- timeCode()
   sampled <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS) %>% unlist(., use.names = F)
   done <- dir(paste0("~/tricordings/studies/",study_name,"/2_friends_scraped"), full.names = T) %>% map_dfr(., readRDS) %>% pull(user) %>% unique
