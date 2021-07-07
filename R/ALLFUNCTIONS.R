@@ -73,7 +73,7 @@ getSampledUsersFriends <- function(study_name, n = 250000, tokens, max_hours){
   done <- dir(paste0("~/tricordings/studies/",study_name,"/2_friends_scraped"), full.names = T) %>% map_dfr(., readRDS) %>% pull(user) %>% unique
   to_do <- sampled[-which(sampled %in% done)]
   rm(sampled,done)
-  new_friends <- getFriendsBig(users = to_do, n = n, list_tokens = tokens, max_hours = max_hours)
+  try(new_friends <- getFriendsBig(users = to_do, n = n, list_tokens = tokens, max_hours = max_hours))
   message(paste0(nrow(new_friends), " friends collected from ",length(unique(new_friends$user))," users."))
   if (nrow(new_friends)>0){
     saveRDS(new_friends, file = paste0("~/tricordings/studies/",study_name,"/2_friends_scraped/friends_",time_code,".rds"))
