@@ -78,7 +78,7 @@ If you intend to use tricordR’s automated scraping features, add the
 following line to your crontab:
 
 ``` bash
-00 12 00 * * * usr/local/bin/Rscript /Library/Frameworks/R.framework/Versions/4.0/Resources/library/tricordR/scripts/daily_twitter_scrape.R
+00 12 * * * /usr/local/bin/Rscript /Library/Frameworks/R.framework/Versions/4.0/Resources/library/tricordR/scripts/daily_twitter_scrape.R
 ```
 
 This will prompt tricordR to update all tracked user panels (see below)
@@ -105,7 +105,7 @@ the end of your cron job, specifying the path to your tricordings folder
 (which should be in your home directory).
 
 ``` bash
-%> /path/to/tricordings/logs/daily_twitter_scrape_log.txt
+>> /path/to/tricordings/logs/daily_twitter_scrape_log.txt
 ```
 
 ## Collecting Data
