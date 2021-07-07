@@ -1,5 +1,62 @@
 # ALL FUNCTIONS
 
+# Experimental Functions
+
+#' Tweeter Sampling (English Language, 5k)
+#'
+#' This function samples tweets for a specified time duration (in 10-second chunks), then filters the resulting tweets to identify users tweeting in english and with at least 5000 followers.  Then it saves the unique user ids in the standard directory.
+#' @param study_name The name of the study folder to sample into.
+#' @param token A single rtweet token.
+#' @param minutes Minutes to keep sampling.
+#' @keywords sampling
+#' @export
+#' @examples
+#' sampleEnglishTweeters5k()
+
+sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
+  prior_user_ids <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS)
+  time_code <- timeCode()
+  start <- Sys.time()
+  user_ids <- c()
+  while (as.numeric(difftime(Sys.time(), start, units = "mins")) < minutes){
+    print(paste0(round(as.numeric(difftime(Sys.time(), start, units = "mins")), 2), " mins elapsed"))
+    streamed_tweets <- NULL
+    erred <- FALSE
+    warned <- FALSE
+    error_text <- "No error"
+    warning_text <- "No warning"
+    tryCatch({streamed_tweets <- stream_tweets(timeout = 10, token = token)},
+             error=function(e) {error_text <<- (e$message); erred <<- TRUE},
+             warning=function(w) {warning_text <<- (w$message); warned <<- TRUE}
+    )
+
+    if(erred){
+      message(paste0("Error!\n", error_text,"\nContinuing to sample..."))
+      Sys.sleep(5)
+      next
+    }
+    if(warned){
+      message(paste0("Warning!\n", warning_text,"\nContinuing to sample..."))
+      Sys.sleep(5)
+      next
+    }
+    if(is.null(streamed_tweets)){
+      message(paste0("NULL tweets!\nContinuing to sample..."))
+      Sys.sleep(5)
+      next
+    }
+    user_ids <- unique(c(user_ids, streamed_tweets %>% filter(lang == "en", followers_count>4999) %>% pull(user_id) %>% unique()))
+  }
+  message(paste0(length(user_ids), " user_ids collected now."))
+  user_ids <- user_ids[!which(user_ids %in% prior_user_ids)]
+  message(paste0(length(user_ids), " user_ids collected are novel."))
+  if (length(user_ids)>0){
+    saveRDS(user_ids, file = paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed/user_ids_",time_code,".rds"))
+  }
+}
+
+
+
 # General Functions
 
 #' Initialization Function

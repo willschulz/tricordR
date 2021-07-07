@@ -1,0 +1,121 @@
+---
+title: "sampler dev"
+author: "Will Schulz"
+date: "7/7/2021"
+output: html_document
+---
+
+```{r}
+library(tricordR)
+```
+
+
+```{r}
+tokens <- prepTokens("ws_tw", 1:9)
+
+```
+
+
+
+```{r}
+user_ids <- c()
+rl <- rate_limit(tokens[[1]])
+
+which(rl$limit != rl$remaining)
+
+
+rl
+```
+
+
+```{r}
+#sampling 
+
+start <- Sys.time()
+while (as.numeric(difftime(Sys.time(), start, units = "mins")) < 5){
+  print(paste0(round(as.numeric(difftime(Sys.time(), start, units = "mins")), 2), " mins elapsed"))
+  streamed_tweets <- NULL
+  erred <- FALSE
+  warned <- FALSE
+  error_text <- "No error"
+  warning_text <- "No warning"
+  tryCatch({streamed_tweets <- stream_tweets(timeout = 10, token = tokens[[1]])},
+           error=function(e) {error_text <<- (e$message); erred <<- TRUE},
+           warning=function(w) {warning_text <<- (w$message); warned <<- TRUE}
+           )
+
+  if(erred){
+    message(paste0("Error!\n", error_text,"\nContinuing to sample..."))
+    Sys.sleep(5)
+    next
+  }
+  if(warned){
+    message(paste0("Warning!\n", warning_text,"\nContinuing to sample..."))
+    Sys.sleep(5)
+    next
+  }
+  if(is.null(streamed_tweets)){
+    message(paste0("NULL tweets!\nContinuing to sample..."))
+    Sys.sleep(5)
+    next
+  }
+  user_ids <- unique(c(user_ids, streamed_tweets %>% filter(lang == "en", followers_count>4999) %>% pull(user_id) %>% unique()))
+}
+
+#ran this a few times on 210707 until we had more than 1k
+saveRDS(user_ids, file = "sampler_data/user_ids_streamed_210707.rds")
+```
+
+
+
+```{r}
+user_friends <- getFriendsBig(user_ids, list_tokens = tokens)
+
+time_code <- timeCode()
+
+saveRDS(user_friends, file = paste0("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_",time_code,".rds"))
+
+head(user_friends)
+```
+
+
+
+```{r}
+tokens <- prep_tokens("ws_tw", 1:9)
+
+start <- Sys.time()
+
+while (as.numeric(difftime(Sys.time(), start, units = "mins")) < 240){
+  print(paste0(round(as.numeric(difftime(Sys.time(), start, units = "mins")), 1), " mins elapsed"))
+  streamed_tweets <- stream_tweets(c(-125, 26, -65, 49), timeout = 120, token = tokens[[1]])
+  filtered_users <- streamed_tweets %>% filter(country_code=="US", lang=="en", followers_count>5000) %>% distinct(user_id, .keep_all = T) %>% pull(user_id)
+  editGroup(group_name = "us_en_5k", study_name = "assignment_sampling", add_users = filtered_users, tokens = tokens, first_scrape = T)
+}
+```
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
