@@ -14,7 +14,7 @@
 #' sampleEnglishTweeters5k()
 
 sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
-  prior_user_ids <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS)
+  prior_user_ids <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS) %>% unlist(., use.names = F)
   time_code <- timeCode()
   start <- Sys.time()
   user_ids <- c()
@@ -55,6 +55,30 @@ sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
   }
 }
 
+#' Friend Scraping for Sampled Users
+#'
+#' This function scrapes users' friends, and is designed to work through a large volume robustly.
+#' @param study_name The name of the study folder to sample into.
+#' @param n Maximum number of friends to scrape.  Defaults to 1 million.
+#' @param tokens Tokens prepared using prepTokens().
+#' @param max_hours Maximum time to spend scraping friends.
+#' @keywords sampling
+#' @export
+#' @examples
+#' getSampledUsersFriends()
+
+getSampledUsersFriends <- function(study_name, n = 1000000, tokens, max_hours){
+  time_code <- timeCode()
+  sampled <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS) %>% unlist(., use.names = F)
+  done <- dir(paste0("~/tricordings/studies/",study_name,"/2_friends_scraped"), full.names = T) %>% map_dfr(., readRDS) %>% pull(user) %>% unique
+  to_do <- sampled[-which(sampled %in% done)]
+  rm(sampled,done)
+  new_friends <- getFriendsBig(users = to_do, n = n, list_tokens = tokens, max_hours = max_hours)
+  message(paste0(nrow(new_friends), " friends collected from ",length(unique(new_friends$user))," users."))
+  if (nrow(new_friends)>0){
+    saveRDS(new_friends, file = paste0("~/tricordings/studies/",study_name,"/2_friends_scraped/friends_",time_code,".rds"))
+  }
+}
 
 
 # General Functions
