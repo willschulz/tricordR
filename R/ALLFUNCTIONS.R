@@ -2637,12 +2637,24 @@ myRescale <- function(input){
   return((newinput)/max(newinput, na.rm = T))
 }
 
-#
-# #make a centered sequence for histogram breaks
-# cSeq <- function(l=-2, u=2, b=.1){
-#   r <- c(l,u)
-#   return(seq(r[1]-b/2, r[2]+b/2, by=b))
-# }
+#' Centered Sequence
+#'
+#' Make a centered sequence for histogram breaks
+#' @param l Lower bound
+#' @param u Upper bound
+#' @param b Bandwidth
+#' @keywords utility
+#' @export
+#' @examples
+#' cSeq()
+
+
+cSeq <- function(l=-2, u=2, b=.1){
+  r <- c(l,u)
+  return(seq(r[1]-b/2, r[2]+b/2, by=b))
+}
+
+
 #
 # #explore extreme values
 # extremes <- function(input, n=10){

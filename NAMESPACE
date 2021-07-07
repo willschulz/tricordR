@@ -2,6 +2,7 @@
 
 export(addPanel)
 export(addStudy)
+export(cSeq)
 export(dateCode)
 export(dotPlot)
 export(editPanel)

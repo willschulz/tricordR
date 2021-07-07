@@ -85,19 +85,234 @@ head(user_friends)
 
 study_name = "spirals_assignment_sampling"
 
-getSampledUsersFriends <- function(study_name, token, minutes = 1){
-  sampled <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS)
+getSampledUsersFriends <- function(study_name, n = 1000000, tokens, max_hours){
+  time_code <- timeCode()
+  sampled <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS) %>% unlist(., use.names = F)
   done <- dir(paste0("~/tricordings/studies/",study_name,"/2_friends_scraped"), full.names = T) %>% map_dfr(., readRDS) %>% pull(user) %>% unique
   to_do <- sampled[-which(sampled %in% done)]
-  time_code <- timeCode()
-  getFriendsBig()
-  message(paste0(length(user_ids), " user_ids collected now."))
-  user_ids <- user_ids[!which(user_ids %in% prior_user_ids)]
-  message(paste0(length(user_ids), " user_ids collected are novel."))
-  if (length(user_ids)>0){
-    saveRDS(user_ids, file = paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed/user_ids_",time_code,".rds"))
+  rm(sampled,done)
+  new_friends <- getFriendsBig(users = to_do, n = n, list_tokens = tokens, max_hours = max_hours)
+  message(paste0(nrow(new_friends), " friends collected from ",length(unique(new_friends$user))," users."))
+  if (nrow(new_friends)>0){
+    saveRDS(new_friends, file = paste0("~/tricordings/studies/",study_name,"/2_friends_scraped/friends_",time_code,".rds"))
   }
 }
+
+
+getSampledUsersFriends(study_name = "spirals_assignment_sampling", n = 1000000, tokens = tokens, max_hours = .1)
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+# Make Barbera scores
+
+```{r}
+#estimateIdeology2 GOOD
+
+#read in all friend scrapes so far
+friends_df <- dir("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped", full.names = T) %>% map_dfr(., readRDS)
+user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]])
+
+barbera_scores <- list()
+
+pb <- progress::progress_bar$new(format = "  estimating [:bar] :percent eta: :eta", total = nrow(user_metadata), clear = FALSE)
+for (i in 1:nrow(user_metadata)) {
+  barbera_scores[[i]] <- NA
+  try(barbera_scores[[i]] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+                                                     friends = (friends_df %>% 
+                                                                  filter(user==user_metadata$user_id[i]) %>%
+                                                                  .$user_id),
+                                                     replace_outliers = TRUE,
+                                                     verbose = FALSE))
+  pb$tick()
+}
+
+user_metadata <- user_metadata %>% mutate(barbera_scores = unlist(barbera_scores))
+hist(user_metadata$barbera_scores, breaks = cSeq(-4,4,.5))
+```
+
+
+
+
+
+
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+#estimateIdeology2
+
+friends_df <- readRDS("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_20210707160849.rds")
+user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]])
+
+
+pb <- progress::progress_bar$new(
+  format = "  estimating [:bar] :percent eta: :eta",
+  total = nrow(user_metadata), clear = FALSE)
+
+for (i in 1:nrow(user_metadata)) {
+  try(user_metadata$barbera_score[i] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+                                                                       friends = (friends_df %>% 
+                                                                                    filter(user==user_metadata$user_id[i]) %>%
+                                                                                    .$user_id)))
+  pb$tick()
+}
+
+sum(is.na(user_metadata$barbera_score))
+hist(user_metadata$barbera_score, breaks = cSeq(-4,4,.5))
+
+# user_metadata$barbera_score_nazero <- user_metadata$barbera_score
+# user_metadata$barbera_score_nazero[which(is.na(user_metadata$barbera_score_nazero))] <- 0
+```
+
+
+
+```{r}
+#estimateIdeology MLE
+
+friends_df <- readRDS("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_20210707160849.rds")
+user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]])
+
+hist(user_metadata$followers_count)
+
+pb <- progress::progress_bar$new(
+  format = "  estimating [:bar] :percent eta: :eta",
+  total = nrow(user_metadata), clear = FALSE)
+
+barbera_scores <- list()
+
+for (i in 1:nrow(user_metadata)) {
+  barbera_score <- c(NA, NA)
+  try(barbera_score <- tweetscores::estimateIdeology(user = user_metadata$user_id[i],
+                                                     friends = (friends_df %>% 
+                                                                                    filter(user==user_metadata$user_id[i]) %>%
+                                                                                    .$user_id),
+                                                     method = "MLE",
+                                                     verbose = FALSE)$Rhat)
+  barbera_scores[[i]] <- barbera_score
+  pb$tick()
+}
+
+
+barbera_scores <- do_call_rbind(barbera_scores)
+hist((barbera_scores[,1]))
+hist((barbera_scores[,2]))
+
+# user_metadata$barbera_interest <- barbera_scores[,1]
+# user_metadata$barbera_ideology <- barbera_scores[,2]
+```
+
+```{r}
+# #estimateIdeology MCMC [DOESN'T WORK AT ALL!  ERROR MESSAGE "data length [150] is not a sub-multiple or multiple of the number of rows [5000]" FILLS THE CONSOLE!]
+# 
+# friends_df <- readRDS("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_20210707160849.rds")
+# user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]])
+# 
+# hist(user_metadata$followers_count)
+# 
+# pb <- progress::progress_bar$new(
+#   format = "  estimating [:bar] :percent eta: :eta",
+#   total = nrow(user_metadata), clear = FALSE)
+# 
+# barbera_scores <- list()
+# 
+# for (i in 1:nrow(user_metadata)) {
+#   barbera_score <- c(NA, NA)
+#   try(barbera_score <- tweetscores::estimateIdeology(user = user_metadata$user_id[i],
+#                                                      friends = (friends_df %>% 
+#                                                                                     filter(user==user_metadata$user_id[i]) %>%
+#                                                                                     .$user_id),
+#                                                      method = "MCMC",
+#                                                      verbose = FALSE)$Rhat)
+#   barbera_scores[[i]] <- barbera_score
+#   pb$tick()
+# }
+# 
+# 
+# barbera_scores <- do_call_rbind(barbera_scores)
+# hist((barbera_scores[,1]))
+# hist((barbera_scores[,2]))
+# 
+# # user_metadata$barbera_interest <- barbera_scores[,1]
+# # user_metadata$barbera_ideology <- barbera_scores[,2]
+```
+
+
+```{r}
+#estimateIdeology2
+friends_df_1 <- readRDS("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_20210707160849.rds")
+user_metadata_1 <- lookup_users(users = unique(friends_df_1$user), token = prepTokens("ws_tw")[[1]])
+pb <- progress::progress_bar$new(format = "  estimating [:bar] :percent eta: :eta", total = nrow(user_metadata_1), clear = FALSE)
+
+for (i in 1:nrow(user_metadata_1)) {
+  try(user_metadata_1$barbera_score[i] <- tweetscores::estimateIdeology2(user = user_metadata_1$user_id[i],
+                                                                       friends = (friends_df_1 %>% 
+                                                                                    filter(user==user_metadata_1$user_id[i]) %>%
+                                                                                    .$user_id),
+                                                     replace_outliers = TRUE,
+                                                     verbose = FALSE))
+  pb$tick()
+}
+hist(user_metadata_1$barbera_score, breaks = cSeq(-4,4,.5))
+length(user_metadata_1$barbera_score)
+
+user_metadata_1
+```
+
+
+
+```{r}
+#estimateIdeology2 GOOD
+friends_df <- readRDS("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_20210707160849.rds")
+user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]])
+barbera_scores <- list()
+pb <- progress::progress_bar$new(
+  format = "  estimating [:bar] :percent eta: :eta",
+  total = nrow(user_metadata), clear = FALSE)
+
+for (i in 1:nrow(user_metadata)) {
+  barbera_score <- NA
+  try(barbera_score <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+                                                     friends = (friends_df %>% 
+                                                                  filter(user==user_metadata$user_id[i]) %>%
+                                                                  .$user_id),
+                                                     replace_outliers = TRUE,
+                                                     verbose = FALSE))
+  barbera_scores[[i]] <- barbera_score
+  pb$tick()
+}
+
+barbera_scores_v <- unlist(barbera_scores)
+hist(barbera_scores_v, breaks = cSeq(-4,4,.5))
+```
+
+
+
+
+
+
+
+```{r}
+
+
+
 
 ```
 
@@ -122,6 +337,62 @@ getSampledUsersFriends <- function(study_name, token, minutes = 1){
 
 #############
 
+WHY ARE THESE DIFFERENT???????  unclear.... giving up
+
+```{r}
+#estimateIdeology2
+friends_df <- readRDS("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped/friends_20210707160849.rds")
+user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]]) %>% mutate(barbera_score = NA)
+
+barbera_scores <- list()
+barbera_scores2 <- list()
+
+pb <- progress::progress_bar$new(format = "  estimating [:bar] :percent eta: :eta", total = nrow(user_metadata), clear = FALSE)
+for (i in 1:nrow(user_metadata)) {
+  try(user_metadata$barbera_score[i] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+                                                                       friends = (friends_df %>% 
+                                                                                    filter(user==user_metadata$user_id[i]) %>%
+                                                                                    .$user_id),
+                                                                       replace_outliers = FALSE,
+                                                                       verbose = FALSE))
+  
+  try(barbera_scores[[i]] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+                                                            friends = (friends_df %>% 
+                                                                         filter(user==user_metadata$user_id[i]) %>%
+                                                                         .$user_id),
+                                                            replace_outliers = FALSE,
+                                                            verbose = FALSE))
+  
+  try(barbera_scores2[[i]] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+                                                                       friends = (friends_df %>%
+                                                                                    filter(user==user_metadata$user_id[i]) %>%
+                                                                                    .$user_id),
+                                                             replace_outliers = FALSE,
+                                                             verbose = FALSE))
+  
+  # user_metadata$barbera_score[i] <- barbera_score
+  # barbera_scores[[i]] <- barbera_score
+  pb$tick()
+}
+
+mean(user_metadata$barbera_score, na.rm = T)
+mean(unlist(barbera_scores), na.rm = T)
+
+hist(user_metadata$barbera_score, breaks = cSeq(-4,4,.5))
+hist(unlist(barbera_scores), breaks = cSeq(-4,4,.5))
+hist(unlist(barbera_scores2), breaks = cSeq(-4,4,.5))
+
+
+```
+
+
+
+
+
+
+
+
+##################################
 
 
 
