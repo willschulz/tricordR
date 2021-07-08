@@ -10,7 +10,7 @@ firstScrape(
   tokens,
   max_hours = 1,
   sentiment = "none",
-  darmoc = T
+  darmoc = FALSE
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ firstScrape(
 
 \item{sentiment}{Should scraped tweets be analyzed for sentiment? Defaults to "none".}
 
-\item{darmoc}{Should scrapted tweets be analyzed for ideology and sureness?  Defaults to TRUE.}
+\item{darmoc}{Should scrapted tweets be analyzed for ideology and sureness?  Defaults to FALSE}
 }
 \description{
 This workhorse function conducts an inaugural scrape when new users are added to a panel.  It reads the scrape_settings saved in the panel folder, and scrapes the data types specified for that panel.

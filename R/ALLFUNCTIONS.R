@@ -306,7 +306,7 @@ editPanel <- function(study_name, panel_name,
 #
 #   timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
 #
-#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "p_i", "p_s")
+#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "ideology", "sureness")
 #
 #   e <- timelines_bound %>%
 #     distinct(status_id, .keep_all = T) %>%
@@ -1184,13 +1184,13 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
 #' @param tokens The list of tokens to be used for scraping.  See prepTokens().
 #' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
 #' @param sentiment Should scraped tweets be analyzed for sentiment? Defaults to "none".
-#' @param darmoc Should scrapted tweets be analyzed for ideology and sureness?  Defaults to TRUE.
+#' @param darmoc Should scrapted tweets be analyzed for ideology and sureness?  Defaults to FALSE
 #' @keywords scraping
 #' @export
 #' @examples
 #' firstScrape()
 
-firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentiment = "none", darmoc = T){
+firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentiment = "none", darmoc = FALSE){
   message("Running initial scrape for ", user_ids, "...")
   scrape_settings <- readRDS(paste0(panel_directory,"/scrape_settings.rds"))
 
@@ -1397,6 +1397,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
     if (darmoc==TRUE){
       message("Analyzing ideology and sureness...")
       #load classifiers and feature names
+      require(darmoc)
       preds <- darmoc::darmocClassify(input = data$text, type = "response")
       data <- cbind(data,preds)
       # message("Saving data...")
@@ -1780,7 +1781,7 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
   if(all_columns){
     keep_if_there <- colnames(timelines_bound)
   } else {
-    keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "p_i", "p_s")
+    keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "ideology", "sureness")
     }
 
   e <- timelines_bound %>%
@@ -1881,7 +1882,7 @@ dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentimen
                                          yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
   if (color_variable=="ideology") {plot(x=data_e$created_at, y=data_e$user_index,
                                         ylim = range(data_e_f$index),
-                                        col=plotGradient(input = data_e$p_i, left_color = ideo_left_color, right_color = ideo_right_color, reference_scale = ideo_reference_scale),
+                                        col=plotGradient(input = data_e$ideology, left_color = ideo_left_color, right_color = ideo_right_color, reference_scale = ideo_reference_scale),
                                         xlim = time_range,
                                         yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
   axis(side=1, at=date_axis, labels=format(date_axis, "%b %d"), cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
@@ -2852,13 +2853,13 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 # }
 #
 # myClassify <- function(input_dfm, i_mod, s_mod, type = "class"){
-#   p_i <- predict(i_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
+#   ideology <- predict(i_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
 #   if (type != "class"){
-#     p_s <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
+#     sureness <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
 #   } else {
-#     p_s <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.logical() %>% as.numeric()
+#     sureness <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.logical() %>% as.numeric()
 #   }
-#   return(cbind(p_i, p_s))
+#   return(cbind(ideology, sureness))
 # }
 #
 # myTokMatchClass <- function(input, match_to, i_mod, s_mod, type = "class"){
