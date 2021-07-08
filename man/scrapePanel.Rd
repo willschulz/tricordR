@@ -11,8 +11,8 @@ scrapePanel(
   include_friends = TRUE,
   include_followers = TRUE,
   include_favorites = TRUE,
-  sentiment = "sentimentR",
-  darmoc = TRUE
+  sentiment = FALSE,
+  darmoc = FALSE
 )
 }
 \arguments{
@@ -28,9 +28,9 @@ scrapePanel(
 
 \item{include_favorites}{Should favorites be scraped?}
 
-\item{sentiment}{Should tweets be analyzed for sentiment?  Defaults to sentimentR.}
+\item{sentiment}{Should tweets be analyzed for sentiment?  Defaults to FALSE}
 
-\item{darmoc}{Should tweets be analyzed for ideology and sureness? Defaults to TRUE.}
+\item{darmoc}{Should tweets be analyzed for ideology and sureness? Defaults to FALSE}
 }
 \description{
 A high-level function to scrape all data types specified in scrape_settings for users in a given panel, and save the resulting data in that panel folder.

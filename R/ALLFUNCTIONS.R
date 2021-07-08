@@ -1223,15 +1223,10 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
       first_attempts <- first_timelines_data[[2]]
 
       #UNCOMMENT BELOW WHEN SENTIMENT AND DARMOC ARE READY FOR USAGE BY tricordR
-      # if (sentiment=="sentimentR"){
+      # if (sentiment==TRUE){
       #   message("Analyzing sentiment...")
       #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
       #   first_timelines <- addSentiment(first_timelines)
-      # }
-      # if (sentiment=="google"){
-      #   message("Analyzing sentiment...")
-      #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
-      #   first_timelines <- addSentiment(first_timelines) #uses google, which costs money
       # }
       # if (darmoc==TRUE){
       #   message("Analyzing ideology and sureness...")
@@ -1380,7 +1375,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
   attempted <- data_list[[2]]
   if (nrow(data)>0){
     # UNCOMMENT WHEN SENTIMENT  is available to tricordR
-    if (sentiment=="sentimentR"){
+    if (sentiment==TRUE){
       message("Analyzing sentiment...")
       source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
       data <- addSentiment(data)
@@ -1403,7 +1398,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
       # message("Saving data...")
       # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
     }
-    if (darmoc==TRUE | (sentiment %in% c("google", "sentimentR"))){
+    if (darmoc==TRUE | sentiment == TRUE){
       message("Saving classified data...")
       if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
         message("Binding to earlier scrape from today...")
@@ -1415,7 +1410,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
         saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
       }
     }
-    if (!(darmoc==TRUE | (sentiment %in% c("google", "sentimentR")))){
+    if (!(darmoc==TRUE | sentiment == TRUE)){
       message("Saving scraped data...")
       if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
         message("Binding to earlier scrape from today...")
