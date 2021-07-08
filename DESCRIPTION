@@ -24,4 +24,5 @@ Imports:
     shinydashboard,
     dashboardthemes,
     r2d3,
-    networkD3
+    networkD3,
+    qualtRics

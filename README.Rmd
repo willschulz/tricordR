@@ -88,6 +88,16 @@ Finally, to save logs from automated scrapes, add the following line to the end 
 >> /path/to/tricordings/logs/daily_twitter_scrape_log.txt
 ```
 
+### Qualtrics API Credentials
+
+To incorporate survey fetches into your data collection pipeline, install your Qualtrics credentials using the following code:
+
+```{r}
+qualtRics::qualtrics_api_credentials(api_key = "nMNZz9DksEX2m8pefqeyJebdessGS41VZleBsUDC",
+                                     base_url = "princetonsurvey.az1.qualtrics.com",
+                                     install = TRUE)
+```
+
 ## Collecting Data
 
 ### Studies and Panels

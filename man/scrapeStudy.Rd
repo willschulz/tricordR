@@ -11,8 +11,8 @@ scrapeStudy(
   include_friends = TRUE,
   include_followers = TRUE,
   include_favorites = TRUE,
-  sentiment = "sentimentR",
-  lasso = TRUE
+  sentiment = "none",
+  lasso = FALSE
 )
 }
 \arguments{
@@ -28,9 +28,9 @@ scrapeStudy(
 
 \item{include_favorites}{Should favorites be scraped?}
 
-\item{sentiment}{Should tweets be analyzed for sentiment?  Defaults to sentimentR.}
+\item{sentiment}{Should tweets be analyzed for sentiment?  Defaults to none}
 
-\item{lasso}{Should tweets be analyzed for ideology and sureness? Defaults to TRUE.}
+\item{lasso}{Should tweets be analyzed for ideology and sureness? Defaults to FALSE}
 }
 \description{
 A high-level function to scrape all data types specified in scrape_settings for users in all panel in a given study, and save the resulting data in the panel folders.
