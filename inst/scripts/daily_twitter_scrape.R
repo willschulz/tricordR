@@ -16,5 +16,5 @@ tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 
 for (i in 1:length(panel_directories)) {
   message("Scraping ", str_remove_all(panel_directories[i], ".*studies/"))
-  scrapePanel(panel_directories[i], tokens = prepTokens(tokenset, 1:9), sentiment = "none", lasso=F)
+  scrapePanel(panel_directories[i], tokens = prepTokens(tokenset, 1:9), sentiment = "sentimentR", darmoc=TRUE)
 }
