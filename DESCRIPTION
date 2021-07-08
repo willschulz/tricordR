@@ -26,3 +26,5 @@ Imports:
     r2d3,
     networkD3,
     qualtRics
+Enhances: 
+    darmoc

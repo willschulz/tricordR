@@ -306,7 +306,7 @@ editPanel <- function(study_name, panel_name,
 #
 #   timelines_bound <- scrape_dir %>% map_dfr(read_and_session)
 #
-#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+#   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "p_i", "p_s")
 #
 #   e <- timelines_bound %>%
 #     distinct(status_id, .keep_all = T) %>%
@@ -936,7 +936,7 @@ scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_lim
 #   return(list(favorites_megadf, attempted))
 # }
 #
-# ws_scrape_favorites <- function(user_set, days_further_back = 0, n=3000, list_tokens, max_hours=12, sub_batch_size=30, sentiment=FALSE, lasso=FALSE){
+# ws_scrape_favorites <- function(user_set, days_further_back = 0, n=3000, list_tokens, max_hours=12, sub_batch_size=30, sentiment=FALSE, darmoc=FALSE){
 #   message("Scraping favorites...")
 #   require(tidyverse)
 #   require(rtweet)
@@ -985,7 +985,7 @@ scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_lim
 # }
 #
 #
-# ws_scrape_favorites2 <- function(panel_directory, days_further_back = 0, n=3000, list_tokens, max_hours=12, sub_batch_size=30, sentiment=FALSE, lasso=FALSE){
+# ws_scrape_favorites2 <- function(panel_directory, days_further_back = 0, n=3000, list_tokens, max_hours=12, sub_batch_size=30, sentiment=FALSE, darmoc=FALSE){
 #   message("Scraping favorites...")
 #   require(tidyverse)
 #   require(rtweet)
@@ -1184,13 +1184,13 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
 #' @param tokens The list of tokens to be used for scraping.  See prepTokens().
 #' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
 #' @param sentiment Should scraped tweets be analyzed for sentiment? Defaults to "none".
-#' @param lasso Should scrapted tweets be analyzed for ideology and sureness?  Defaults to TRUE.
+#' @param darmoc Should scrapted tweets be analyzed for ideology and sureness?  Defaults to TRUE.
 #' @keywords scraping
 #' @export
 #' @examples
 #' firstScrape()
 
-firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentiment = "none", lasso = T){
+firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentiment = "none", darmoc = T){
   message("Running initial scrape for ", user_ids, "...")
   scrape_settings <- readRDS(paste0(panel_directory,"/scrape_settings.rds"))
 
@@ -1226,23 +1226,23 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
       # if (sentiment=="sentimentR"){
       #   message("Analyzing sentiment...")
       #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
-      #   first_timelines <- addSentimentForFree(first_timelines)
+      #   first_timelines <- addSentiment(first_timelines)
       # }
       # if (sentiment=="google"){
       #   message("Analyzing sentiment...")
       #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
       #   first_timelines <- addSentiment(first_timelines) #uses google, which costs money
       # }
-      # if (lasso==TRUE){
+      # if (darmoc==TRUE){
       #   message("Analyzing ideology and sureness...")
       #   library(tidyverse)
       #   library(glmnet)
       #   library(quanteda)
-      #   source("~/Documents/GitRprojects/LaForge/functions/v1_lasso/featurization.R") #featurization scripts for the classifiers used here
+      #   source("~/Documents/GitRprojects/LaForge/functions/v1_darmoc/featurization.R") #featurization scripts for the classifiers used here
       #   #load classifiers and feature names
-      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_liborcon_Nint.rda")
-      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_most_not_NIAA.rda")
-      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/training_featnames.rda")
+      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/bin_liborcon_Nint.rda")
+      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/bin_most_not_NIAA.rda")
+      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/training_featnames.rda")
       #   preds <- myTokMatchClass(input = first_timelines$text, i_mod = bin_liborcon_Nint, s_mod = bin_most_not_NIAA, match_to = training_featnames, type = "response")
       #   first_timelines <- cbind(first_timelines,preds)
       # }
@@ -1333,13 +1333,13 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
 #' @param max_hours The maximum number of hours to continue scraping.  Defaults to 12 hours.
 #' @param sub_batch_size Batch size to reduce rate limit errors.  Defaults to 100 users per token.
 #' @param sentiment Should tweets be analyzed for sentiment?  Defaults to FALSE.
-#' @param lasso Should tweets be analyzed for ideology and sureness? Defaults to FALSE.
+#' @param darmoc Should tweets be analyzed for ideology and sureness? Defaults to FALSE.
 #' @keywords scraping
 #' @export
 #' @examples
 #' scrapeTimelines()
 
-scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, allHistory=FALSE, sub_batch_size=100, sentiment=FALSE, lasso=FALSE){
+scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, allHistory=FALSE, sub_batch_size=100, sentiment=FALSE, darmoc=FALSE){
   message("Scraping timelines...")
   require(tidyverse)
   require(rtweet)
@@ -1379,14 +1379,14 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
   data <- data_list[[1]]
   attempted <- data_list[[2]]
   if (nrow(data)>0){
-    # UNCOMMENT WHEN SENTIMENT AND DARMOC ARE AVAILABLE TO tricordR
-    # if (sentiment=="sentimentR"){
-    #   message("Analyzing sentiment...")
-    #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
-    #   data <- addSentimentForFree(data)
-    #   # message("Saving data...")
-    #   # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    # }
+    # UNCOMMENT WHEN SENTIMENT  is available to tricordR
+    if (sentiment=="sentimentR"){
+      message("Analyzing sentiment...")
+      source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+      data <- addSentiment(data)
+      # message("Saving data...")
+      # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+    }
     # if (sentiment=="google"){
     #   message("Analyzing sentiment...")
     #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
@@ -1394,34 +1394,27 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
     #   # message("Saving data...")
     #   # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
     # }
-    # if (lasso==TRUE){
-    #   message("Analyzing ideology and sureness...")
-    #   library(tidyverse)
-    #   library(glmnet)
-    #   library(quanteda)
-    #   source("~/Documents/GitRprojects/LaForge/functions/v1_lasso/featurization.R") #featurization scripts for the classifiers used here
-    #   #load classifiers and feature names
-    #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_liborcon_Nint.rda")
-    #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/bin_most_not_NIAA.rda")
-    #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_lasso/training_featnames.rda")
-    #   preds <- myTokMatchClass(input = data$text, i_mod = bin_liborcon_Nint, s_mod = bin_most_not_NIAA, match_to = training_featnames, type = "response")
-    #   data <- cbind(data,preds)
-    #   # message("Saving data...")
-    #   # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    # }
-    # if (lasso==TRUE | (sentiment %in% c("google", "sentimentR"))){
-    #   message("Saving classified data...")
-    #   if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-    #     message("Binding to earlier scrape from today...")
-    #     last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    #     all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
-    #     saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    #   }
-    #   if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-    #     saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    #   }
-    # }
-    if (!(lasso==TRUE | (sentiment %in% c("google", "sentimentR")))){
+    if (darmoc==TRUE){
+      message("Analyzing ideology and sureness...")
+      #load classifiers and feature names
+      preds <- darmoc::darmocClassify(input = data$text, type = "response")
+      data <- cbind(data,preds)
+      # message("Saving data...")
+      # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+    }
+    if (darmoc==TRUE | (sentiment %in% c("google", "sentimentR"))){
+      message("Saving classified data...")
+      if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        message("Binding to earlier scrape from today...")
+        last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+        saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+      if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+    }
+    if (!(darmoc==TRUE | (sentiment %in% c("google", "sentimentR")))){
       message("Saving scraped data...")
       if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
         message("Binding to earlier scrape from today...")
@@ -1457,7 +1450,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
 #' @param include_followers Should timelines be scraped?
 #' @param include_favorites Should favorites be scraped?
 #' @param sentiment Should tweets be analyzed for sentiment?  Defaults to sentimentR.
-#' @param lasso Should tweets be analyzed for ideology and sureness? Defaults to TRUE.
+#' @param darmoc Should tweets be analyzed for ideology and sureness? Defaults to TRUE.
 #' @keywords scraping
 #' @export
 #' @examples
@@ -1469,13 +1462,13 @@ scrapePanel <- function(panel_directory, tokens,
                         include_followers = TRUE,
                         include_favorites = TRUE,
                         sentiment = "sentimentR",
-                        lasso = TRUE){
+                        darmoc = TRUE){
   scrape_settings <- readRDS(paste0(panel_directory, "scrape_settings.rds"))
 
   if (scrape_settings$scrape_timelines & include_timelines){
     scrapeTimelines(panel_directory = panel_directory,
                          list_tokens = tokens,
-                         max_hours = 2, sentiment = sentiment, lasso = lasso)
+                         max_hours = 2, sentiment = sentiment, darmoc = darmoc)
   }
   if (scrape_settings$scrape_friends & include_friends){
     scrapeFriends(panel_directory = panel_directory,
@@ -1501,7 +1494,7 @@ scrapePanel <- function(panel_directory, tokens,
 #' @param include_followers Should timelines be scraped?
 #' @param include_favorites Should favorites be scraped?
 #' @param sentiment Should tweets be analyzed for sentiment?  Defaults to none
-#' @param lasso Should tweets be analyzed for ideology and sureness? Defaults to FALSE
+#' @param darmoc Should tweets be analyzed for ideology and sureness? Defaults to FALSE
 #' @keywords scraping
 #' @export
 #' @examples
@@ -1513,7 +1506,7 @@ scrapeStudy <- function(study_name, tokens,
                         include_followers = TRUE,
                         include_favorites = TRUE,
                         sentiment = "none",
-                        lasso = FALSE){
+                        darmoc = FALSE){
   all_panels_contents <- dir(paste0("~/tricordings/studies/",study_name), full.names = T) %>% dir(full.names = T)
   scrape_settings_paths <- all_panels_contents[str_detect(all_panels_contents, "scrape_settings.rds")]
   panel_directories <- str_remove_all(scrape_settings_paths,"scrape_settings.rds")
@@ -1526,7 +1519,7 @@ scrapeStudy <- function(study_name, tokens,
                 include_followers,
                 include_favorites,
                 sentiment,
-                lasso)
+                darmoc)
   }
 }
 
@@ -1570,43 +1563,68 @@ scrapeStudy <- function(study_name, tokens,
 # #   return(timelines_df_c)
 # # }
 #
-# ### FREE VERSION ###
-#
-# require(sentimentr)
-#
-# mySentiment <- function(input){
-#   sentences <- get_sentences(input)
-#   sentiments <- sentiment_by(sentences, polarity_dt = lexicon::hash_sentiment_jockers_rinker)$ave_sentiment
-#   return(sentiments)
-# }
-#
-#
-# batchedSentiment <- function(input, batchSize=1000){
-#   nBatches <- length(input)/batchSize
-#   nWholeBatches <- floor(nBatches)
-#   p_list <- list()
-#   for (i in 1:nWholeBatches) {
-#     #pb <- txtProgressBar(min=0, max=nWholeBatches, style=3) #when min=1, this breaks 1-iteration loops.  Commenting out for safety (not needed for scripts anyway)
-#     #setTxtProgressBar(pb, i)
-#     p_list[[i]] <- mySentiment(input[((i-1)*batchSize +1):((i)*batchSize)])
-#   }
-#   message("Analyzing final batch...")
-#   if (nBatches!=nWholeBatches){p_list[[i+1]] <- mySentiment(input[((i)*batchSize +1):length(input)])}
-#   message("Binding batches together...")
-#   return(do.call(c,p_list))
-# }
-#
-# addSentimentForFree <- function(timelines_df){
-#   if (nrow(timelines_df)>1000){
-#     sentiments <- batchedSentiment(timelines_df$text)
-#   }
-#   if (nrow(timelines_df)<=1000){
-#     sentiments <- mySentiment(timelines_df$text)
-#   }
-#   timelines_df_c <- cbind(timelines_df, "score" = sentiments)
-#   return(timelines_df_c)
-# }
-#
+
+
+#' Make Sentiment
+#'
+#' A function to classify tweets for sentiment.  Usually used via higher-level functions.
+#' @param input Text to classify for sentiment.
+#' @keywords sentiment
+#' @export
+#' @examples
+#' makeSentiment()
+
+makeSentiment <- function(input){
+  sentences <- sentimentr::get_sentences(input)
+  sentiments <- sentimentr::sentiment_by(sentences, polarity_dt = lexicon::hash_sentiment_jockers_rinker)$ave_sentiment
+  return(sentiments)
+}
+
+#' Batched Sentiment
+#'
+#' A function to classify tweets for sentiment in batches.  Usually used via higher-level functions.
+#' @param input Text to classify for sentiment.
+#' @param batch_size Size of batches to classify.  Defaults to 1000.
+#' @keywords sentiment
+#' @export
+#' @examples
+#' batchedSentiment()
+
+batchedSentiment <- function(input, batch_size=1000){
+  nBatches <- length(input)/batch_size
+  nWholeBatches <- floor(nBatches)
+  p_list <- list()
+  for (i in 1:nWholeBatches) {
+    #pb <- txtProgressBar(min=0, max=nWholeBatches, style=3) #when min=1, this breaks 1-iteration loops.  Commenting out for safety (not needed for scripts anyway)
+    #setTxtProgressBar(pb, i)
+    p_list[[i]] <- makeSentiment(input[((i-1)*batch_size +1):((i)*batch_size)])
+  }
+  message("Analyzing final batch...")
+  if (nBatches!=nWholeBatches){p_list[[i+1]] <- makeSentiment(input[((i)*batch_size +1):length(input)])}
+  message("Binding batches together...")
+  return(do.call(c,p_list))
+}
+
+#' Add Sentiment
+#'
+#' A function to add sentiment scores to timeline data.
+#' @param timelines_df Timeline dataframe to add sentiment scores to.
+#' @keywords sentiment
+#' @export
+#' @examples
+#' addSentiment()
+
+addSentiment <- function(timelines_df){
+  if (nrow(timelines_df)>1000){
+    sentiments <- batchedSentiment(timelines_df$text)
+  }
+  if (nrow(timelines_df)<=1000){
+    sentiments <- makeSentiment(timelines_df$text)
+  }
+  timelines_df_c <- cbind(timelines_df, "sentiment_score" = sentiments)
+  return(timelines_df_c)
+}
+
 #
 # ########################################
 # # DASHBOARD FUNCTIONS
@@ -1762,7 +1780,7 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
   if(all_columns){
     keep_if_there <- colnames(timelines_bound)
   } else {
-    keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "score", "p_i", "p_s")
+    keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "p_i", "p_s")
     }
 
   e <- timelines_bound %>%
@@ -1858,7 +1876,7 @@ dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentimen
                                     yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
   if (color_variable=="sentiment") {plot(x=data_e$created_at, y=data_e$user_index,
                                          ylim = range(data_e_f$index),
-                                         col=plotGradient(input = fixSentiment(data_e$score), left_color = sentiment_left_color, right_color = sentiment_right_color, reference_scale = sentiment_reference_scale),
+                                         col=plotGradient(input = fixSentiment(data_e$sentiment_score), left_color = sentiment_left_color, right_color = sentiment_right_color, reference_scale = sentiment_reference_scale),
                                          xlim = time_range,
                                          yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
   if (color_variable=="ideology") {plot(x=data_e$created_at, y=data_e$user_index,
@@ -2848,8 +2866,8 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 #   return(output)
 # }
 #
-# batchedClassify <- function(input, batchSize=100000, match_to = NULL, i_mod, s_mod, remove_punct = TRUE, remove_numbers=TRUE, remove_url=TRUE, type = "class"){
-#   nBatches <- length(input)/batchSize
+# batchedClassify <- function(input, batch_size=100000, match_to = NULL, i_mod, s_mod, remove_punct = TRUE, remove_numbers=TRUE, remove_url=TRUE, type = "class"){
+#   nBatches <- length(input)/batch_size
 #   nWholeBatches <- floor(nBatches)
 #   p_list <- list()
 #   for (i in 1:nWholeBatches) {
@@ -2857,10 +2875,10 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 #       pb <- txtProgressBar(min=1, max=nWholeBatches, style=3)
 #       setTxtProgressBar(pb, i)
 #     }
-#     p_list[[i]] <- myTokMatchClass(input[((i-1)*batchSize +1):((i)*batchSize)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)
+#     p_list[[i]] <- myTokMatchClass(input[((i-1)*batch_size +1):((i)*batch_size)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)
 #   }
 #   message("Classifying final batch...")
-#   if (nBatches!=nWholeBatches){p_list[[i+1]] <- myTokMatchClass(input[((i)*batchSize +1):length(input)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)}
+#   if (nBatches!=nWholeBatches){p_list[[i+1]] <- myTokMatchClass(input[((i)*batch_size +1):length(input)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)}
 #   message("Binding batches together...")
 #   return(do.call(rbind,p_list))
 # }

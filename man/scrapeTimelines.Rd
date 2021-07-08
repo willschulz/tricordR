@@ -12,7 +12,7 @@ scrapeTimelines(
   allHistory = FALSE,
   sub_batch_size = 100,
   sentiment = FALSE,
-  lasso = FALSE
+  darmoc = FALSE
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ scrapeTimelines(
 
 \item{sentiment}{Should tweets be analyzed for sentiment?  Defaults to FALSE.}
 
-\item{lasso}{Should tweets be analyzed for ideology and sureness? Defaults to FALSE.}
+\item{darmoc}{Should tweets be analyzed for ideology and sureness? Defaults to FALSE.}
 }
 \description{
 A high-level function to scrape timelines of users in a given panel, and save the resulting data in that panel folder.
