@@ -124,12 +124,12 @@ getSampledUsersFriends(study_name = "spirals_assignment_sampling", n = 1000000, 
 friends_df <- dir("~/tricordings/studies/spirals_assignment_sampling/2_friends_scraped", full.names = T) %>% map_dfr(., readRDS)
 user_metadata <- lookup_users(users = unique(friends_df$user), token = prepTokens("ws_tw")[[1]])
 
-barbera_scores <- list()
+barbera_scores_list <- list()
 
 pb <- progress::progress_bar$new(format = "  estimating [:bar] :percent eta: :eta", total = nrow(user_metadata), clear = FALSE)
 for (i in 1:nrow(user_metadata)) {
-  barbera_scores[[i]] <- NA
-  try(barbera_scores[[i]] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
+  barbera_scores_list[[i]] <- NA
+  try(barbera_scores_list[[i]] <- tweetscores::estimateIdeology2(user = user_metadata$user_id[i],
                                                      friends = (friends_df %>% 
                                                                   filter(user==user_metadata$user_id[i]) %>%
                                                                   .$user_id),
@@ -138,15 +138,218 @@ for (i in 1:nrow(user_metadata)) {
   pb$tick()
 }
 
-user_metadata <- user_metadata %>% mutate(barbera_scores = unlist(barbera_scores))
-hist(user_metadata$barbera_scores, breaks = cSeq(-4,4,.5))
+user_metadata <- user_metadata %>%
+  mutate(barbera_scores = unlist(barbera_scores_list)) %>%
+  mutate(barbera_scores_NAtoZero = ifelse(is.na(barbera_scores), 0, barbera_scores))
+```
+
+
+```{r}
+#estimateIdeology MLE DOESN'T WORK
+
+barbera_scores_list_MLE <- list()
+
+pb <- progress::progress_bar$new(format = "  estimating [:bar] :percent eta: :eta", total = nrow(user_metadata), clear = FALSE)
+for (i in 1:nrow(user_metadata)) {
+  barbera_scores_list_MLE[[i]] <- c("beta" = NA, "theta" = NA)
+  samples <- NA
+  try(samples <- tweetscores::estimateIdeology(user = user_metadata$user_id[i],
+                                                     friends = (friends_df %>% 
+                                                                  filter(user==user_metadata$user_id[i]) %>%
+                                                                  .$user_id),
+                                                     method = "MLE",
+                                                     verbose = FALSE)$samples)
+  try(barbera_scores_list_MLE[[i]] <- c("beta" = mean(samples[,2,2]), "theta" = mean(samples[,2,1])))
+  pb$tick()
+}
+
+barbera_scores_MLE<- t(simplify2array(barbera_scores_list_MLE, higher = TRUE))
+```
+
+
+```{r}
+colnames(barbera_scores_MLE)
+hist(barbera_scores_MLE[,1])
+hist(barbera_scores_MLE[,2])
+
+
+plot(barbera_scores_MLE[,1], user_metadata$barbera_scores_NAtoZero, ylab = "Correspondence Ideology", xlab = "MLE Political Interest")
+
+plot(barbera_scores_MLE[,2], user_metadata$barbera_scores_NAtoZero, ylab = "Correspondence Ideology", xlab = "MLE Ideology")
+#this doesn't make sense, don't use it
+```
+
+# approximate political interest
+
+```{r}
+tweetscores::estimateIdeology2
+
+#tweetscores::refdataCA
+str(tweetscores::refdataCA)
+str(tweetscores::refdataCA$id)
+
+reference_ids <- tweetscores::refdataCA$id
+length(reference_ids)
+
+prop_accts_in_barbera <- friends_df %>%
+  group_by(user) %>%
+  summarise(prop_accts_in_barbera = mean(user_id %in% reference_ids),
+            sum_accts_in_barbera = sum(user_id %in% reference_ids)) %>%
+  rename(user_id = user)
+
+
+
+user_metadata <- left_join(user_metadata %>% select(-c(prop_accts_in_barbera, sum_accts_in_barbera, prop_barbera_in_accts, sum_barbera_in_accts)), prop_accts_in_barbera)
+
+plot(user_metadata$barbera_scores_NAtoZero, user_metadata$prop_accts_in_barbera)
+plot(user_metadata$barbera_scores_NAtoZero, user_metadata$sum_accts_in_barbera)
+
+plot(user_metadata$barbera_scores_NAtoZero, log10(user_metadata$prop_accts_in_barbera))
+plot(user_metadata$barbera_scores_NAtoZero, log10(user_metadata$sum_accts_in_barbera))
+
+plot((user_metadata$sum_accts_in_barbera), (user_metadata$prop_accts_in_barbera))
+plot(log10(user_metadata$sum_accts_in_barbera), log10(user_metadata$prop_accts_in_barbera))
+
+# plot(log10(user_metadata$friends_count), log10(user_metadata$prop_accts_in_barbera))
+# plot(log10(user_metadata$sum_accts_in_barbera), log10(user_metadata$prop_accts_in_barbera))
 ```
 
 
 
 
+```{r}
+hist(user_metadata$barbera_scores, breaks = cSeq(-4,4,.25))
+quantiles_a <- quantile(user_metadata$barbera_scores, na.rm = T, probs = seq(.1,.9,.1))
+abline(v=quantiles_a, col = plotGradient(input = c(1,2,3,4,5,4,3,2,1), left_color = c(.1,.8,.1,.8), right_color = c(.1,.2,.1,.8)))
+par(xpd=T)
+text(x = quantiles_a, y = 0, labels = names(quantiles_a), pos = 1, offset = 1, cex = .9)
+par(xpd=F)
+
+hist(user_metadata$barbera_scores_NAtoZero, breaks = cSeq(-4,4,.25))
+quantiles_b <- quantile(user_metadata$barbera_scores_NAtoZero, probs = seq(.1,.9,.1))
+abline(v=quantiles_b, col = plotGradient(input = c(1,2,3,4,5,4,3,2,1), left_color = c(.1,.8,.1,.8), right_color = c(.1,.2,.1,.8)))
+par(xpd=T)
+text(x = quantiles_b, y = 0, labels = names(quantiles_b), pos = 1, offset = 1, cex = .9)
+
+```
 
 
+```{r}
+user_metadata <- user_metadata %>% mutate(follower_friend_ratio = followers_count/friends_count,
+                                          friend_follower_ratio = friends_count/followers_count)
+
+```
+
+
+
+```{r}
+hist(user_metadata$follower_friend_ratio, breaks = 10000, xlim = c(0,500))
+hist(user_metadata$friend_follower_ratio, breaks = 100)
+
+
+quantile(user_metadata$friend_follower_ratio, prob = .2)
+```
+
+```{r}
+user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, .25)) %>%
+  filter(friend_follower_ratio<.5 & friend_follower_ratio>.2) %>%
+  transmute(text, screen_name, description, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange((followers_count))
+
+
+user_metadata %>% #filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, .25)) %>%
+  filter(friend_follower_ratio<.5 & friend_follower_ratio>.2) %>%
+  transmute(screen_name, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange(desc(followers_count))
+
+
+user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, .1)) %>%
+  filter(friend_follower_ratio<.5) %>%
+  filter(verified == FALSE) %>%
+  transmute(screen_name, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange(desc(followers_count))
+```
+
+
+```{r}
+library(tricordR)
+library(rtweet)
+
+test_scrape <- user_metadata %>% filter(followers_count < 50000) %>% sample_n(18)
+
+test <- getFollowersBig(users = test_scrape$user_id, n = 500000, list_tokens = prepTokens("ws_tw"))
+```
+
+
+
+
+```{r}
+user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, .1)) %>%
+  transmute(user_id, screen_name, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange(desc(followers_count))
+
+user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, .2)) %>%
+  transmute(user_id, screen_name, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange(desc(followers_count))
+
+user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, .3)) %>%
+  transmute(user_id, screen_name, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange(desc(followers_count))
+```
+
+
+```{r}
+barbera_threshold <- .1
+followers_max <- 50000
+friend_follower_ratio_max <- .5
+
+user_metadata_filtered <- user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, barbera_threshold)) %>% 
+  filter(followers_count<followers_max) %>%
+  filter(friend_follower_ratio<friend_follower_ratio_max) %>%
+  transmute(user_id, screen_name, followers_count, friends_count, barbera_scores_NAtoZero) %>%
+  arrange(desc(followers_count))
+
+nrow(user_metadata_filtered)/nrow(user_metadata)
+
+user_metadata_filtered
+```
+
+
+
+```{r}
+historical_timelines <- getTimelinesHistorical(user_metadata_filtered$user_id, list_tokens = prepTokens("ws_tw"))
+historical_timelines <- historical_timelines[[1]]
+```
+
+
+```{r}
+library(darmoc)
+
+preds <- darmoc::darmocClassify(historical_timelines$text)
+historical_timelines <- historical_timelines %>% mutate(darmoc_ideo = preds[,1],
+                                                        darmoc_sure = preds[,2],
+                                                        darmoc_crossed = darmoc_ideo*darmoc_sure)
+```
+
+
+```{r}
+darmoc_scores <- historical_timelines %>% group_by(user_id) %>% summarise(darmoc_mean = mean(darmoc_crossed))
+
+user_metadata_filtered <- left_join(user_metadata_filtered, darmoc_scores)
+```
+
+
+```{r}
+par(pty="s")
+plot(user_metadata_filtered$barbera_scores_NAtoZero, user_metadata_filtered$darmoc_mean)
+
+```
+
+
+```{r}
+user_metadata_filtered %>% arrange(darmoc_mean)
+
+```
 
 
 
@@ -154,6 +357,11 @@ hist(user_metadata$barbera_scores, breaks = cSeq(-4,4,.5))
 
 
 ```
+
+
+
+#######################
+
 
 
 ```{r}

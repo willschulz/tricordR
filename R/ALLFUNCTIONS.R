@@ -2,7 +2,7 @@
 
 # Experimental Functions
 
-#' Tweeter Sampling (English Language, 5k)
+#' Tweeter Sampling (English Language, between 5k 50k followers, friend/foll ratio<.5)
 #'
 #' This function samples tweets for a specified time duration (in 10-second chunks), then filters the resulting tweets to identify users tweeting in english and with at least 5000 followers.  Then it saves the unique user ids in the standard directory.
 #' @param study_name The name of the study folder to sample into.
@@ -11,9 +11,9 @@
 #' @keywords sampling
 #' @export
 #' @examples
-#' sampleEnglishTweeters5k()
+#' sampleEnglishTweeters5k50kRatioHalf()
 
-sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
+sampleEnglishTweeters5k50kRatioHalf <- function(study_name, token, minutes = 1){
   prior_user_ids <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS) %>% unlist(., use.names = F)
   time_code <- timeCode()
   start <- Sys.time()
@@ -45,7 +45,7 @@ sampleEnglishTweeters5k <- function(study_name, token, minutes = 1){
       Sys.sleep(5)
       next
     }
-    user_ids <- unique(c(user_ids, streamed_tweets %>% filter(lang == "en", followers_count>4999) %>% pull(user_id) %>% unique()))
+    user_ids <- unique(c(user_ids, streamed_tweets %>% mutate(friend_follower_ratio = friends_count/followers_count) %>% filter(lang == "en", followers_count>4999, followers_count<50000, friend_follower_ratio<.5) %>% pull(user_id) %>% unique()))
   }
   message(paste0(length(user_ids), " user_ids collected now."))
   user_ids <- user_ids[-which(user_ids %in% prior_user_ids)]
