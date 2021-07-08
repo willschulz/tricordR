@@ -303,6 +303,8 @@ barbera_threshold <- .1
 followers_max <- 50000
 friend_follower_ratio_max <- .5
 
+quantile(user_metadata$barbera_scores_NAtoZero, .1)
+
 user_metadata_filtered <- user_metadata %>% filter(barbera_scores_NAtoZero<quantile(barbera_scores_NAtoZero, barbera_threshold)) %>% 
   filter(followers_count<followers_max) %>%
   filter(friend_follower_ratio<friend_follower_ratio_max) %>%
