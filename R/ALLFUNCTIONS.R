@@ -71,7 +71,7 @@ getSampledUsersFriends <- function(study_name, n = 250000, tokens, max_hours){
   time_code <- timeCode()
   sampled <- dir(paste0("~/tricordings/studies/",study_name,"/1_user_ids_streamed"), full.names = T) %>% sapply(., readRDS) %>% unlist(., use.names = F)
   done <- dir(paste0("~/tricordings/studies/",study_name,"/2_friends_scraped"), full.names = T) %>% map_dfr(., readRDS) %>% pull(user) %>% unique
-  to_do <- sampled[-which(sampled %in% done)]
+  to_do <- sample(sampled[-which(sampled %in% done)])
   rm(sampled,done)
   try(new_friends <- getFriendsBig(users = to_do, n = n, list_tokens = tokens, max_hours = max_hours))
   message(paste0(nrow(new_friends), " friends collected from ",length(unique(new_friends$user))," users."))
