@@ -1450,8 +1450,8 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
 #' @param include_friends Should timelines be scraped?
 #' @param include_followers Should timelines be scraped?
 #' @param include_favorites Should favorites be scraped?
-#' @param sentiment Should tweets be analyzed for sentiment?  Defaults to sentimentR.
-#' @param darmoc Should tweets be analyzed for ideology and sureness? Defaults to TRUE.
+#' @param sentiment Should tweets be analyzed for sentiment?  Defaults to FALSE
+#' @param darmoc Should tweets be analyzed for ideology and sureness? Defaults to FALSE
 #' @keywords scraping
 #' @export
 #' @examples
@@ -1462,8 +1462,8 @@ scrapePanel <- function(panel_directory, tokens,
                         include_friends = TRUE,
                         include_followers = TRUE,
                         include_favorites = TRUE,
-                        sentiment = "sentimentR",
-                        darmoc = TRUE){
+                        sentiment = FALSE,
+                        darmoc = FALSE){
   scrape_settings <- readRDS(paste0(panel_directory, "scrape_settings.rds"))
 
   if (scrape_settings$scrape_timelines & include_timelines){

@@ -159,7 +159,9 @@ server <- function(input, output) {
                 include_timelines = T,
                 include_friends = F,
                 include_followers = F,
-                include_favorites = F)
+                include_favorites = F,
+                sentiment = T,
+                darmoc = T)
     showModal(modalDialog(
       title = "Twitter scrape completed",
       paste0("X new tweets collected.")
