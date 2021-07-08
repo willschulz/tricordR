@@ -104,7 +104,7 @@ sidebar <- dashboardSidebar(#width=12,
   numericInput("days_back", "Days Back", value = 10, min = 1, max = 365, step = 1),
   #br(),#br(),br(),
   selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
-              c("Sentiment" = "sentiment",
+              c("Sentiment" = "sentiment_score",
                 "Lasso Ideology" = "ideology",
                 #"Lasso Sureness" = "sureness",
                 "None" = "none")),
