@@ -647,16 +647,31 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
         message("Rate limit reached!  Moving on to next token...")
         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
         # rate limit waiting time code -- is this the best place to put it?
-        rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
-        if (rl$remaining < 5) { #calibrate this
+        # rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
+        # if (rl$remaining < 5) { #calibrate this
           if(already_cycled){
-            wait <- rl$reset + 0.1
+            #wait <- rl$reset + 0.1
+            wait <- 15
             message(paste("Waiting for", round(wait,2),"minutes..."))
             Sys.sleep(wait * 60)
           }
-        }
+        # }
         next
       }
+      # if(str_detect(warning_text, "rate|Rate")){
+      #   message("Rate limit reached!  Moving on to next token...")
+      #   ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
+      #   # rate limit waiting time code -- is this the best place to put it?
+      #   rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
+      #   if (rl$remaining < 5) { #calibrate this
+      #     if(already_cycled){
+      #       wait <- rl$reset + 0.1
+      #       message(paste("Waiting for", round(wait,2),"minutes..."))
+      #       Sys.sleep(wait * 60)
+      #     }
+      #   }
+      #   next
+      # }
       if(!warned){
         if(length(friends_unparsed$ids)==0){
           "Zero friends scraped!  Assuming zero friends and continuing..."
