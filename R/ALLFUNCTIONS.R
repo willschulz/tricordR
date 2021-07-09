@@ -93,10 +93,10 @@ addStudy <- function(study_name){
 #' @param study_name Name of the study to be added.
 #' @param panel_name Name of the panel to be added.
 #' @param user_ids Twitter user ids of users to be added to the new panel.
-#' @param scrape_timelines Should timelines be scraped for this panel?
-#' @param scrape_friends Should friends be scraped for this panel?
-#' @param scrape_followers Should followers be scraped for this panel?
-#' @param scrape_favorites Should favorites be scraped for this panel?
+#' @param scrape_timelines Should timelines be scraped for this panel? Defaults to TRUE.
+#' @param scrape_friends Should friends be scraped for this panel? Defaults to FALSE.
+#' @param scrape_followers Should followers be scraped for this panel? Defaults to FALSE.
+#' @param scrape_favorites Should favorites be scraped for this panel? Defaults to FALSE.
 #' @param first_scrape Should tricordR conduct an initial scrape of the specified data for the specified users?
 #' @param tokens List of tokens to use for initial scrape.  See prepTokens.
 #' @param max_hours Maximum duration of initial scrape.  Defaults to 1 hour.
@@ -109,9 +109,9 @@ addStudy <- function(study_name){
 
 addPanel <- function(study_name, panel_name, user_ids = c(),
                      scrape_timelines = T,
-                     scrape_friends = T,
-                     scrape_followers = T,
-                     scrape_favorites = T,
+                     scrape_friends = F,
+                     scrape_followers = F,
+                     scrape_favorites = F,
                      first_scrape = T, tokens, max_hours = 1,
                      scrape_survey = F,
                      qualtrics_survey_id = NULL){
@@ -816,7 +816,8 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       attempted <- unique(c(attempted, attempted_now))
       if (length(individual_followers_list)>0) {
         #followers_list[[i]] <- do.call(rbind, individual_followers_list)
-        followers_list[[i]] <- do.call(rbind, individual_followers_list[1:j])
+        #followers_list[[i]] <- do.call(rbind, individual_followers_list[1:j])
+        followers_list[[i]] <- do.call(bind_rows, individual_followers_list[1:j])
         already <- c(already, unique(followers_list[[i]]$user))
       }
       set.seed(as.POSIXct(Sys.time()))

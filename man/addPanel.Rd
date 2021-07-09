@@ -9,9 +9,9 @@ addPanel(
   panel_name,
   user_ids = c(),
   scrape_timelines = T,
-  scrape_friends = T,
-  scrape_followers = T,
-  scrape_favorites = T,
+  scrape_friends = F,
+  scrape_followers = F,
+  scrape_favorites = F,
   first_scrape = T,
   tokens,
   max_hours = 1,
@@ -26,13 +26,13 @@ addPanel(
 
 \item{user_ids}{Twitter user ids of users to be added to the new panel.}
 
-\item{scrape_timelines}{Should timelines be scraped for this panel?}
+\item{scrape_timelines}{Should timelines be scraped for this panel? Defaults to TRUE.}
 
-\item{scrape_friends}{Should friends be scraped for this panel?}
+\item{scrape_friends}{Should friends be scraped for this panel? Defaults to FALSE.}
 
-\item{scrape_followers}{Should followers be scraped for this panel?}
+\item{scrape_followers}{Should followers be scraped for this panel? Defaults to FALSE.}
 
-\item{scrape_favorites}{Should favorites be scraped for this panel?}
+\item{scrape_favorites}{Should favorites be scraped for this panel? Defaults to FALSE.}
 
 \item{first_scrape}{Should tricordR conduct an initial scrape of the specified data for the specified users?}
 
