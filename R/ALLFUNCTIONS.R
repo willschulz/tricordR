@@ -1229,7 +1229,7 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
 #' firstScrape()
 
 firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentiment = "none", darmoc = FALSE){
-  message("Running initial scrape for ", user_ids, "...")
+  message("Running initial scrape for:\n", paste(user_ids, collapse = "\n"), "...")
   scrape_settings <- readRDS(paste0(panel_directory,"/scrape_settings.rds"))
 
   this_timecode <- timeCode()
