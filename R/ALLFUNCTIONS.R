@@ -1116,10 +1116,8 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       attempted_now <- users_remaining_subset$user_id[1:j]
       attempted <- unique(c(attempted, attempted_now))
       individual_timelines_list_bound <- do.call(rbind, individual_timelines_list)
-      message(str(individual_timelines_list_bound))
-      try(message(head(individual_timelines_list_bound)))
-      try(message(nrow(individual_timelines_list_bound)))
-      try(message(is.null(individual_timelines_list_bound)))
+      try(message("Rows:", nrow(individual_timelines_list_bound)))
+      try(message("is.null: ", is.null(individual_timelines_list_bound)))
       if (nrow(individual_timelines_list_bound)>0) {
       #if (!is.null(individual_timelines_list_bound)) {  #is this better?
         timelines_list[[i]] <- individual_timelines_list_bound
@@ -1284,11 +1282,8 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
       saveRDS(first_attempts, file = paste0(panel_directory,"/twitter_scrapes/timeline_attempts/attempted_", this_timecode, ".rds"))
 
       this_log <- first_timelines %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1))
-
       new_log <- bind_rows(init_log, this_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
 
-
-      # save updated central log
       logs <- dir(paste0(panel_directory,"/twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
 
       last_log_file <- max(logs)
@@ -1297,11 +1292,9 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
         last_log <- readRDS(paste0(panel_directory,"/twitter_scrapes/timeline_logs/",last_log_file))
         new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
       }
-
       if(is.na(last_log_file)){
         message("First scrape")
       }
-
       saveRDS(new_log, file = paste0(panel_directory,"/twitter_scrapes/timeline_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
     }
 
@@ -2867,58 +2860,6 @@ plotGradient <- function(input, left_color=c(0,0,1,.5), right_color=c(1,0,0,.5),
 }
 
 
-
-
-# ################################
-# # FEATURIZATION FUNCTIONS (NEEDS MODELS TO BE READ IN)
-# ################################
-#
-#
-# myTokenize <- function(input, remove_punct = TRUE, remove_numbers=TRUE, remove_url=TRUE) {
-#   dfm_new <- char_tolower(input) %>%
-#     tokens(., what="word", remove_punct = remove_punct, remove_numbers=remove_numbers, remove_url=remove_url) %>%
-#     tokens_remove(., stopwords("english")) %>% #remove standard stopwords
-#     tokens_remove(., "\\p{Z}", valuetype = "regex") %>% #remove problem characters
-#     tokens_wordstem(.) %>% #this step does the stemming
-#     tokens_ngrams(., 1:2) %>% #add bigrams
-#     dfm(.) #make document feature matrix
-#   return(dfm_new)
-# }
-#
-# myClassify <- function(input_dfm, i_mod, s_mod, type = "class"){
-#   ideology <- predict(i_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
-#   if (type != "class"){
-#     sureness <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.numeric()
-#   } else {
-#     sureness <- predict(s_mod, newx = input_dfm, type = type, s = "lambda.min") %>% as.logical() %>% as.numeric()
-#   }
-#   return(cbind(ideology, sureness))
-# }
-#
-# myTokMatchClass <- function(input, match_to, i_mod, s_mod, type = "class"){
-#   output <- input %>% myTokenize(.) %>% dfm_match(., features = match_to) %>% myClassify(., i_mod, s_mod, type = type)
-#   return(output)
-# }
-#
-# batchedClassify <- function(input, batch_size=100000, match_to = NULL, i_mod, s_mod, remove_punct = TRUE, remove_numbers=TRUE, remove_url=TRUE, type = "class"){
-#   nBatches <- length(input)/batch_size
-#   nWholeBatches <- floor(nBatches)
-#   p_list <- list()
-#   for (i in 1:nWholeBatches) {
-#     if(nWholeBatches>1){
-#       pb <- txtProgressBar(min=1, max=nWholeBatches, style=3)
-#       setTxtProgressBar(pb, i)
-#     }
-#     p_list[[i]] <- myTokMatchClass(input[((i-1)*batch_size +1):((i)*batch_size)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)
-#   }
-#   message("Classifying final batch...")
-#   if (nBatches!=nWholeBatches){p_list[[i+1]] <- myTokMatchClass(input[((i)*batch_size +1):length(input)], match_to=match_to, i_mod=i_mod, s_mod=s_mod, type = type)}
-#   message("Binding batches together...")
-#   return(do.call(rbind,p_list))
-# }
-#
-#
-#
 
 
 
