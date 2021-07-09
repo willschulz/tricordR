@@ -1115,14 +1115,21 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       }
       attempted_now <- users_remaining_subset$user_id[1:j]
       attempted <- unique(c(attempted, attempted_now))
-      timelines_list[[i]] <- do.call(rbind, individual_timelines_list)
-      already <- c(already, unique(timelines_list[[i]]$user_id))
+      individual_timelines_list_bound <- do.call(rbind, individual_timelines_list)
+      #if (nrow(individual_timelines_list_bound)>0) {
+      if (!is.null(individual_timelines_list_bound)) {  #is this better?
+        timelines_list[[i]] <- individual_timelines_list
+        already <- c(already, unique(timelines_list[[i]]$user_id))# this had problems when timelines_list[[i]] is NULL, hopefully fixed by wrapping in this if()
+      }
       set.seed(as.POSIXct(Sys.time()))
       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
     }
     timelines_df <- do.call(rbind, timelines_list)
-    timelines_megalist[[batch]] <- timelines_df
-    if(all(users_df$user_id %in% attempted)){break}
+    if (nrow(timelines_df)>0) {
+    #if (!is.null(timelines_df)) { #is this better?
+      timelines_megalist[[batch]] <- timelines_df
+    }
+    if (all(users_df$user_id %in% attempted)) {break}
   }
   timelines_megadf <- do.call(rbind, timelines_megalist)
   timelines_megadf <- timelines_megadf %>% mutate(scraped_at = Sys.time())
