@@ -1247,7 +1247,7 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
 
     if (file.exists(paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
       message("Binding to last current lookup.")
-      last_current_lookup <- readRDS(paste0(panel_directory, "twitter_scrapes/user_info/current_lookup.rds"))
+      last_current_lookup <- readRDS(paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
       new_current_lookup <- bind_rows(last_current_lookup, new_lookup) %>% distinct(user_id, .keep_all = TRUE)
     } else {
       message("Creating new current lookup.")
