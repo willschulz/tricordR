@@ -1870,7 +1870,7 @@ dotPlot <- function(data_e, data_e_f, days, color_variable, show_names, sentimen
                                     col=default_point_color,
                                     xlim = time_range,
                                     yaxt="n", ylab = "", pch=15, xaxt="n", cex=point_cex, xlab="")}
-  if (color_variable=="sentiment") {plot(x=data_e$created_at, y=data_e$user_index,
+  if (color_variable=="sentiment_score") {plot(x=data_e$created_at, y=data_e$user_index,
                                          ylim = range(data_e_f$index),
                                          col=plotGradient(input = fixSentiment(data_e$sentiment_score), left_color = sentiment_left_color, right_color = sentiment_right_color, reference_scale = sentiment_reference_scale),
                                          xlim = time_range,
