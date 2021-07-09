@@ -621,8 +621,13 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
     if(all(users_df$user_id %in% attempted)){break}
   }
   friends_megadf <- do.call(rbind, friends_list)
-  friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
-  return(friends_megadf)
+  if(!is.null(friends_megadf)){
+    friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
+    return(friends_megadf)
+  }
+  if(is.null(friends_megadf)){
+    message("NULL friends_megadf!  No new friends from these people.")
+  }
 }
 
 
