@@ -1119,9 +1119,10 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       message(str(individual_timelines_list_bound))
       try(message(head(individual_timelines_list_bound)))
       try(message(nrow(individual_timelines_list_bound)))
+      try(message(is.null(individual_timelines_list_bound)))
       if (nrow(individual_timelines_list_bound)>0) {
       #if (!is.null(individual_timelines_list_bound)) {  #is this better?
-        timelines_list[[i]] <- individual_timelines_list
+        timelines_list[[i]] <- individual_timelines_list_bound
         already <- c(already, unique(timelines_list[[i]]$user_id))# this had problems when timelines_list[[i]] is NULL, hopefully fixed by wrapping in this if()
       }
       set.seed(as.POSIXct(Sys.time()))
