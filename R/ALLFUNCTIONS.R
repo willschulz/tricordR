@@ -1095,6 +1095,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       # }
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
+      message("Attempting to scrape timelines from:", paste(users_remaining_subset$user_id, collapse = "\n"))
       individual_timelines_list <- list()
       for (j in 1:slice_size) {
         warned <- FALSE
@@ -1119,6 +1120,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       try(message("Rows:", nrow(individual_timelines_list_bound)))
       try(message("is.null: ", is.null(individual_timelines_list_bound)))
       #if (nrow(individual_timelines_list_bound)>0) {
+      if (is.null(individual_timelines_list_bound)){message("Some kind of error in this batch.  individual_timelines_list_bound came back NULL.")}
       if (!is.null(individual_timelines_list_bound)) {  #I think this is better
         timelines_list[[i]] <- individual_timelines_list_bound
         already <- c(already, unique(timelines_list[[i]]$user_id))# this had problems when timelines_list[[i]] is NULL, hopefully fixed by wrapping in this if()
