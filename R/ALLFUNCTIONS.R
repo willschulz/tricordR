@@ -616,7 +616,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
     attempted <- unique(c(attempted, attempted_now))
     set.seed(as.POSIXct(Sys.time()))
     users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
-    message("Unattempted: ", sum(!(users_remaining %in% attempted)))
+    message("Unattempted: ", sum(!(users_df$user_id %in% attempted)))
 
     if(all(users_df$user_id %in% attempted)){break}
   }
