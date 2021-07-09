@@ -1116,8 +1116,8 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       attempted_now <- users_remaining_subset$user_id[1:j]
       attempted <- unique(c(attempted, attempted_now))
       individual_timelines_list_bound <- do.call(rbind, individual_timelines_list)
-      #if (nrow(individual_timelines_list_bound)>0) {
-      if (!is.null(individual_timelines_list_bound)) {  #is this better?
+      if (nrow(individual_timelines_list_bound)>0) {
+      #if (!is.null(individual_timelines_list_bound)) {  #is this better?
         timelines_list[[i]] <- individual_timelines_list
         already <- c(already, unique(timelines_list[[i]]$user_id))# this had problems when timelines_list[[i]] is NULL, hopefully fixed by wrapping in this if()
       }
