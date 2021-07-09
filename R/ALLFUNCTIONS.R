@@ -1108,7 +1108,8 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
           tryCatch({individual_timelines_list[[j]] <- rtweet::get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE)},
                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
         }
-        if(str_detect(warning_text, "rate limit")){
+        if (!str_detect(warning_text, "rate limit") & nchar(warning_text)>0) {message(paste0(warning_text))}
+        if (str_detect(warning_text, "rate limit")) {
           if(j>1){j <- j-1}
           message("Rate limit reached!  Moving on to next token...")
           break
