@@ -1116,6 +1116,9 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       attempted_now <- users_remaining_subset$user_id[1:j]
       attempted <- unique(c(attempted, attempted_now))
       individual_timelines_list_bound <- do.call(rbind, individual_timelines_list)
+      message(str(individual_timelines_list_bound))
+      try(message(head(individual_timelines_list_bound)))
+      try(message(nrow(individual_timelines_list_bound)))
       if (nrow(individual_timelines_list_bound)>0) {
       #if (!is.null(individual_timelines_list_bound)) {  #is this better?
         timelines_list[[i]] <- individual_timelines_list
