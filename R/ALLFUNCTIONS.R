@@ -1067,19 +1067,31 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
   already <- c()
   attempted <- c()
   batch <- 0
+  already_cycled <- FALSE
   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
     batch <- batch + 1
     message("Batch: ", batch)
     for (i in 1:n_tokens) {
+      if (i == n_tokens){already_cycled <- TRUE}
       message("\nToken: ", i)
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
       if (rl$remaining < 5) { #used to be 100, but seems like a waste since I already check for rate limit errors in this function
-        wait <- rl$reset + 0.1
-        message(paste("Waiting for", round(wait,2),"minutes..."))
-        Sys.sleep(wait * 60)
+        if(already_cycled){
+          wait <- rl$reset + 0.1
+          message(paste("Waiting for", round(wait,2),"minutes..."))
+          Sys.sleep(wait * 60)
+        }
+        if(!already_cycled){
+          next
+        }
       }
+      # if (rl$remaining < 5) { #used to be 100, but seems like a waste since I already check for rate limit errors in this function
+      #   wait <- rl$reset + 0.1
+      #   message(paste("Waiting for", round(wait,2),"minutes..."))
+      #   Sys.sleep(wait * 60)
+      # }
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
       individual_timelines_list <- list()
@@ -1147,19 +1159,31 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
   already <- c()
   attempted <- c()
   batch <- 0
+  already_cycled <- FALSE
   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
     batch <- batch + 1
     message("Batch: ", batch)
     for (i in 1:n_tokens) {
+      if (i == n_tokens){already_cycled <- TRUE}
       message("\nToken: ", i)
-      message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+      message("Users Remaining: ", nrow(users_remaining))
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
-      if (rl$remaining < 500) {
-        wait <- rl$reset + 0.1
-        message(paste("Waiting for", round(wait,2),"minutes..."))
-        Sys.sleep(wait * 60)
+      if (rl$remaining < 500) { #calibrate this
+        if(already_cycled){
+          wait <- rl$reset + 0.1
+          message(paste("Waiting for", round(wait,2),"minutes..."))
+          Sys.sleep(wait * 60)
+        }
+        if(!already_cycled){
+          next
+        }
       }
+      # if (rl$remaining < 500) {
+      #   wait <- rl$reset + 0.1
+      #   message(paste("Waiting for", round(wait,2),"minutes..."))
+      #   Sys.sleep(wait * 60)
+      # }
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
       {timelines_list[[i]] <- rtweet::get_timeline(user = users_remaining_subset$user_id, n = n, token = list_tokens[[i]], check = FALSE)}
@@ -1521,27 +1545,27 @@ scrapeStudy <- function(study_name, tokens,
   }
 }
 
-# # implement this in all token-hopping functions:
-# # already_cycled <- FALSE
-# # while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
-# #   batch <- batch + 1
-# #   message("Batch: ", batch)
-# #   for (i in 1:n_tokens) {
-# #     if (i == n_tokens){already_cycled <- TRUE}
-# #     message("\nToken: ", i)
-# #     message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
-# #     if (! length(already) < nrow(users_df)) {break}
-# #     rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
-# #     if (rl$remaining < 5) { #calibrate this
-# #       if(already_cycled){
-# #         wait <- rl$reset + 0.1
-# #         message(paste("Waiting for", round(wait,2),"minutes..."))
-# #         Sys.sleep(wait * 60)
-# #       }
-# #       if(!already_cycled){
-# #         next
-# #       }
-# #     }
+# implement this in all token-hopping functions:
+# already_cycled <- FALSE
+# while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
+#   batch <- batch + 1
+#   message("Batch: ", batch)
+#   for (i in 1:n_tokens) {
+#     if (i == n_tokens){already_cycled <- TRUE}
+#     message("\nToken: ", i)
+#     message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
+#     if (! length(already) < nrow(users_df)) {break}
+#     rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
+#     if (rl$remaining < 5) { #calibrate this
+#       if(already_cycled){
+#         wait <- rl$reset + 0.1
+#         message(paste("Waiting for", round(wait,2),"minutes..."))
+#         Sys.sleep(wait * 60)
+#       }
+#       if(!already_cycled){
+#         next
+#       }
+#     }
 #
 #
 # ##################################
