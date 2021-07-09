@@ -555,6 +555,8 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
       warned <- FALSE
       warning_text <- ""
 
+      if(difftime(time1 = Sys.time(), time2 = start_time, units = "h") > max_hours){break}#safety line to prevent interminable scraping attempts
+
       tryCatch({friends_unparsed <- rtweet::get_friends(user = users_remaining_subset$user_id,
                                                         n = n,
                                                         token = list_tokens[[i]],
