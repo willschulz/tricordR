@@ -1118,8 +1118,8 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       individual_timelines_list_bound <- do.call(rbind, individual_timelines_list)
       try(message("Rows:", nrow(individual_timelines_list_bound)))
       try(message("is.null: ", is.null(individual_timelines_list_bound)))
-      if (nrow(individual_timelines_list_bound)>0) {
-      #if (!is.null(individual_timelines_list_bound)) {  #is this better?
+      #if (nrow(individual_timelines_list_bound)>0) {
+      if (!is.null(individual_timelines_list_bound)) {  #I think this is better
         timelines_list[[i]] <- individual_timelines_list_bound
         already <- c(already, unique(timelines_list[[i]]$user_id))# this had problems when timelines_list[[i]] is NULL, hopefully fixed by wrapping in this if()
       }
@@ -1127,8 +1127,8 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
     }
     timelines_df <- do.call(rbind, timelines_list)
-    if (nrow(timelines_df)>0) {
-    #if (!is.null(timelines_df)) { #is this better?
+    #if (nrow(timelines_df)>0) {
+    if (!is.null(timelines_df)) { #is this better?
       timelines_megalist[[batch]] <- timelines_df
     }
     if (all(users_df$user_id %in% attempted)) {break}
