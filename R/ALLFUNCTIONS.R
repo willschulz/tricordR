@@ -309,7 +309,7 @@ editPanel <- function(study_name, panel_name,
 #   keep_if_there <- c("user_id", "status_id", "screen_name", "created_at", "scrape_session", "is_retweet", "is_quote", "reply_to_user_id", "text", "sentiment_score", "ideology", "sureness")
 #
 #   e <- timelines_bound %>%
-#     distinct(status_id, .keep_all = T) %>%
+#     distinct(user_id, status_id, .keep_all = T) %>%
 #     select(colnames(timelines_bound)[which(colnames(timelines_bound) %in% keep_if_there)]) %>%
 #     mutate(scrape_session=as.numeric(scrape_session))
 #
@@ -1289,7 +1289,7 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
       saveRDS(first_timelines, file = paste0(panel_directory,"/twitter_scrapes/first_timelines/timelines_", this_timecode, ".rds"))
       saveRDS(first_attempts, file = paste0(panel_directory,"/twitter_scrapes/timeline_attempts/attempted_", this_timecode, ".rds"))
 
-      this_log <- first_timelines %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1))
+      this_log <- first_timelines %>% distinct(user_id, status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1))
       new_log <- bind_rows(init_log, this_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
 
       logs <- dir(paste0(panel_directory,"/twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
@@ -1442,7 +1442,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
       if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
         message("Binding to earlier scrape from today...")
         last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+        all_data <- bind_rows(last_data, data) %>% distinct(user_id, status_id, .keep_all = T)
         saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
       }
       if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
@@ -1454,7 +1454,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
       if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
         message("Binding to earlier scrape from today...")
         last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+        all_data <- bind_rows(last_data, data) %>% distinct(user_id, status_id, .keep_all = T)
         saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
       }
       if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
@@ -1462,7 +1462,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
       }
     }
     message("Saving new log...")
-    this_log <- data %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
+    this_log <- data %>% distinct(user_id, status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
     new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
     saveRDS(new_log, file = paste0(panel_directory,"twitter_scrapes/timeline_logs/log_", today,".rds"))
     message(sum((this_log$count-1)), " new tweets scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new tweets to scrape.")
@@ -1819,7 +1819,7 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
     }
 
   e <- timelines_bound %>%
-    distinct(status_id, .keep_all = T) %>%
+    distinct(user_id, status_id, .keep_all = T) %>%
     select(colnames(timelines_bound)[which(colnames(timelines_bound) %in% keep_if_there)]) %>%
     mutate(scrape_session=as.numeric(scrape_session))
 
