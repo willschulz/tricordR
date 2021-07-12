@@ -1467,7 +1467,7 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
     saveRDS(new_log, file = paste0(panel_directory,"twitter_scrapes/timeline_logs/log_", today,".rds"))
     message(sum((this_log$count-1)), " new tweets scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new tweets to scrape.")
     message(sum(! last_log$ultimate_tweet %in% data$status_id), " users may have missing tweets.")
-    saveRDS(attempted, file = paste0(panel_directory,"twitter_scrapes/timeline_attempts/attempted_", today,".rds"))
+    saveRDS(attempted, file = paste0(panel_directory,"twitter_scrapes/timeline_attempts/attempted_", timeCode(),".rds"))
     message("Total attempted: ", sum(last_log$user_id %in% attempted)) # B
     message("Total unattempted: ", sum(! last_log$user_id %in% attempted)) # C ## I think I've fixed the numbers-not-adding-up problem, which I think was due to using this_log instead of last_log as the first argument to the logical
   }
