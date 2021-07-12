@@ -1859,10 +1859,8 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
 #' loadTimelines()
 
 loadTimelines <- function(study_name, panel_name){
-  data <- prep_timeline_data(panel_directory = paste0("~/tricordings/studies/",study_name,"/",panel_name), sessions_back = 2, include_historical = TRUE, load_all_since_first = TRUE, all_columns = TRUE)
-  return(data[[1]])
+  return(prep_timeline_data(panel_directory = paste0("~/tricordings/studies/",study_name,"/",panel_name), sessions_back = 2, include_historical = TRUE, load_all_since_first = TRUE, all_columns = TRUE))
 }
-
 
 
 #' Make Time Series
