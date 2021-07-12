@@ -779,7 +779,11 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       individual_followers_list <- list()
       prior_followers_scraped_length <- NA
       for (j in 1:slice_size) {
-        if (j>1) {prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]])}
+        if (j>1) {
+          if(!is.null(individual_followers_list[[j-1]])){ #added null chack to solve: Error in individual_followers_list[[j - 1]] : subscript out of bounds
+            prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]])
+            } else {prior_followers_scraped_length <- NA}
+          }
         warned <- FALSE
         warning_text <- ""
 
