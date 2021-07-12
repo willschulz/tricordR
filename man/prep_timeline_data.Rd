@@ -24,7 +24,7 @@ prep_timeline_data(
 \item{all_columns}{Should all timeline variables be included, or only those needed for dashboard visualizations?  Defaults to FALSE.}
 }
 \description{
-A function to read timeline data into R.
+A workhorse function to read timeline data into R for dashboard visualization.
 }
 \examples{
 prep_timeline_data()

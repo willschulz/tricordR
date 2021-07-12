@@ -1784,7 +1784,7 @@ read_and_session <- function(input){
 
 #' Prep Timeline Data
 #'
-#' A function to read timeline data into R.
+#' A workhorse function to read timeline data into R for dashboard visualization.
 #' @param panel_directory The directory in which panel data is stored.
 #' @param sessions_back How many sessions back do you want to read in? Irrelevant if load_all_since_first is TRUE.
 #' @param include_historical Should the historical timeline scrapes collected in the "first_timelines" folder be included?  Defaults to FALSE.
@@ -1846,6 +1846,24 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
 
   if (all_columns) {return(e)} else {return(list(e, e_f))}
 }
+
+
+#' Load Timelines
+#'
+#' A user-friendly function to load all timeline data collected for a given panel.
+#' @param study_name The name of the study in which the panel to load is located.
+#' @param panel_name The name of the panel to load.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' loadTimelines()
+
+loadTimelines <- function(study_name, panel_name){
+  data <- prep_timeline_data(panel_directory = paste0("~/tricordings/studies/",study_name,"/",panel_name), sessions_back = 2, include_historical = TRUE, load_all_since_first = TRUE, all_columns = TRUE)
+  return(data[[1]])
+}
+
+
 
 #' Make Time Series
 #'

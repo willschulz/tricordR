@@ -1,0 +1,163 @@
+---
+title: "timeline troubleshooting 210712"
+author: "Will Schulz"
+date: "7/12/2021"
+output: html_document
+---
+
+```{r}
+library(tricordR)
+```
+
+
+```{r}
+user_ids <- readRDS(file = "~/tricordings/studies/assignments_sampled/barbera_liberals/twitter_scrapes/user_ids.rds")
+attempted <- readRDS(file = "~/tricordings/studies/assignments_sampled/barbera_liberals/twitter_scrapes/timeline_attempts/attempted_210712.rds")
+unattempted <- user_ids[which(!user_ids %in% attempted)]
+
+length(user_ids)
+length(attempted)
+length(unattempted)
+
+```
+
+
+```{r}
+panel_directory = "~/tricordings/studies/assignments_sampled/barbera_liberals/"
+
+list_tokens <- prepTokens("ws_tw")
+```
+
+
+```{r}
+
+
+```
+
+
+
+```{r}
+last_log
+```
+
+
+
+```{r}
+scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, allHistory=FALSE, sub_batch_size=100, sentiment=FALSE, darmoc=FALSE){
+  message("Scraping timelines...")
+  require(tidyverse)
+  require(rtweet)
+  message("Scraping users: ", panel_directory)
+  today <- dateCode()
+  message("Scraping date: ", today)
+  set.seed(as.numeric(today))
+  message("Reading prior scrape log...")
+  logs <- dir(paste0(panel_directory,"twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
+  last_log_file <- max(logs)
+  message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+  last_log <- readRDS(paste0(panel_directory,"twitter_scrapes/timeline_logs/",last_log_file))
+  # this adds back any user_ids in the main folder and attempts to scrape them again if they're not in the log file for whatever reason
+  raw_userids <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
+  raw_userids <- raw_userids[which(!is.na(raw_userids))] #this fixes a bug where any NA user_ids who get added (shouldn't happen anymore, but might) don't break this function
+  previously_attempted <- dir(paste0(panel_directory,"twitter_scrapes/timeline_attempts"), full.names = T) %>% map(readRDS) %>% unlist %>% unique
+  if (any(!raw_userids %in% previously_attempted)){ #needs road testing
+    new_userids <- raw_userids[which(!raw_userids %in% previously_attempted)]
+    raw_userids <- raw_userids[which(!raw_userids %in% new_userids)]
+    firstScrape(new_userids, panel_directory = panel_directory, tokens = list_tokens)
+  }
+  # if (any(!raw_userids %in% last_log$user_id)) { #old version I am updating to do a firstScrape when appropriate, see above
+  #   to_append <- cbind(raw_userids[which(!raw_userids %in% last_log$user_id)],
+  #                      rep(NA, sum(!raw_userids %in% last_log$user_id)),
+  #                      rep(NA, sum(!raw_userids %in% last_log$user_id)))
+  #   colnames(to_append) <- colnames(last_log)
+  #   last_log <- rbind(last_log, to_append)
+  # }
+  last_log <- sample_n(last_log, size = nrow(last_log))
+  message("Start scraping...")
+  if (allHistory==FALSE){
+    data_list <- updateTimelines(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
+  }
+  if (allHistory==TRUE){
+    data_list <- getTimelinesHistorical(users=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
+  }
+  data <- data_list[[1]]
+  attempted <- data_list[[2]]
+  if (nrow(data)>0){
+    # UNCOMMENT WHEN SENTIMENT  is available to tricordR
+    if (sentiment==TRUE){
+      message("Analyzing sentiment...")
+      source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+      data <- addSentiment(data)
+      # message("Saving data...")
+      # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+    }
+    # if (sentiment=="google"){
+    #   message("Analyzing sentiment...")
+    #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+    #   data <- addSentiment(data) #uses google, which costs money
+    #   # message("Saving data...")
+    #   # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+    # }
+    if (darmoc==TRUE){
+      message("Analyzing ideology and sureness...")
+      #load classifiers and feature names
+      require(darmoc)
+      preds <- darmoc::darmocClassify(input = data$text, type = "response")
+      data <- cbind(data,preds)
+      # message("Saving data...")
+      # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+    }
+    if (darmoc==TRUE | sentiment == TRUE){
+      message("Saving classified data...")
+      if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        message("Binding to earlier scrape from today...")
+        last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+        saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+      if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+    }
+    if (!(darmoc==TRUE | sentiment == TRUE)){
+      message("Saving scraped data...")
+      if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        message("Binding to earlier scrape from today...")
+        last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
+        saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+      if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
+        saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
+      }
+    }
+    message("Saving new log...")
+    this_log <- data %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
+    new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
+    saveRDS(new_log, file = paste0(panel_directory,"twitter_scrapes/timeline_logs/log_", today,".rds"))
+    message(sum((this_log$count-1)), " new tweets scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new tweets to scrape.")
+    message(sum(! last_log$ultimate_tweet %in% data$status_id), " users may have missing tweets.")
+    saveRDS(attempted, file = paste0(panel_directory,"twitter_scrapes/timeline_attempts/attempted_", timeCode(),".rds"))
+    message("Total attempted: ", sum(last_log$user_id %in% attempted)) # B
+    message("Total unattempted: ", sum(! last_log$user_id %in% attempted)) # C ## I think I've fixed the numbers-not-adding-up problem, which I think was due to using this_log instead of last_log as the first argument to the logical
+  }
+  if (!(nrow(data)>0)){message("Zero new tweets scraped from this panel, skipping tweet analysis/saving...")}
+}
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
