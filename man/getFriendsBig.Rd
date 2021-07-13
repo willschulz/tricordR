@@ -4,7 +4,7 @@
 \alias{getFriendsBig}
 \title{Get Friends (>5k)}
 \usage{
-getFriendsBig(users, n = 20000, list_tokens, max_hours = 1)
+getFriendsBig(users, n = 20000, list_tokens, max_hours = 1, randomize = TRUE)
 }
 \arguments{
 \item{users}{Either a character vector of user_ids, or a dataframe containing a user_id column.}
@@ -14,6 +14,8 @@ getFriendsBig(users, n = 20000, list_tokens, max_hours = 1)
 \item{list_tokens}{The list of tokens to be used for scraping.  See prepTokens().}
 
 \item{max_hours}{The maximum number of hours to continue scraping.  Defaults to 1 hour.}
+
+\item{randomize}{Should the order of the input users be randomized?  Defaults to TRUE.}
 }
 \description{
 Scrapes friend lists for users, rotating through tokens, and using pagination to collect all friends, even when a user has more than 5,000 friends.

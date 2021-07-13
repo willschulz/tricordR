@@ -516,12 +516,13 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #' @param n The maximum number of friends to scrape for each user.  Defaults to 20,000
 #' @param list_tokens The list of tokens to be used for scraping.  See prepTokens().
 #' @param max_hours The maximum number of hours to continue scraping.  Defaults to 1 hour.
+#' @param randomize Should the order of the input users be randomized?  Defaults to TRUE.
 #' @keywords scraping
 #' @export
 #' @examples
 #' getFriendsBig()
 
-getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
+getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = TRUE){
   require(tidyverse)
   require(rtweet)
   n_tokens <- length(list_tokens)
@@ -546,7 +547,13 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
     batch <- batch + 1
     message("Batch: ", batch)
     message("Users Remaining: ", nrow(users_remaining))
-    users_remaining_subset <- users_remaining %>% sample_n(., 1)
+
+    if (randomize) {
+      users_remaining_subset <- users_remaining %>% sample_n(., 1)
+    } else {
+      users_remaining_subset <- users_remaining[1,]
+    }
+
     prior_request_pagination_string <- "-1"
     individual_ids <- c()
     while (prior_request_pagination_string != "0") {
@@ -557,6 +564,8 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
 
       if(difftime(time1 = Sys.time(), time2 = start_time, units = "h") > max_hours){break}#safety line to prevent interminable scraping attempts
 
+
+      message(paste0("Attempting to scrape friends from user ", users_remaining_subset$user_id))
       tryCatch({friends_unparsed <- rtweet::get_friends(user = users_remaining_subset$user_id,
                                                         n = n,
                                                         token = list_tokens[[i]],
@@ -615,7 +624,13 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1){
     attempted_now <- users_remaining_subset$user_id
     attempted <- unique(c(attempted, attempted_now))
     set.seed(as.POSIXct(Sys.time()))
-    users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+
+    if (randomize) {
+      users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
+    } else {
+      users_remaining <- users_df %>% filter(! user_id %in% already)
+    }
+
     message("Unattempted: ", sum(!(users_df$user_id %in% attempted)))
 
     if(all(users_df$user_id %in% attempted)){break}
@@ -788,6 +803,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
         warned <- FALSE
         warning_text <- ""
 
+        message(paste0("Attempting to scrape followers from user ", users_remaining_subset$user_id[j]))
         tryCatch({individual_followers_list[[j]] <- rtweet::get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 
