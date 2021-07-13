@@ -189,7 +189,7 @@ server <- function(input, output) {
   })
 
   observeEvent(input$fetch_survey, {
-    scrape_qualtrics(participant_panel(), input$study_name, match_by = "follow3",
+    scrapeQualtrics(participant_panel(), input$study_name, match_by = "follow3",
                      treatment_tokens = twitter_tokens, participant_tokens = twitter_tokens) #don't need to split anymore since automatically tries all
     #treatment_tokens = twitter_tokens[1:6], participant_tokens = twitter_tokens[7:9])
     showModal(modalDialog(
