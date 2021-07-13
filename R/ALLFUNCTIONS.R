@@ -780,9 +780,10 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       prior_followers_scraped_length <- NA
       for (j in 1:slice_size) {
         if (j>1) {
-          if(!is.null(individual_followers_list[[j-1]])){ #added null chack to solve: Error in individual_followers_list[[j - 1]] : subscript out of bounds
-            prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]])
-            } else {prior_followers_scraped_length <- NA}
+          #if(!is.null(individual_followers_list[[j-1]])){ #added null check to solve: Error in individual_followers_list[[j - 1]] : subscript out of bounds
+          prior_followers_scraped_length <- NA
+          try(prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]]), silent = T) #wrapped in try() to solve: Error in individual_followers_list[[j - 1]] : subscript out of bounds
+          #  } else {prior_followers_scraped_length <- NA}
           }
         warned <- FALSE
         warning_text <- ""
@@ -1323,7 +1324,7 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
     # and immediately scrape followers
     if (scrape_settings$scrape_followers){
       message("Scraping first followers...")
-      new_followers <- getFollowersBig(users = new_lookup, list_tokens=tokens)
+      new_followers <- getFollowersBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
       #colnames(new_followers) <- c("user_id", "followers", "scraped_at") #this line fucks everything up, don't use it
       saveRDS(new_followers, paste0(panel_directory,"/twitter_scrapes/first_followers/followers_",this_timecode,".rds"))
     }
