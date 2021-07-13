@@ -1416,6 +1416,10 @@ scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, 
     raw_userids <- raw_userids[which(!raw_userids %in% new_userids)]
     firstScrape(new_userids, panel_directory = panel_directory, tokens = list_tokens)
   }
+  if (any(!raw_userids %in% last_log)){
+    message("Pruning removed users from log file...")
+    last_log <- last_log %>% filter(user_id %in% raw_userids)
+  }
   # if (any(!raw_userids %in% last_log$user_id)) { #old version I am updating to do a firstScrape when appropriate, see above
   #   to_append <- cbind(raw_userids[which(!raw_userids %in% last_log$user_id)],
   #                      rep(NA, sum(!raw_userids %in% last_log$user_id)),

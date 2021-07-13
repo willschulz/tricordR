@@ -164,7 +164,7 @@ server <- function(input, output) {
                 darmoc = T)
     showModal(modalDialog(
       title = "Twitter scrape completed",
-      paste0("X new tweets collected.")
+      paste0("New tweets collected.")
     ))
   })
 
