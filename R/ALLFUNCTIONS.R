@@ -638,11 +638,11 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
   friends_megadf <- do.call(rbind, friends_list)
   if(!is.null(friends_megadf)){
     friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
-    return(friends_megadf)
   }
   if(is.null(friends_megadf)){
-    message("NULL friends_megadf!  No new friends from these people.")
+    message("Returning NULL friends_megadf!  No friends scraped in this call...")
   }
+  return(friends_megadf)
 }
 
 
@@ -663,8 +663,10 @@ scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit
   today <- timeCode()
   users <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
   new_friends <- getFriendsBig(users=users, n=n, list_tokens=list_tokens, max_hours=max_hours)
-  #new_friends <- get_friends_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
-  saveRDS(new_friends, file = paste0(panel_directory,"twitter_scrapes/friends/friends_",today,".rds"))
+  if (!is.null(new_friends)){
+    message("Saving friends scrape to file.")
+    saveRDS(new_friends, file = paste0(panel_directory,"twitter_scrapes/friends/friends_",today,".rds"))
+  } else {message("No new friends scraped in this session.  Not saving any friends data file for this scrape.")}
 }
 
 # #generally speaking, better to use maxToken_BIG
@@ -857,7 +859,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
   if (!is.null(followers_megadf)){
     followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
   } else {
-    message("NULL followers_megadf!  No followers scraped in this call...")
+    message("Returning NULL followers_megadf!  No followers scraped in this call...")
   }
   #return(list(followers_megadf, attempted))
   return(followers_megadf)
@@ -886,7 +888,10 @@ scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_lim
   # if (n<=5000){ # is the non-big function still useful for anything
   #   new_followers <- get_followers_rotate_maxToken(users=users, n=n, list_tokens=list_tokens, per_token_limit=per_token_limit, max_hours=max_hours)
   # }
-  saveRDS(new_followers, file = paste0(panel_directory,"twitter_scrapes/followers/followers_",today,".rds"))
+  if (!is.null(new_followers)){
+    message("Saving followers scrape to file.")
+    saveRDS(new_followers, file = paste0(panel_directory,"twitter_scrapes/followers/followers_",today,".rds"))
+  } else {message("No new followers scraped in this session.  Not saving any followers data file for this scrape.")}
 }
 
 # # Favorites (likes) functions
