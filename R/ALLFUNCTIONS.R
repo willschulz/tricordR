@@ -854,7 +854,11 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
     if(all(users_df$user_id %in% attempted)){break}
   }
   followers_megadf <- do.call(rbind, followers_megalist)
-  followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
+  if (!is.null(followers_megadf)){
+    followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
+  } else {
+    message("NULL followers_megadf!  No followers scraped in this call...")
+  }
   #return(list(followers_megadf, attempted))
   return(followers_megadf)
 }
