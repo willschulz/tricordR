@@ -588,6 +588,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
       #   # }
       #   next
       # }
+      if(warned){message(warning_text)}
       if(str_detect(warning_text, "rate|Rate")){ #this version seems to exhaust the rate limit on checking rate limits, such that we stop getting valid rate limit checks, which is bad...
         message("Rate limit reached!  Moving on to next token...")
         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
@@ -794,11 +795,11 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
       individual_followers_list <- list()
-      prior_followers_scraped_length <- NA
+      prior_followers_scraped_length <- 0
       for (j in 1:slice_size) {
         if (j>1) {
           #if(!is.null(individual_followers_list[[j-1]])){ #added null check to solve: Error in individual_followers_list[[j - 1]] : subscript out of bounds
-          prior_followers_scraped_length <- NA
+          prior_followers_scraped_length <- 0
           try(prior_followers_scraped_length <- nrow(individual_followers_list[[j-1]]), silent = T) #wrapped in try() to solve: Error in individual_followers_list[[j - 1]] : subscript out of bounds
           #  } else {prior_followers_scraped_length <- NA}
           }
@@ -809,6 +810,8 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
         tryCatch({individual_followers_list[[j]] <- rtweet::get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 
+        if(warned){message(warning_text)}
+
         if(str_detect(warning_text, "rate limit")){
           if(j>1){j <- j-1}
           message("Rate limit reached!  Moving on to next token...")
@@ -817,19 +820,19 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
         if(!warned){
           if(nrow(individual_followers_list[[j]])==0){
             if(j>1){
-              if((prior_followers_scraped_length %% 5000)==0){
+              if((prior_followers_scraped_length!=0) & ((prior_followers_scraped_length %% 5000)==0)){
                 message("No followers scraped and prior attempt divisible by 5000!  Moving on to next token and reattempting both...")
                 j <- j-2
                 break
               }
             }
             if(j==1){
-              "Zero followers scraped with a fresh token!  Assuming zero followers and continuing..."
+              message("Zero followers scraped with a fresh token!  Assuming zero followers and continuing...")
               #might need to add something here to handle true zeroes at the transmutation stage
               break
             }
           }
-          if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (!prior_divisible)){
+          if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (nrow(individual_followers_list[[j]])!=0) & (!prior_divisible)){
             message("Number of followers scraped divisible by 5000!  Moving on to next token and reattempting once...")
             j <- j-1
             prior_divisible <- TRUE
