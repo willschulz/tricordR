@@ -23,10 +23,8 @@ for (i in 1:length(panel_directories)) {
   names <- panel_directories[i] %>% str_remove_all(".*studies/") %>% str_split("/") %>% unlist
   this_study_name <- names[1]
   this_panel_name <- names[2]
-  all_study_dirs <- dir(str_remove_all(panel_directories[i], paste0("/",this_panel_name)), full.names = T)
-  assignment_directory <- all_study_dirs[which(all_study_dirs!=panel_directories[i])]
   scrapeQualtrics(study_name = this_study_name, panel_name = this_panel_name, match_by = "follow3",
-                  assignment_dir = assignment_directory, max_treat_followers = 60000,
+                  assignment_dir = NULL, max_treat_followers = 60000,
                   treatment_tokens = tokens, participant_tokens = tokens)
 }
 

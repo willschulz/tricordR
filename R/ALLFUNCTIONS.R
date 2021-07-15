@@ -2483,7 +2483,7 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
 
   message("Identifying claims...")
-  claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
+  claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>% filter(!is.na(f1)) %>%
     transmute(ResponseId,
               #claim1 = !is.na(follow1),
               #claim2 = !is.na(follow2),
