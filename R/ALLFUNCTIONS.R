@@ -832,17 +832,17 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
               break
             }
           }
-          if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (nrow(individual_followers_list[[j]])!=0) & (!prior_divisible)){
+          if(((nrow(individual_followers_list[[j]]) %% 5000) == 0) & (!prior_divisible)){
             message("Number of followers scraped divisible by 5000!  Moving on to next token and reattempting once...")
             j <- j-1
             prior_divisible <- TRUE
             break
           }
-          if (nrow(individual_followers_list[[j]])>0){#wrapped in this to prevent error encountered in qualtrics matchign at spirals bad pilot launch
+          #if (nrow(individual_followers_list[[j]])>0){#wrapped in this to prevent error encountered in qualtrics matchign at spirals bad pilot launch
             message(paste("Successfully scraped", nrow(individual_followers_list[[j]]), "followers from user", users_remaining_subset$user_id[j]))
             individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)
             prior_divisible <- FALSE #is this in the right place?
-          }
+          #}
         }
       }
       attempted_now <- users_remaining_subset$user_id[1:j]
