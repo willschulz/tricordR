@@ -589,7 +589,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
       #   next
       # }
       if(warned){message(warning_text)}
-      if(str_detect(warning_text, "rate|Rate")){ #this version seems to exhaust the rate limit on checking rate limits, such that we stop getting valid rate limit checks, which is bad...
+      if(str_detect(warning_text, "rate|Rate")){
         message("Rate limit reached!  Moving on to next token...")
         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
         # rate limit waiting time code -- is this the best place to put it?
@@ -603,9 +603,15 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
         }
         next
       }
+      if(str_detect(warning_text, "Not authorized")){
+        message("Not authorized to scrape this user.  Moving on and not reattempting in this scrape.")
+        already <- c(already, users_remaining_subset$user_id)
+        prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
+        next
+      }
       if(!warned){
         if(length(friends_unparsed$ids)==0){
-          "Zero friends scraped!  Assuming zero friends and continuing..."
+          message("Zero friends scraped!  Assuming zero friends and continuing...")
           prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
           next
         }
