@@ -2048,11 +2048,11 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 
 # # Survey stuff
 #
-# prep_survey_data <- function(experiment_directory, participant_panel){
-#   survey_dir <- dir(paste0(experiment_directory, participant_panel, "/survey_scrapes/"), full.names = T)
+# prep_survey_data <- function(experiment_directory, panel_name){
+#   survey_dir <- dir(paste0(experiment_directory, panel_name, "/survey_scrapes/"), full.names = T)
 #   surveys_bound <- readRDS(max(survey_dir))
 #
-#   link_dir <- dir(paste0(experiment_directory, participant_panel, "/id_links/"), full.names = T)
+#   link_dir <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T)
 #   links_bound <- map_dfr(link_dir, readRDS)
 #
 #   survey_data_joined <- left_join(surveys_bound, links_bound)
@@ -2107,15 +2107,15 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 #   return(out)
 # }
 #
-# # prep_network_data <- function(experiment_directory, participant_panel, assignment_panel){
-# #   p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+# # prep_network_data <- function(experiment_directory, panel_name, assignment_panel){
+# #   p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 # #
-# #   par_info <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+# #   par_info <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
 # #   ass_info <- dir(paste0(experiment_directory, assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
 # #   all_info <- rbind(par_info, ass_info)
 # #
-# #   id_links <- dir(paste0(experiment_directory, participant_panel, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
-# #   survey_responses_GOOD <- prep_survey_data(experiment_directory, participant_panel)[[2]]
+# #   id_links <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+# #   survey_responses_GOOD <- prep_survey_data(experiment_directory, panel_name)[[2]]
 # #
 # #   vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses_GOOD)
 # #   vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
@@ -2138,15 +2138,15 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 # #   return(graph)
 # # }
 #
-# prep_network_data_igraph <- function(experiment_directory, participant_panel, assignment_panel){
-#   p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+# prep_network_data_igraph <- function(experiment_directory, panel_name, assignment_panel){
+#   p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 #
-#   par_info <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+#   par_info <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
 #   ass_info <- dir(paste0(experiment_directory, assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
 #   all_info <- rbind(par_info, ass_info)
 #
-#   id_links <- dir(paste0(experiment_directory, participant_panel, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
-#   survey_responses_GOOD <- prep_survey_data(experiment_directory, participant_panel)[[2]]
+#   id_links <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+#   survey_responses_GOOD <- prep_survey_data(experiment_directory, panel_name)[[2]]
 #
 #   vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses_GOOD)
 #   vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
@@ -2177,22 +2177,22 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 
 #require(networkD3)
 
-# prep_network_data_d3_SPIRALS200706 <- function(experiment_directory, participant_panel, assignment_panel){
-#   p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+# prep_network_data_d3_SPIRALS200706 <- function(experiment_directory, panel_name, assignment_panel){
+#   p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 #
-#   par_info <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+#   par_info <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
 #   ass_info <- dir(paste0(experiment_directory, assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
 #   all_info <- rbind(par_info, ass_info)
 #
-#   id_links <- dir(paste0(experiment_directory, participant_panel, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+#   id_links <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
 #   id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
 #
 #   #anyDuplicated(id_links$ResponseId, fromLast = T)
 #
-#   # survey_responses_GOOD <- prep_survey_data(experiment_directory, participant_panel)[[2]]
+#   # survey_responses_GOOD <- prep_survey_data(experiment_directory, panel_name)[[2]]
 #   # vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses_GOOD)
 #
-#   survey_responses <- prep_survey_data(experiment_directory, participant_panel)[[1]] %>% distinct(ResponseId, .keep_all = T)
+#   survey_responses <- prep_survey_data(experiment_directory, panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T)
 #   #vertex_metadata <- all_info %>% left_join(., id_links) %>% left_join(., survey_responses)
 #   #vertex_metadata <- survey_responses %>% left_join(., id_links) %>% full_join(., all_info)
 #
@@ -2230,26 +2230,26 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 #'
 #' A function to prepare network data for D3 visualization in dashboards.
 #' @param experiment_directory Directory to visualize
-#' @param participant_panel Name of the panel representing "participants".
+#' @param panel_name Name of the panel representing "participants".
 #' @param assignment_panel Name of the panel representing "assignments".
 #' @keywords dashboard
 #' @export
 #' @examples
 #' prep_network_data_d3()
 
-prep_network_data_d3 <- function(experiment_directory, participant_panel, assignment_panel){
-  p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+prep_network_data_d3 <- function(experiment_directory, panel_name, assignment_panel){
+  p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 
-  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
 
-  par_info <- dir(paste0(experiment_directory, participant_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+  par_info <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
   ass_info <- dir(paste0(experiment_directory, assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
   all_info <- rbind(par_info, ass_info)
 
-  #id_links <- dir(paste0(experiment_directory, participant_panel, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+  #id_links <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
   #id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
 
-  #survey_responses <- prep_survey_data(experiment_directory, participant_panel)[[1]] %>% distinct(ResponseId, .keep_all = T)
+  #survey_responses <- prep_survey_data(experiment_directory, panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T)
   #vertex_metadata <- id_links %>% select(ResponseId, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
   vertex_metadata <- all_info
 
@@ -2527,7 +2527,7 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
     for (i in 1:nrow(responses_new)) {
       match_by_following_3_BYHAND(responses_new = responses_new[i,], user_id = NA,
                                   study_name = study_name,
-                                  participant_panel = participant_panel,
+                                  panel_name = panel_name,
                                   assignment_panel = assignment_panel,
                                   add = F)
     }
@@ -2559,7 +2559,7 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
 #' @param before Follower dataframe selected to represent the "before survey response" period.
 #' @param after Follower dataframe selected to represent the "after survey response" period.
 #' @param study_name Name of study
-#' @param participant_panel Name of participant panel, passed from higher-level function.  Defaults to "participants".
+#' @param panel_name Name of participant panel, passed from higher-level function.  Defaults to "participants".
 #' @param assignment_panel Name of participant panel, passed from higher-level function.  Defaults to "assignments".
 #' @param add Go ahead and add these users to the panel?  Defaults to FALSE.
 #' @param tokens Tokens to scrape participant twitter data, passed from higher-level function.
@@ -2569,7 +2569,7 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
 #' @examples
 #' match_by_following_3_INVESTIGATE()
 
-match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study_name, participant_panel = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL, use_claims = FALSE){
+match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study_name, panel_name = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL, use_claims = FALSE){
 
   prior_treatment_followers <- before
   treatment_acct_info <- readRDS(file = paste0("~/tricordings/studies/",study_name,"/",assignment_panel,"/twitter_scrapes/user_info/current_lookup.rds"))
@@ -2619,8 +2619,8 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
   if(nrow(id_links)>0){
     if(!add){return(id_links)}
     if(add & !is.null(tokens)){
-      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",participant_panel, "/id_links/id_links_",timeCode(),".rds"))
-      editPanel(participant_panel, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
+      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",timeCode(),".rds"))
+      editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
     }
   }
 }
@@ -2631,7 +2631,7 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
 #' @param responses_new New survey responses
 #' @param user_id User ID, manually entered, to associated with the new response.
 #' @param study_name Name of study
-#' @param participant_panel Name of participant panel, passed from higher-level function.  Defaults to "participants".
+#' @param panel_name Name of participant panel, passed from higher-level function.  Defaults to "participants".
 #' @param assignment_panel Name of participant panel, passed from higher-level function.  Defaults to "assignments".
 #' @param add Go ahead and add these users to the panel?  Defaults to FALSE.
 #' @param tokens Tokens to scrape participant twitter data, passed from higher-level function.
@@ -2640,7 +2640,7 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
 #' @examples
 #' match_by_following_3_BYHAND()
 
-match_by_following_3_BYHAND <- function(responses_new, user_id, study_name, participant_panel = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL){
+match_by_following_3_BYHAND <- function(responses_new, user_id, study_name, panel_name = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL){
 
   if (nrow(responses_new)!=1){stop("responses_new must be a 1-row dataframe!")}
 
@@ -2665,8 +2665,8 @@ match_by_following_3_BYHAND <- function(responses_new, user_id, study_name, part
   print(id_links)
   #return(id_links)
   if(add & !is.null(tokens)){
-    saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",participant_panel, "/id_links/id_links_",timeCode(),".rds"))
-    editPanel(participant_panel, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
+    saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",timeCode(),".rds"))
+    editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
   }
 }
 

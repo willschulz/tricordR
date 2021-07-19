@@ -9,7 +9,7 @@ match_by_following_3_INVESTIGATE(
   before,
   after,
   study_name,
-  participant_panel = "participants",
+  panel_name = "participants",
   assignment_panel = "assignments",
   add = FALSE,
   tokens = NULL,
@@ -25,7 +25,7 @@ match_by_following_3_INVESTIGATE(
 
 \item{study_name}{Name of study}
 
-\item{participant_panel}{Name of participant panel, passed from higher-level function.  Defaults to "participants".}
+\item{panel_name}{Name of participant panel, passed from higher-level function.  Defaults to "participants".}
 
 \item{assignment_panel}{Name of participant panel, passed from higher-level function.  Defaults to "assignments".}
 

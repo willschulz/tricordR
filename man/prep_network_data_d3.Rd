@@ -4,12 +4,12 @@
 \alias{prep_network_data_d3}
 \title{Prepare Network Data for D3 Visualization}
 \usage{
-prep_network_data_d3(experiment_directory, participant_panel, assignment_panel)
+prep_network_data_d3(experiment_directory, panel_name, assignment_panel)
 }
 \arguments{
 \item{experiment_directory}{Directory to visualize}
 
-\item{participant_panel}{Name of the panel representing "participants".}
+\item{panel_name}{Name of the panel representing "participants".}
 
 \item{assignment_panel}{Name of the panel representing "assignments".}
 }
