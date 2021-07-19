@@ -12,7 +12,8 @@ match_by_following_3_INVESTIGATE(
   participant_panel = "participants",
   assignment_panel = "assignments",
   add = FALSE,
-  tokens = NULL
+  tokens = NULL,
+  use_claims = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ match_by_following_3_INVESTIGATE(
 \item{add}{Go ahead and add these users to the panel?  Defaults to FALSE.}
 
 \item{tokens}{Tokens to scrape participant twitter data, passed from higher-level function.}
+
+\item{use_claims}{Condition matching on respondent claims?  Defaults to FALSE.}
 }
 \description{
 A function to match survey responses to twitter IDs based on following assigned accounts, for investigation.

@@ -2563,12 +2563,13 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
 #' @param assignment_panel Name of participant panel, passed from higher-level function.  Defaults to "assignments".
 #' @param add Go ahead and add these users to the panel?  Defaults to FALSE.
 #' @param tokens Tokens to scrape participant twitter data, passed from higher-level function.
+#' @param use_claims Condition matching on respondent claims?  Defaults to FALSE.
 #' @keywords matching
 #' @export
 #' @examples
 #' match_by_following_3_INVESTIGATE()
 
-match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study_name, participant_panel = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL){
+match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study_name, participant_panel = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL, use_claims = FALSE){
 
   prior_treatment_followers <- before
   treatment_acct_info <- readRDS(file = paste0("~/tricordings/studies/",study_name,"/",assignment_panel,"/twitter_scrapes/user_info/current_lookup.rds"))
@@ -2576,17 +2577,25 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
   message("Identifying claims...")
   claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
     transmute(ResponseId,
+              claim1 = str_detect(follow1, "confirm"),
+              claim2 = str_detect(follow2, "confirm"),
+              claim3 = str_detect(follow3, "confirm"),
               f1=sn_to_userid(f1, treatment_acct_info),
               f2=sn_to_userid(f2, treatment_acct_info),
               f3=sn_to_userid(f3, treatment_acct_info)
     )
 
+  c_mat <- claims %>% select(starts_with("claim")) %>% as.matrix
   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
 
   all_list <- list()
-  for(i in 1:nrow(claims)){all_list[[i]] <- f_mat[i,]}
+  for(i in 1:nrow(claims)){
+    claim_list[[i]] <- f_mat[i,c_mat[i,]]
+    all_list[[i]] <- f_mat[i,]
+    }
 
-  claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = all_list)
+  if(use_claims) {claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list)}
+  if(!use_claims) {claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = all_list)}
 
   treatment_followers_current_scrape <- after
 
@@ -2607,7 +2616,7 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
   message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
 
   if(nrow(id_links)>0){
-    print(id_links)
+    return(id_links)
     if(add & !is.null(tokens)){
       saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",participant_panel, "/id_links/id_links_",timeCode(),".rds"))
       editPanel(participant_panel, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
