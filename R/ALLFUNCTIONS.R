@@ -823,6 +823,13 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
           message("Rate limit reached!  Moving on to next token...")
           break
         }
+
+        if(str_detect(warning_text, "Sorry, that page does not exist.")){
+          message("User does not exist.  Moving on and not reattempting in this scrape...")
+          already <- c(already, users_remaining_subset$user_id[j])
+          break
+        }
+
         if(!warned){
           if(nrow(individual_followers_list[[j]])==0){
             if(j>1){
@@ -2392,8 +2399,8 @@ link_ids <- function(claims, new_friends_by_follower){
     if (sum(id_links$candidates[[i]]$all_match)<1){ #if there are no perfect matches
       id_links$perfect_match[i] <- FALSE
       these_maxes <- which_maxes(id_links$candidates[[i]]$match_count)
-      if (length(these_maxes)==1){ #if there is one best match
-        id_links$user_id[i] <- id_links$candidates[[i]]$follower[these_maxes]
+      if (length(these_maxes)==1){ #if there is one best match (changed so don't try to guess if imperfect; leave to remediation)
+        #id_links$user_id[i] <- id_links$candidates[[i]]$follower[these_maxes]
         id_links$unique_match[i] <- TRUE
         id_links$no_match[i] <- FALSE
       }
