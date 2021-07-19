@@ -2589,6 +2589,7 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
 
   all_list <- list()
+  claim_list <- list()
   for(i in 1:nrow(claims)){
     claim_list[[i]] <- f_mat[i,c_mat[i,]]
     all_list[[i]] <- f_mat[i,]
