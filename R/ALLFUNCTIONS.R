@@ -2617,7 +2617,7 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
   message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
 
   if(nrow(id_links)>0){
-    return(id_links)
+    if(!add){return(id_links)}
     if(add & !is.null(tokens)){
       saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",participant_panel, "/id_links/id_links_",timeCode(),".rds"))
       editPanel(participant_panel, study_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
