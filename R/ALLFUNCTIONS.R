@@ -2806,6 +2806,20 @@ cSeq <- function(l=-2, u=2, b=.1){
   return(seq(r[1]-b/2, r[2]+b/2, by=b))
 }
 
+#' Centered Histogram
+#'
+#' Make a centered histogram breaks.
+#' @param x Data to plot.
+#' @param b Bandwidth, defaults to 1.
+#' @keywords utility
+#' @export
+#' @examples
+#' chist()
+
+chist <- function(x, b=1){
+  hist(x, breaks = cSeq(min(x, na.rm = T), max(x, na.rm = T), b))
+}
+
 
 #
 # #explore extreme values
