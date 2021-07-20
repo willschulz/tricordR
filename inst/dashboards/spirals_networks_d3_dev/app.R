@@ -23,7 +23,7 @@ refresh_time=5*60*1000 #(milliseconds)
 survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
 default_axis_cex <- 1
 
-assignment_node_col <- "red"
+assignment_node_col <- "gray40"
 placeboed_node_col <- "plum"
 treated_node_col <- "dodgerblue2"
 
