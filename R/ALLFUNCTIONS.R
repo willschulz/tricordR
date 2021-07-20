@@ -2353,10 +2353,10 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
   all_info <- rbind(par_info, ass_info)
 
-  id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+  id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS) %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
   id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
 
-  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T)
+  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(twitter_agreement=="Yes") %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
   vertex_metadata <- id_links %>% select(ResponseId, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
   #vertex_metadata <- all_info
 

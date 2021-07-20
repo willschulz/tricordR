@@ -183,7 +183,7 @@ server <- function(input, output) {
   # })
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
-    prep_network_data_d3(study_name,participant_group(),assignment_group())
+    prep_network_data_d3_spirals(study_name,participant_group(),assignment_group())
   })
 
   # output$network_graph <- renderPlot({invalidateLater(refresh_time)
