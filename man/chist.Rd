@@ -4,12 +4,14 @@
 \alias{chist}
 \title{Centered Histogram}
 \usage{
-chist(x, b = 1)
+chist(x, b = 1, main = NULL)
 }
 \arguments{
 \item{x}{Data to plot.}
 
 \item{b}{Bandwidth, defaults to 1.}
+
+\item{main}{Plot title, defaults to NULL.}
 }
 \description{
 Make a centered histogram breaks.
