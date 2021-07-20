@@ -101,24 +101,6 @@ server <- function(input, output) {
     panels()[2]
   })
 
-  # participant_panel <- reactive({
-  #   for (i in 1:2){
-  #     if (!is.null(readRDS(paste0(experiment_directory(), panels()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-  #       participant_panel <- panels()[i]
-  #     }
-  #   }
-  #   return(participant_panel)
-  # })
-  #
-  # assignment_panel <- reactive({#this could be made more intelligent, but good enough for now
-  #   for (i in 1:2){
-  #     if (is.null(readRDS(paste0(experiment_directory(), panels()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-  #       assignment_panel <- panels()[i]
-  #     }
-  #   }
-  #   return(assignment_panel)
-  # })
-
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
     prep_network_data_d3(study_name,participant_panel,assignment_panel)

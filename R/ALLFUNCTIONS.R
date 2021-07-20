@@ -2072,49 +2072,74 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 }
 
 
-# # Survey stuff
-#
-# prep_survey_data <- function(experiment_directory, panel_name){
-#   survey_dir <- dir(paste0(experiment_directory, panel_name, "/survey_scrapes/"), full.names = T)
-#   surveys_bound <- readRDS(max(survey_dir))
-#
-#   link_dir <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T)
-#   links_bound <- map_dfr(link_dir, readRDS)
-#
-#   survey_data_joined <- left_join(surveys_bound, links_bound)
-#   survey_data_joined_GOOD <- survey_data_joined %>% filter(!is.na(user_id))
-#
-#   return(list(survey_data_joined, survey_data_joined_GOOD))
-# }
-#
-# make_survey_timeseries <- function(input, volume_smoothing, survey_data_joined_GOOD, survey_start_date){
-#   output <- input %>%
-#     mutate(minute_span = round_date(RecordedDate, unit = paste(volume_smoothing,"minutes"))) %>%
-#     group_by(minute_span) %>%
-#     summarise(count = n(),
-#               count_good = sum(ResponseId %in% survey_data_joined_GOOD$ResponseId, na.rm = T),
-#               count_bad = sum(! ResponseId %in% survey_data_joined_GOOD$ResponseId, na.rm = T))
-#   all_minutes <- seq.POSIXt(as.POSIXct(survey_start_date), ceiling_date(Sys.time(), "day"), by = paste(volume_smoothing,"min")) #changed noon_today to sys.time()
-#   other_minutes <- all_minutes[which(!all_minutes %in% output$minute_span)]
-#   output <- bind_rows(output, data.frame("minute_span"=other_minutes,
-#                                          "count"=rep(0, length(other_minutes)),
-#                                          "count_good"=rep(0, length(other_minutes)),
-#                                          "count_bad"=rep(0, length(other_minutes)))) %>% arrange(minute_span)
-#   return(output)
-# }
-#
-# ts_to_cumulative <- function(survey_ts){
-#   survey_cumulative <- survey_ts %>% transmute(minute_span,
-#                                                count=NA,
-#                                                count_good=NA,
-#                                                count_bad=NA)
-#   for (i in 1:nrow(survey_cumulative)) {
-#     survey_cumulative$count[i] <- sum(survey_ts$count[1:i])
-#     survey_cumulative$count_good[i] <- sum(survey_ts$count_good[1:i])
-#     survey_cumulative$count_bad[i] <- sum(survey_ts$count_bad[1:i])
-#   }
-#   return(survey_cumulative)
-# }
+# Survey stuff
+
+#' Prep survey data
+#'
+#' A function to prepare survey data for a dashboard.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' prep_survey_data()
+
+prep_survey_data <- function(experiment_directory, panel_name){
+  survey_dir <- dir(paste0(experiment_directory, panel_name, "/survey_scrapes/"), full.names = T)
+  surveys_bound <- readRDS(max(survey_dir))
+
+  link_dir <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T)
+  links_bound <- map_dfr(link_dir, readRDS)
+
+  survey_data_joined <- left_join(surveys_bound, links_bound)
+  survey_data_joined_GOOD <- survey_data_joined %>% filter(!is.na(user_id))
+
+  return(list(survey_data_joined, survey_data_joined_GOOD))
+}
+
+
+#' make_survey_timeseries
+#'
+#' A function to make_survey_timeseries
+#' @keywords dashboard
+#' @export
+#' @examples
+#' make_survey_timeseries()
+
+make_survey_timeseries <- function(input, volume_smoothing, survey_data_joined_GOOD, survey_start_date){
+  output <- input %>%
+    mutate(minute_span = round_date(RecordedDate, unit = paste(volume_smoothing,"minutes"))) %>%
+    group_by(minute_span) %>%
+    summarise(count = n(),
+              count_good = sum(ResponseId %in% survey_data_joined_GOOD$ResponseId, na.rm = T),
+              count_bad = sum(! ResponseId %in% survey_data_joined_GOOD$ResponseId, na.rm = T))
+  all_minutes <- seq.POSIXt(as.POSIXct(survey_start_date), ceiling_date(Sys.time(), "day"), by = paste(volume_smoothing,"min")) #changed noon_today to sys.time()
+  other_minutes <- all_minutes[which(!all_minutes %in% output$minute_span)]
+  output <- bind_rows(output, data.frame("minute_span"=other_minutes,
+                                         "count"=rep(0, length(other_minutes)),
+                                         "count_good"=rep(0, length(other_minutes)),
+                                         "count_bad"=rep(0, length(other_minutes)))) %>% arrange(minute_span)
+  return(output)
+}
+
+#' ts_to_cumulative
+#'
+#' A function to convert time series data to cumulative data
+#' @keywords dashboard
+#' @export
+#' @examples
+#' ts_to_cumulative()
+
+ts_to_cumulative <- function(survey_ts){
+  survey_cumulative <- survey_ts %>% transmute(minute_span,
+                                               count=NA,
+                                               count_good=NA,
+                                               count_bad=NA)
+  for (i in 1:nrow(survey_cumulative)) {
+    survey_cumulative$count[i] <- sum(survey_ts$count[1:i])
+    survey_cumulative$count_good[i] <- sum(survey_ts$count_good[1:i])
+    survey_cumulative$count_bad[i] <- sum(survey_ts$count_bad[1:i])
+  }
+  return(survey_cumulative)
+}
 #
 # # NETWORK STUFF
 # require(igraph)
