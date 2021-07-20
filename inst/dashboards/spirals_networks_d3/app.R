@@ -57,13 +57,14 @@ survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
 tricordings_directory <- "~/tricordings/studies/"
 
 study_name <- "spirals_bad_pilot"
-
+participant_panel <- "participants"
+assignment_panel <- "assignments"
 
 dash_theme = "grey_dark"
 
 
 # App title ----
-header <- dashboardHeader(title = "Network Dashboard"
+header <- dashboardHeader(title = "Spirals Network Dashboard"
 )
 
 sidebar <- dashboardSidebar(#width=12,
@@ -118,62 +119,9 @@ server <- function(input, output) {
   #   return(assignment_panel)
   # })
 
-  participant_panel <- reactive({
-    panels_ordered <- file.info((paste0(experiment_directory(), panels(), "/scrape_settings.rds"))) %>% arrange(desc(mtime)) %>% rownames %>% str_remove_all("/scrape_settings.rds") %>% str_remove_all(".*/")
-    return(panels_ordered[2])
-  })
-
-  assignment_panel <- reactive({#this could be made more intelligent, but good enough for now
-    panels_ordered <- file.info((paste0(experiment_directory(), panels(), "/scrape_settings.rds"))) %>% arrange(desc(mtime)) %>% rownames %>% str_remove_all("/scrape_settings.rds") %>% str_remove_all(".*/")
-    return(panels_ordered[1])
-  })
-
-  # survey_data_prepped <- reactive({invalidateLater(refresh_time)
-  #   prep_survey_data(experiment_directory(),participant_panel())
-  # })
-  #
-  #
-  # output$survey_ts <- renderPlot({invalidateLater(refresh_time)
-  #
-  #   surveys_df <- survey_data_prepped()[[1]]
-  #   survey_data_joined_GOOD <- survey_data_prepped()[[2]]
-  #
-  #   survey_start_date <- floor_date(as.POSIXct(survey_start_date), "day")
-  #   message(survey_start_date)
-  #
-  #   survey_ts <- make_survey_timeseries(surveys_df, 60, survey_data_joined_GOOD, survey_start_date)
-  #   survey_cumulative <- ts_to_cumulative(survey_ts)
-  #
-  #   data <- as.matrix(survey_cumulative[,c(3,4)])
-  #   rownames(data) <- survey_cumulative$minute_span
-  #
-  #   data <- t(data)
-  #   cumulation_x_axis_indices <- seq(1, ncol(data), length.out = 12)
-  #   cumulation_x_axis_marks <- colnames(data)[cumulation_x_axis_indices]
-  #   cumulation_date_labels <- as.POSIXct(as.numeric(cumulation_x_axis_marks), origin = "1970-01-01")
-  #   cumulation_date_labels <- c(min(cumulation_date_labels),rep("",length(cumulation_date_labels)-2),max(cumulation_date_labels))
-  #
-  #   cumulation_y_axis <- c(0, max(survey_cumulative$count))
-  #
-  #   par(bty="n",
-  #       bg="#343E48",
-  #       xpd=T,
-  #       mar=c(4.1,4.1,2.5,4.1))
-  #
-  #   barplot(data, col = survey_cumulation_colors, border=NA, space=0, xaxt="n", yaxt="n")
-  #   axis(side=1, at=cumulation_x_axis_indices, labels=format(cumulation_date_labels, "%b %d"),
-  #        cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-  #   axis(side=2, at=cumulation_y_axis, cex.axis = axis_cex, col = "grey", col.ticks="grey", col.axis="grey")
-  #   #legend("topleft", legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
-  #   legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
-  # })
-
-  # network_data_prepped <- reactive({invalidateLater(refresh_time)
-  #   prep_network_data_igraph(experiment_directory(),participant_panel(),assignment_panel())
-  # })
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
-    prep_network_data_d3(study_name,participant_panel(),assignment_panel())
+    prep_network_data_d3(study_name,participant_panel,assignment_panel)
   })
 
 
@@ -192,7 +140,7 @@ server <- function(input, output) {
     MyClickScript <- "Shiny.setInputValue('user_text', d.name);"
 
     fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
-                       linkColour = myLinks$color, charge = -50, zoom = F, linkDistance = 80, clickAction = MyClickScript,
+                       linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80, clickAction = MyClickScript,
                        colourScale = paste0("d3.scaleOrdinal().domain(['assignment','participant']).range([",
                                             paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
                                                                                 participant_node_col)),

@@ -2,17 +2,24 @@
 % Please edit documentation in R/ALLFUNCTIONS.R
 \name{runTimelineDash}
 \alias{runTimelineDash}
-\title{Run Timeline Dashboard}
+\title{Run Dashboard}
 \usage{
+runTimelineDash(port = 4201)
+
 runTimelineDash(port = 4201)
 }
 \arguments{
 \item{port}{Specify the port to run the dashboard on.  Defaults to 4201.}
+
+\item{dashboard}{Which Dashboard to run.}
 }
 \description{
+A convenient function to launch any dashboard.
+
 A convenient function to launch the interactive timeline data collection dashboard.
 }
 \examples{
+runTimelineDash()
 runTimelineDash()
 }
 \keyword{dashboard}

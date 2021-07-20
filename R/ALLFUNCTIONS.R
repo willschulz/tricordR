@@ -1718,6 +1718,25 @@ addSentiment <- function(timelines_df){
 # ###################################
 #
 
+#' Run Dashboard
+#'
+#' A convenient function to launch any dashboard.
+#' @param dashboard Which Dashboard to run.
+#' @param port Specify the port to run the dashboard on.  Defaults to 4201.
+#' @keywords dashboard
+#' @export
+#' @examples
+#' runTimelineDash()
+
+runTimelineDash <- function(dashboard, port = 4201) {
+  appDir <- system.file(paste0("dashboards/",dashboard), "app.R", package = "tricordR")
+  if (appDir == "") {
+    stop("Could not find dashboard directory. Try re-installing `tricordR`.", call. = FALSE)
+  }
+  shiny::runApp(appDir, display.mode = "normal", port = port)
+}
+
+
 #' Run Timeline Dashboard
 #'
 #' A convenient function to launch the interactive timeline data collection dashboard.
