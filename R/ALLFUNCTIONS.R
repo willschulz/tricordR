@@ -2817,9 +2817,15 @@ cSeq <- function(l=-2, u=2, b=.1){
 #' @examples
 #' chist()
 
+# chist <- function(x, b=1, main=NULL){
+#   hist(x,
+#        breaks = cSeq(min(x, na.rm = T), max(x, na.rm = T), b),
+#        main = ifelse(test = is.null(main), yes = deparse1(substitute(x)), no = main))
+# }
+
 chist <- function(x, b=1, main=NULL){
   hist(x,
-       breaks = cSeq(min(x, na.rm = T), max(x, na.rm = T), b),
+       breaks = cSeq(floor(min(x, na.rm = T)+b/2), ceiling(max(x, na.rm = T)-b/2), b),
        main = ifelse(test = is.null(main), yes = deparse1(substitute(x)), no = main))
 }
 
