@@ -2247,7 +2247,7 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 prep_network_data_d3 <- function(study_name, panel_name, assignment_panel = "assignments"){
   p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 
-  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, "/", panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
 
   par_info <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
   ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
