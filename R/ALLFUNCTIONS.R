@@ -2236,24 +2236,24 @@ linePlot <- function(data_e, days, volume_smoothing, axis_cex){
 #' Prepare Network Data for D3 Visualization
 #'
 #' A function to prepare network data for D3 visualization in dashboards.
-#' @param experiment_directory Directory to visualize
+#' @param study_name Directory to visualize
 #' @param panel_name Name of the panel representing "participants".
-#' @param assignment_panel Name of the panel representing "assignments".
+#' @param assignment_panel Name of the panel representing "assignments".  Defaults to "assignments".
 #' @keywords dashboard
 #' @export
 #' @examples
 #' prep_network_data_d3()
 
-prep_network_data_d3 <- function(experiment_directory, panel_name, assignment_panel){
-  p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+prep_network_data_d3 <- function(study_name, panel_name, assignment_panel = "assignments"){
+  p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 
-  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
 
-  par_info <- dir(paste0(experiment_directory, panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
-  ass_info <- dir(paste0(experiment_directory, assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+  par_info <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+  ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
   all_info <- rbind(par_info, ass_info)
 
-  #id_links <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+  #id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
   #id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
 
   #survey_responses <- prep_survey_data(experiment_directory, panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T)
