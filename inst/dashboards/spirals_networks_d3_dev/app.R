@@ -16,23 +16,34 @@ library(dashboardthemes)
 library(shinycssloaders)
 library(tricordR)
 
-survey_start_date <- "2021-06-01 12:00:00 EST"
+survey_start_date <- "2021-07-01 12:00:00 EST"
 
 refresh_time=5*60*1000 #(milliseconds)
 
+survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
+default_axis_cex <- 1
+
+assignment_node_col <- "red"
+placeboed_node_col <- "plum"
+treated_node_col <- "dodgerblue2"
+
 tricordings_directory <- "~/tricordings/studies/"
 
-study_names <- dir("~/laforge_files/studies", full.names = T) %>%
-  dir(full.names = T) %>%
-  dir(full.names = T) %>%
-  .[str_detect(., "scrape_settings.rds")] %>%
-  file.info() %>%
-  mutate(path = rownames(.)) %>%
-  mutate(study_name = path %>% str_remove_all(".*/studies/") %>% str_remove_all("/.*")) %>%
-  group_by(study_name) %>%
-  summarise(most_recent = max(mtime), count = n()) %>%
-  arrange(desc(count), desc(most_recent)) %>%
-  pull(study_name)
+study_name <- "spirals_bad_pilot"
+participant_panel <- "participants"
+assignment_panel <- "assignments"
+
+# study_names <- dir("~/laforge_files/studies", full.names = T) %>%
+#   dir(full.names = T) %>%
+#   dir(full.names = T) %>%
+#   .[str_detect(., "scrape_settings.rds")] %>%
+#   file.info() %>%
+#   mutate(path = rownames(.)) %>%
+#   mutate(study_name = path %>% str_remove_all(".*/studies/") %>% str_remove_all("/.*")) %>%
+#   group_by(study_name) %>%
+#   summarise(most_recent = max(mtime), count = n()) %>%
+#   arrange(desc(count), desc(most_recent)) %>%
+#   pull(study_name)
 
 #source("~/Documents/GitRprojects/LaForge/functions/dashboard_functions.R")
 #source("~/Documents/GitRprojects/LaForge/functions/schulzFunctions.R")
@@ -62,7 +73,7 @@ header <- dashboardHeader(title = "Compliance Dashboard"
 )
 
 sidebar <- dashboardSidebar(#width=12,
-  selectInput("study_name", "Study Name", choices = study_names)
+  #selectInput("study_name", "Study Name", choices = study_names)
 )
 
 # Main panel for displaying outputs ----
@@ -98,7 +109,7 @@ ui <- dashboardPage(header, sidebar, body)
 
 server <- function(input, output) {
 
-  experiment_directory <- reactive({paste0(tricordings_directory,"/", input$study_name, "/")})
+  experiment_directory <- reactive({paste0(tricordings_directory,"/", study_name, "/")})
   groups <- reactive({dir(experiment_directory())})
 
   output$group_1_name <- renderText({
@@ -167,12 +178,12 @@ server <- function(input, output) {
     legend(x=min(cumulation_x_axis_indices), y=max(cumulation_y_axis)*1.4, legend = c("Tweets Scraped", "Tweets Not Scraped"), fill = survey_cumulation_colors, border = NA, bty = "n", text.col = "gray")
   })
 
-  network_data_prepped <- reactive({invalidateLater(refresh_time)
-    prep_network_data_igraph(experiment_directory(),participant_group(),assignment_group())
-  })
+  # network_data_prepped <- reactive({invalidateLater(refresh_time)
+  #   prep_network_data_igraph(experiment_directory(),participant_group(),assignment_group())
+  # })
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
-    prep_network_data_d3(input$study_name,participant_group(),assignment_group())
+    prep_network_data_d3(study_name,participant_group(),assignment_group())
   })
 
   # output$network_graph <- renderPlot({invalidateLater(refresh_time)
@@ -191,7 +202,7 @@ server <- function(input, output) {
   # })
 
 
-  output$network_graph_d3 <- renderForceNetwork({invalidateLater(refresh_time)
+  output$network_graph_d3 <- networkD3::renderForceNetwork({invalidateLater(refresh_time)
     #par(bg="#343E48", fg="grey", mar = c(0,0,0,0))
 
     myNodes <- network_data_prepped_d3()$v %>% add_column(NodeID = 1:nrow(.)-1, .before = 0)
@@ -205,8 +216,8 @@ server <- function(input, output) {
 
     MyClickScript <- "Shiny.setInputValue('user_text', d.name);"
 
-    fn <- forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
-                 linkColour = myLinks$color, charge = -50, zoom = F, linkDistance = 80, clickAction = MyClickScript,
+    fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
+                 linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80, clickAction = MyClickScript,
                  colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
                                       paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
                                                                           placeboed_node_col,

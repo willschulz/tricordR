@@ -2332,6 +2332,64 @@ prep_network_data_d3 <- function(study_name, panel_name, assignment_panel = "ass
   return(list("e" = data, "v" = vertex_metadata))
 }
 
+
+#' SPIRALS Prepare Network Data for D3 Visualization
+#'
+#' A function to prepare network data for D3 visualization in dashboards.
+#' @param study_name Directory to visualize
+#' @param panel_name Name of the panel representing "participants".
+#' @param assignment_panel Name of the panel representing "assignments".  Defaults to "assignments".
+#' @keywords dashboard
+#' @export
+#' @examples
+#' prep_network_data_d3_spirals()
+
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments"){
+  p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, "/", panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+
+  par_info <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant")
+  ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+  all_info <- rbind(par_info, ass_info)
+
+  id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links/"), full.names = T) %>% map_dfr(., readRDS)
+  id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
+
+  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T)
+  vertex_metadata <- id_links %>% select(ResponseId, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+  #vertex_metadata <- all_info
+
+
+  vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+  vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+
+  na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
+  for(i in 1:length(na_user_ids_indices)){
+    vertex_metadata$user_id[na_user_ids_indices[i]] <- paste0("UNKNOWN_",i)
+    vertex_metadata$screen_name[na_user_ids_indices[i]] <- paste0("UNKNOWN_",i)
+  }
+
+  data <- p_friends_all %>%
+    filter(user_id %in% vertex_metadata$user_id) %>%
+    group_by(user, user_id) %>%
+    summarise(first = min(scraped_at),
+              last = max(scraped_at),
+              color = ifelse(difftime(Sys.time(), last, units = "day")>1,
+                             "orange",
+                             "green"))
+
+  data <- map_dfr(which(vertex_metadata$group!="assignment"),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$shown[[.x]],
+                              first = NA, last = NA, color = "red")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+  return(list("e" = data, "v" = vertex_metadata))
+}
+
+
+
 #' Index Single Network Nodes
 #'
 #' A workhorse function for nodeIndexer
