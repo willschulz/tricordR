@@ -1726,9 +1726,9 @@ addSentiment <- function(timelines_df){
 #' @keywords dashboard
 #' @export
 #' @examples
-#' runTimelineDash()
+#' runDash()
 
-runTimelineDash <- function(dashboard, port = 4201) {
+runDash <- function(dashboard, port = 4201) {
   appDir <- system.file(paste0("dashboards/",dashboard), "app.R", package = "tricordR")
   if (appDir == "") {
     stop("Could not find dashboard directory. Try re-installing `tricordR`.", call. = FALSE)
