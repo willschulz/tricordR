@@ -853,7 +853,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
           }
           #if (nrow(individual_followers_list[[j]])>0){#wrapped in this to prevent error encountered in qualtrics matching at spirals bad pilot launch
             message(paste("Successfully scraped", nrow(individual_followers_list[[j]]), "followers from user", users_remaining_subset$user_id[j]))
-            individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id = user_id)
+            individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)
             prior_divisible <- FALSE #is this in the right place?
           #}
         }
