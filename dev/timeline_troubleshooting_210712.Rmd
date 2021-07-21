@@ -486,7 +486,7 @@ library(tricordR)
 ```{r}
 library(tricordR)
 
-test <- getFollowersBig(users = c("31059335","497483262","625153621"), n = 1000, list_tokens = prepTokens("ws_tw"), max_hours = .1)
+test <- getFollowersBig(users = c("31059335","497483262","625153621", "180182161"), n = 1000, list_tokens = prepTokens("ws_tw"), max_hours = .1)
 
 test2 <- get_followers(user = "31059335", token = prepTokens("ws_tw")[[1]])
 test2
