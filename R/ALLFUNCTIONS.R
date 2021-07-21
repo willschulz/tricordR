@@ -2339,6 +2339,21 @@ prep_network_data_d3 <- function(study_name, panel_name, assignment_panel = "ass
 }
 
 
+#' Read in Relevant Followers Only
+#'
+#' A workhorse function to prepare network data for higher-level functions
+#' @param path Path to RDS file to read
+#' @param relevant_user_ids Set of relevant user_ids to keep
+#' @keywords dashboard
+#' @export
+#' @examples
+#' readRelevantAssignmentFollowers()
+
+readRelevantAssignmentFollowers <- function(path, relevant_user_ids){
+  return(readRDS(path) %>% filter(user_id %in% relevant_user_ids))
+}
+
+
 #' SPIRALS Prepare Network Data for D3 Visualization
 #'
 #' A function to prepare network data for D3 visualization in dashboards.
