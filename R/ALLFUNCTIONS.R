@@ -861,7 +861,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
           if (nrow(individual_followers_list[[j]])>0){#wrapped in this to prevent error encountered near the end of scraping attempts
             individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)
             prior_divisible <- FALSE #is this in the right place?
-          } else {individual_followers_list[[j]] <- NULL}
+          } else {individual_followers_list[[j]] <- data.frame(user = character(), user_id = character())} #added this so there is something valid to bind when nrow = 0
         }
       }
       attempted_now <- users_remaining_subset$user_id[1:j]

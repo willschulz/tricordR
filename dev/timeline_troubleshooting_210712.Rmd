@@ -490,6 +490,16 @@ test <- getFollowersBig(users = c("31059335","497483262","625153621", "180182161
 
 test2 <- get_followers(user = "31059335", token = prepTokens("ws_tw")[[1]])
 test2
+
+testlist <- list()
+
+testlist[[1]] <- test
+
+testlist[[2]] <- data.frame(user = character(), user_id = character())
+
+testlist[[3]] <- test
+
+do.call(rbind, testlist)
 ```
 
 
