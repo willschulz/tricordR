@@ -476,10 +476,20 @@ followers_20210715113002 %>% pull(user) %>% unique
 
 
 ```{r}
+devtools::install_github("https://github.com/willschulz/tricordR/", auth_token = "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")
+.rs.restartR()
+library(tricordR)
+```
+
+
+
+```{r}
 library(tricordR)
 
-test <- getFollowersBig(users = c("497483262","625153621"), n = 1000, list_tokens = prepTokens("ws_tw"), max_hours = .1)
+test <- getFollowersBig(users = c("31059335","497483262","625153621"), n = 1000, list_tokens = prepTokens("ws_tw"), max_hours = .1)
 
+test2 <- get_followers(user = "31059335", token = prepTokens("ws_tw")[[1]])
+test2
 ```
 
 
