@@ -824,6 +824,12 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
           break
         }
 
+        if(str_detect(warning_text, "Not authorized")){
+          message("Not authorized to scrape this user.  Moving on and not reattempting in this scrape...")
+          already <- c(already, users_remaining_subset$user_id[j])
+          next
+        }
+
         if(str_detect(warning_text, "Sorry, that page does not exist.")){
           message("User does not exist.  Moving on and not reattempting in this scrape...")
           already <- c(already, users_remaining_subset$user_id[j])
