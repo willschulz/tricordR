@@ -2746,7 +2746,6 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
 
   na_somematch <- id_links %>% filter(is.na(user_id)) %>% pull(no_match) %>% !.
 
-
   message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
   message(sum(na_somematch), " unmatched users have at least one candidate to consider.")
 

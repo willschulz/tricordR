@@ -6,8 +6,208 @@ output: html_document
 ---
 
 ```{r}
+devtools::install_github("https://github.com/willschulz/tricordR/", auth_token = "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")
+.rs.restartR()
 library(tricordR)
 ```
+
+
+
+```{r}
+responses_new <- readRDS("~/tricordings/studies/spirals_bad_pilot/participants/survey_scrapes/responses_fetched_20210717123003.rds")
+study_name <- "spirals_bad_pilot"
+panel_name <- "participants"
+assignment_panel <- "assignments"
+```
+
+
+
+```{r}
+
+responses_new %>% filter(twitter_agreement=="Yes") %>% .[29,]
+
+```
+
+```{r}
+match_async_by_time(responses_new = readRDS("~/tricordings/studies/spirals_bad_pilot/participants/survey_scrapes/responses_fetched_20210717123003.rds"), study_name = "spirals_bad_pilot", panel_name = "participants", assignment_panel = "assignments", add = FALSE)
+
+```
+
+##############
+
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+
+```{r}
+study_name <- "spirals_bad_pilot"
+panel_name <- "participants"
+assignment_panel = "assignments"
+
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments"){
+  p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, "/", panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+
+  id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
+
+    par_info <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant") %>% filter(user_id %in% id_links$user_id)
+  ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+  all_info <- rbind(par_info, ass_info)
+  
+  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(twitter_agreement=="Yes")# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  vertex_metadata <- id_links %>% select(ResponseId, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+  #vertex_metadata <- all_info
+
+  na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
+  for(i in 1:length(na_user_ids_indices)){
+    vertex_metadata$user_id[na_user_ids_indices[i]] <- paste0("UNMATCHED_",i)
+    vertex_metadata$screen_name[na_user_ids_indices[i]] <- paste0("UNMATCHED_",i)
+  }
+  
+  vertex_metadata$stroke_group <- "none"
+  vertex_metadata$stroke_group[na_user_ids_indices] <- "unmatched"
+  vertex_metadata$stroke_group[which(vertex_metadata$protected)] <- "protected"
+  
+  vertex_metadata$stroke_color <- "white"
+  vertex_metadata$stroke_color[na_user_ids_indices] <- "red"
+  vertex_metadata$stroke_color[which(vertex_metadata$protected)] <- "orange"
+  
+  vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+  vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+  
+  data <- p_friends_all %>%
+    filter(user_id %in% vertex_metadata$user_id) %>%
+    group_by(user, user_id) %>%
+    summarise(first = min(scraped_at),
+              last = max(scraped_at),
+              color = ifelse(difftime(Sys.time(), last, units = "day")>1,
+                             "orange",
+                             "green"))
+  
+  #always-inactive claims should be red:
+  data <- map_dfr(which((vertex_metadata$group!="assignment") & (sapply(vertex_metadata$claimed, length)>0)),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$claimed[[.x]],
+                              first = NA, last = NA, color = "red")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+  
+  #shown and not claimed should be gray
+  data <- map_dfr(which(vertex_metadata$group!="assignment"),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$shown[[.x]],
+                              first = NA, last = NA, color = "gray")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+  
+  return(list("e" = data, "v" = vertex_metadata))
+}
+
+vertex_metadata %>% filter(group!="assignment") %>% select()
+
+```
+
+```{r}
+vertex_metadata %>% filter(group!="assignment") %>% pull(claimed)
+
+```
+
+
+
+```{r}
+par_info$protected
+
+```
+
+
+```{r}
+network_data_prepped_d3 <- prep_network_data_d3_spirals(study_name = "spirals_bad_pilot", panel_name = "participants")
+
+myNodes <- network_data_prepped_d3$v %>% add_column(NodeID = 1:nrow(.)-1, .before = 0)
+
+myLinks <- network_data_prepped_d3$e %>% mutate("source" = nodeIndexer(user, myNodes_spirals),
+                             "target" = nodeIndexer(user_id, myNodes_spirals),
+                             "value" = 2
+)
+
+#network_data_prepped_d3[[2]]$user_id %>% duplicated()
+```
+
+
+
+
+```{r}
+assignment_node_col = "grey40"
+
+fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T, bounded = T,
+                 linkColour = myLinks$color, charge = -20, zoom = F, linkDistance = 80,# clickAction = MyClickScript,
+                 colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
+                                      paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
+                                                                          placeboed_node_col,
+                                                                          treated_node_col)),
+                                                        collapse = "\', \'"),"\'")
+                                      ,"]);"))
+
+# add the color column back in to the data in the htmlwidget because
+# forceNetwork only passes through the necessary columns
+fn$x$nodes$border <- myNodes$stroke_color
+
+
+# add custom JavaScript to set the node stroke to the color in the border column
+fn <- htmlwidgets::onRender(fn, 
+  'function(el, x) { d3.selectAll("circle").style("stroke", d => d.border); }')
+
+
+fn
+```
+
+
+
+
+```{r}
+networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
+                 linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80, clickAction = MyClickScript,
+                 colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
+                                      paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
+                                                                          placeboed_node_col,
+                                                                          treated_node_col)),
+                                                        collapse = "\', \'"),"\'")
+                                      ,"]);"))
+
+```
+
 
 
 ```{r}
@@ -30,134 +230,96 @@ list_tokens <- prepTokens("ws_tw")
 
 
 ```{r}
-
-
-```
-
-
-
-```{r}
+require(tidyverse)
+require(rtweet)
+message("Scraping users: ", panel_directory)
+today <- dateCode()
+message("Scraping date: ", today)
+set.seed(as.numeric(today))
+message("Reading prior scrape log...")
+logs <- dir(paste0(panel_directory,"twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
+last_log_file <- max(logs)
+message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+last_log <- readRDS(paste0(panel_directory,"twitter_scrapes/timeline_logs/",last_log_file))
 last_log
 ```
 
 
 
 ```{r}
-scrapeTimelines <- function(panel_directory, N=3200, list_tokens, max_hours=12, allHistory=FALSE, sub_batch_size=100, sentiment=FALSE, darmoc=FALSE){
-  message("Scraping timelines...")
-  require(tidyverse)
-  require(rtweet)
-  message("Scraping users: ", panel_directory)
-  today <- dateCode()
-  message("Scraping date: ", today)
-  set.seed(as.numeric(today))
-  message("Reading prior scrape log...")
-  logs <- dir(paste0(panel_directory,"twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
-  last_log_file <- max(logs)
-  message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
-  last_log <- readRDS(paste0(panel_directory,"twitter_scrapes/timeline_logs/",last_log_file))
-  # this adds back any user_ids in the main folder and attempts to scrape them again if they're not in the log file for whatever reason
-  raw_userids <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
-  raw_userids <- raw_userids[which(!is.na(raw_userids))] #this fixes a bug where any NA user_ids who get added (shouldn't happen anymore, but might) don't break this function
-  previously_attempted <- dir(paste0(panel_directory,"twitter_scrapes/timeline_attempts"), full.names = T) %>% map(readRDS) %>% unlist %>% unique
-  if (any(!raw_userids %in% previously_attempted)){ #needs road testing
-    new_userids <- raw_userids[which(!raw_userids %in% previously_attempted)]
-    raw_userids <- raw_userids[which(!raw_userids %in% new_userids)]
-    firstScrape(new_userids, panel_directory = panel_directory, tokens = list_tokens)
-  }
-  # if (any(!raw_userids %in% last_log$user_id)) { #old version I am updating to do a firstScrape when appropriate, see above
-  #   to_append <- cbind(raw_userids[which(!raw_userids %in% last_log$user_id)],
-  #                      rep(NA, sum(!raw_userids %in% last_log$user_id)),
-  #                      rep(NA, sum(!raw_userids %in% last_log$user_id)))
-  #   colnames(to_append) <- colnames(last_log)
-  #   last_log <- rbind(last_log, to_append)
-  # }
-  last_log <- sample_n(last_log, size = nrow(last_log))
-  message("Start scraping...")
-  if (allHistory==FALSE){
-    data_list <- updateTimelines(users_df=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
-  }
-  if (allHistory==TRUE){
-    data_list <- getTimelinesHistorical(users=last_log, n=N, list_tokens = list_tokens, per_token_limit=sub_batch_size, max_hours=max_hours)
-  }
-  data <- data_list[[1]]
-  attempted <- data_list[[2]]
-  if (nrow(data)>0){
-    # UNCOMMENT WHEN SENTIMENT  is available to tricordR
-    if (sentiment==TRUE){
-      message("Analyzing sentiment...")
-      source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
-      data <- addSentiment(data)
-      # message("Saving data...")
-      # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    }
-    # if (sentiment=="google"){
-    #   message("Analyzing sentiment...")
-    #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
-    #   data <- addSentiment(data) #uses google, which costs money
-    #   # message("Saving data...")
-    #   # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    # }
-    if (darmoc==TRUE){
-      message("Analyzing ideology and sureness...")
-      #load classifiers and feature names
-      require(darmoc)
-      preds <- darmoc::darmocClassify(input = data$text, type = "response")
-      data <- cbind(data,preds)
-      # message("Saving data...")
-      # saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-    }
-    if (darmoc==TRUE | sentiment == TRUE){
-      message("Saving classified data...")
-      if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-        message("Binding to earlier scrape from today...")
-        last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
-        saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-      }
-      if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-        saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-      }
-    }
-    if (!(darmoc==TRUE | sentiment == TRUE)){
-      message("Saving scraped data...")
-      if (file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-        message("Binding to earlier scrape from today...")
-        last_data <- readRDS(file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-        all_data <- bind_rows(last_data, data) %>% distinct(status_id, .keep_all = T)
-        saveRDS(all_data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-      }
-      if (!file.exists(paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))){
-        saveRDS(data, file = paste0(panel_directory,"twitter_scrapes/timelines/timelines_", today,".rds"))
-      }
-    }
-    message("Saving new log...")
-    this_log <- data %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
-    new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
-    saveRDS(new_log, file = paste0(panel_directory,"twitter_scrapes/timeline_logs/log_", today,".rds"))
-    message(sum((this_log$count-1)), " new tweets scraped from ", sum(this_log$count>1)," users!\n", (nrow(last_log)-sum(this_log$count>1)), " users had no new tweets to scrape.")
-    message(sum(! last_log$ultimate_tweet %in% data$status_id), " users may have missing tweets.")
-    saveRDS(attempted, file = paste0(panel_directory,"twitter_scrapes/timeline_attempts/attempted_", timeCode(),".rds"))
-    message("Total attempted: ", sum(last_log$user_id %in% attempted)) # B
-    message("Total unattempted: ", sum(! last_log$user_id %in% attempted)) # C ## I think I've fixed the numbers-not-adding-up problem, which I think was due to using this_log instead of last_log as the first argument to the logical
-  }
-  if (!(nrow(data)>0)){message("Zero new tweets scraped from this panel, skipping tweet analysis/saving...")}
-}
+all_timelines <- loadTimelines("assignments_sampled", "barbera_liberals")
+```
+
+
+```{r}
+this_log_oldway <- all_timelines %>% distinct(status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
+
+this_log <- all_timelines %>% distinct(user_id, status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n())
+
+new_log <- rbind((last_log %>% select(user_id, penultimate_tweet, ultimate_tweet)),(this_log %>% select(user_id, penultimate_tweet, ultimate_tweet))) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1)) #fixed parentheses order
+
+saveRDS(new_log, file = paste0(panel_directory,"twitter_scrapes/timeline_logs/log_", today,".rds"))
+
+```
+
+
+
+```{r}
+
+
+current_lookup <- readRDS("~/tricordings/studies/assignments_sampled/barbera_liberals/twitter_scrapes/user_info/current_lookup.rds")
+
+prior_lookup <- readRDS("~/tricordings/studies/assignments_sampled/barbera_liberals/twitter_scrapes/user_info/new_lookup_20210709193158.rds")
+```
+
+
+```{r}
+prior_lookups <- dir("~/tricordings/studies/assignments_sampled/barbera_conservatives/twitter_scrapes/user_info/new_lookup_20210709192253.rds")
 ```
 
 
 ```{r}
 
+test_lookup <- lookup_users("180878420", token = prepTokens("ws_tw"))
+test_lookup
 ```
 
 
 ```{r}
+test_lookup <- lookup_users("67394995", token = prepTokens("ws_tw")[[1]])
+```
 
+
+
+```{r}
+test_followers <- getFollowersBig("67394995", list_tokens = prepTokens("ws_tw"))
+
+saveRDS(test_followers, file = "null_followers_save_attempt.rds")
+
+test_followers_2 <- getFollowersBig("18689780", list_tokens = prepTokens("ws_tw"))
+
+saveRDS(test_followers_2, file = "good_followers_save_attempt.rds")
+
+c("~/Documents/GitRprojects/tricordR/dev/good_followers_save_attempt.rds", "~/Documents/GitRprojects/tricordR/dev/null_followers_save_attempt.rds") %>% map_dfr(., readRDS)
+
+one <- readRDS("~/Documents/GitRprojects/tricordR/dev/good_followers_save_attempt.rds")
+two <- readRDS("~/Documents/GitRprojects/tricordR/dev/null_followers_save_attempt.rds")
+
+one
+two
+
+rbind(one, two)
 ```
 
 
 ```{r}
+followers_20210715113002 %>% group_by(user) %>% summarise(count = n())
 
+followers_20210715113002 %>% pull(user) %>% unique
 ```
+
+
+
+
 
 
