@@ -70,6 +70,7 @@ match_async_by_time(responses_new = readRDS("~/tricordings/studies/spirals_bad_p
 
 
 ```{r}
+#WORKING VERSION GOOD
 study_name <- "spirals_bad_pilot"
 panel_name <- "participants"
 assignment_panel = "assignments"
@@ -139,21 +140,129 @@ vertex_metadata %>% filter(group!="assignment") %>% select()
 
 ```
 
-```{r}
-vertex_metadata %>% filter(group!="assignment") %>% pull(claimed)
 
+```{r}
+
+
+readRelevantAssignmentFollowers("~/tricordings/studies/spirals_bad_pilot/assignments/twitter_scrapes/followers/followers_20210721143002.rds", relevant_user_ids = id_links$user_id)
+
+readRDS("~/tricordings/studies/spirals_bad_pilot/assignments/twitter_scrapes/followers/followers_20210721143002.rds") %>% filter(user_id %in% relevant_user_ids)
 ```
 
 
 
 ```{r}
-par_info$protected
+#DEV VERSION TO USE ASSIGNMENT FOLLOWER SCRAPES
+readRelevantAssignmentFollowers <- function(path, relevant_user_ids){
+  return(readRDS(path) %>% filter(user_id %in% relevant_user_ids))
+}
+
+study_name <- "spirals_bad_pilot"
+panel_name <- "participants"
+assignment_panel = "assignments"
+include_protected = TRUE
+
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE){
+  
+  id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
+  
+  p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, "/", panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+  
+  
+  relevant_user_ids <- unique(id_links$user_id) %>% .[which(!is.na(.))]# %>% .[which(! . %in% unique(p_friends_all$user))]
+  
+  if (include_protected){
+    a_followers_relevant <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/followers/"), full.names = T) %>% map_dfr(., readRelevantAssignmentFollowers, relevant_user_ids = relevant_user_ids)
+    protected_relevant_friends <- a_followers_relevant %>% transmute(userx = user_id, user_idx = user, scraped_at) %>% rename("user" = userx, "user_id" = user_idx)
+    p_friends_all <- rbind(p_friends_all, protected_relevant_friends)
+  }
+
+    par_info <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant") %>% filter(user_id %in% id_links$user_id)
+  ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+  all_info <- rbind(par_info, ass_info)
+  
+  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(twitter_agreement=="Yes")# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+  #vertex_metadata <- all_info
+
+  na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
+  for(i in 1:length(na_user_ids_indices)){
+    vertex_metadata$user_id[na_user_ids_indices[i]] <- paste0("UNMATCHED_",i)
+    vertex_metadata$screen_name[na_user_ids_indices[i]] <- paste0("UNMATCHED_",i)
+  }
+  
+  vertex_metadata$stroke_group <- "none"
+  vertex_metadata$stroke_group[na_user_ids_indices] <- "unmatched"
+  vertex_metadata$stroke_group[which(vertex_metadata$protected)] <- "protected"
+  
+  vertex_metadata$stroke_color <- "white"
+  vertex_metadata$stroke_color[na_user_ids_indices] <- "red"
+  vertex_metadata$stroke_color[which(vertex_metadata$protected)] <- "orange"
+  
+  vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+  vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+  
+  p_friends_all <- left_join(p_friends_all, (vertex_metadata %>% select(user_id, start_date)), by = c("user" = "user_id"))
+  
+  data <- p_friends_all %>%
+    filter(user_id %in% vertex_metadata$user_id) %>%
+    group_by(user, user_id) %>%
+    summarise(first = min(scraped_at),
+              last = max(scraped_at),
+              start_date = start_date[1]
+              # color = ifelse(difftime(Sys.time(), last, units = "day")>1,
+              #                "orange",
+              #                "green")
+              ) %>% 
+    mutate(color = case_when((difftime(Sys.time(), last, units = "day")>1) ~ "orange",
+                                ((difftime(Sys.time(), last, units = "day")<=1) & difftime(first, start_date, units = "day")>=0) ~ "green",
+                                (difftime(first, start_date, units = "day")<0) ~ "blue")) %>% select(-start_date)
+  
+  #add something to show "already followed"
+  
+  
+  #always-inactive claims should be red:
+  data <- map_dfr(which((vertex_metadata$group!="assignment") & (sapply(vertex_metadata$claimed, length)>0)),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$claimed[[.x]],
+                              first = as.POSIXct(NA), last = as.POSIXct(NA), color = "red")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+  
+  #shown and not claimed should be gray
+  data <- map_dfr(which(vertex_metadata$group!="assignment"),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$shown[[.x]],
+                              first = as.POSIXct(NA), last = as.POSIXct(NA), color = "gray")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+  
+  return(list("e" = data, "v" = vertex_metadata))
+}
+
+```
+
+```{r}
+p_friends_all %>%
+    filter(user_id %in% vertex_metadata$user_id) %>%
+    group_by(user, user_id) %>%
+    summarise(first = min(scraped_at),
+              last = max(scraped_at),
+              start_date = start_date[1]
+              ) %>%
+  mutate(diff = difftime(first, start_date, units = "day")) %>% mutate(before = diff<0)
 
 ```
 
 
+
+
+
 ```{r}
-network_data_prepped_d3 <- prep_network_data_d3_spirals(study_name = "spirals_bad_pilot", panel_name = "participants")
+network_data_prepped_d3 <- prep_network_data_d3_spirals(study_name = "spirals_bad_pilot", panel_name = "participants", include_protected = TRUE)
 
 myNodes <- network_data_prepped_d3$v %>% add_column(NodeID = 1:nrow(.)-1, .before = 0)
 
@@ -195,18 +304,54 @@ fn
 
 
 
+```{r}
+edge_type_counts <- myLinks %>% group_by(user) %>% summarise(good = sum(color=="green"), never = sum(color=="red"), stopped = sum(color=="orange"), refused = sum(color=="gray"), always = sum(color=="blue"))
+
+edge_type_counts <- right_join(edge_type_counts, myNodes, by = c("user"="user_id")) %>% filter(!is.na(ResponseId)) %>% mutate(never_stopped_refused = never+stopped+refused)
+edge_type_counts
+```
+
 
 ```{r}
-networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
-                 linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80, clickAction = MyClickScript,
-                 colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
-                                      paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
-                                                                          placeboed_node_col,
-                                                                          treated_node_col)),
-                                                        collapse = "\', \'"),"\'")
-                                      ,"]);"))
+mod <- lm(good ~ t, data = edge_type_counts)
+coefplot::coefplot(mod)
+
+mod <- lm(never_stopped_refused ~ t, data = edge_type_counts)
+coefplot::coefplot(mod)
+
+mod <- lm(never ~ t, data = edge_type_counts)
+coefplot::coefplot(mod)
+
+mod <- lm(stopped ~ t, data = edge_type_counts)
+coefplot::coefplot(mod)
+
+mod <- lm(refused ~ t, data = edge_type_counts)
+coefplot::coefplot(mod)
+```
+
+
+```{r}
+
+mod <- glm(good ~ t, data = edge_type_counts, family = "poisson")
+coefplot::coefplot(mod)
+
+mod <- glm(never_stopped_refused ~ t, data = edge_type_counts, family = "poisson")
+coefplot::coefplot(mod)
+```
+
+
+```{r}
+
 
 ```
+
+
+```{r}
+
+
+```
+
+
 
 
 
@@ -319,6 +464,59 @@ followers_20210715113002 %>% pull(user) %>% unique
 ```
 
 
+
+
+# Follower scraping error
+
+
+```{r}
+
+
+```
+
+
+```{r}
+library(tricordR)
+
+test <- getFollowersBig(users = c("497483262","625153621"), n = 1000, list_tokens = prepTokens("ws_tw"), max_hours = .1)
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
 
 
 

@@ -214,13 +214,18 @@ server <- function(input, output) {
     MyClickScript <- "Shiny.setInputValue('user_text', d.name);"
 
     fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
-                 linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80, clickAction = MyClickScript,
+                 linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80, clickAction = MyClickScript, bounded = T,
                  colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
                                       paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
                                                                           placeboed_node_col,
                                                                           treated_node_col)),
                                                         collapse = "\', \'"),"\'")
                                       ,"]);"))
+    fn$x$nodes$border <- myNodes$stroke_color
+
+    fn <- htmlwidgets::onRender(fn,
+                                'function(el, x) { d3.selectAll("circle").style("stroke", d => d.border); }')
+
     #make legend text white
     htmlwidgets::onRender(
       fn,
