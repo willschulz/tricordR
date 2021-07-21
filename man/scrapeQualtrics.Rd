@@ -8,7 +8,7 @@ scrapeQualtrics(
   study_name,
   panel_name,
   match_by = NULL,
-  assignment_dir = NULL,
+  assignment_panel = NULL,
   max_treat_followers = 60000,
   treatment_tokens,
   participant_tokens
@@ -21,13 +21,13 @@ scrapeQualtrics(
 
 \item{match_by}{Matching algorithm to use, if applicable.}
 
-\item{assignment_dir}{Directory of assignment panel.}
-
 \item{max_treat_followers}{Maximum number of followers to attempt to scrape from treatments. Defaults to 60,000.}
 
 \item{treatment_tokens}{Tokens to scrape treatment followers.}
 
 \item{participant_tokens}{Tokens to scrape participant data.}
+
+\item{assignment_dir}{Directory of assignment panel.}
 }
 \description{
 A high-level qualtrics scraping function.
