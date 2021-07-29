@@ -1259,6 +1259,7 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
       {timelines_list[[i]] <- rtweet::get_timeline(user = users_remaining_subset$user_id, n = n, token = list_tokens[[i]], check = FALSE)}
+      # could add some stuff here to handle " Not authorized." error better, so scrapes don't take the full max hours
       attempted_now <- users_remaining_subset$user_id
       attempted <- unique(c(attempted, attempted_now))
       already <- c(already, unique(timelines_list[[i]]$user_id))
@@ -1297,119 +1298,120 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
   new_lookup <- try(rtweet::lookup_users(users = user_ids, token = tokens[[1]]))
 
   if (is.data.frame(new_lookup)){
-    saveRDS(new_lookup, file = paste0(panel_directory, "/twitter_scrapes/user_info/new_lookup_",this_timecode,".rds"))
+    if (nrow(new_lookup)>0){
+      saveRDS(new_lookup, file = paste0(panel_directory, "/twitter_scrapes/user_info/new_lookup_",this_timecode,".rds"))
 
-    if (file.exists(paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
-      message("Binding to last current lookup.")
-      last_current_lookup <- readRDS(paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
-      new_current_lookup <- bind_rows(last_current_lookup, new_lookup) %>% distinct(user_id, .keep_all = TRUE)
-    } else {
-      message("Creating new current lookup.")
-      new_current_lookup <- new_lookup
-    }
-
-    saveRDS(new_current_lookup, paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
-
-
-    # code to immediately scrape all timeline history and add entries to the central log
-    if (scrape_settings$scrape_timelines){
-      message("Scraping first timelines...")
-      init_log <- new_lookup %>% transmute(user_id = user_id, penultimate_tweet=NA, ultimate_tweet=NA)
-
-      first_timelines_data <- updateTimelines(users = init_log, n = 3200, max_hours = max_hours, list_tokens = tokens) #used to use allHistory, but that can break because it doesn't check rate limits. This is slower but safer.
-      first_timelines <- first_timelines_data[[1]]
-      first_attempts <- first_timelines_data[[2]]
-
-      #UNCOMMENT BELOW WHEN SENTIMENT AND DARMOC ARE READY FOR USAGE BY tricordR
-      # if (sentiment==TRUE){
-      #   message("Analyzing sentiment...")
-      #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
-      #   first_timelines <- addSentiment(first_timelines)
-      # }
-      # if (darmoc==TRUE){
-      #   message("Analyzing ideology and sureness...")
-      #   library(tidyverse)
-      #   library(glmnet)
-      #   library(quanteda)
-      #   source("~/Documents/GitRprojects/LaForge/functions/v1_darmoc/featurization.R") #featurization scripts for the classifiers used here
-      #   #load classifiers and feature names
-      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/bin_liborcon_Nint.rda")
-      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/bin_most_not_NIAA.rda")
-      #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/training_featnames.rda")
-      #   preds <- myTokMatchClass(input = first_timelines$text, i_mod = bin_liborcon_Nint, s_mod = bin_most_not_NIAA, match_to = training_featnames, type = "response")
-      #   first_timelines <- cbind(first_timelines,preds)
-      # }
-
-      saveRDS(first_timelines, file = paste0(panel_directory,"/twitter_scrapes/first_timelines/timelines_", this_timecode, ".rds"))
-      saveRDS(first_attempts, file = paste0(panel_directory,"/twitter_scrapes/timeline_attempts/attempted_", this_timecode, ".rds"))
-
-      this_log <- first_timelines %>% distinct(user_id, status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1))
-      new_log <- bind_rows(init_log, this_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
-
-      logs <- dir(paste0(panel_directory,"/twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
-
-      last_log_file <- max(logs)
-      if(!is.na(last_log_file)){
-        message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
-        last_log <- readRDS(paste0(panel_directory,"/twitter_scrapes/timeline_logs/",last_log_file))
-        new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
-      }
-      if(is.na(last_log_file)){
-        message("First scrape")
-      }
-      saveRDS(new_log, file = paste0(panel_directory,"/twitter_scrapes/timeline_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
-    }
-
-
-    # code to immediately scrape friend lists
-    if (scrape_settings$scrape_friends){
-      message("Scraping first friends...")
-      new_friends <- getFriendsBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
-      #colnames(new_friends) <- c("user_id", "friends", "scraped_at")
-      saveRDS(new_friends, paste0(panel_directory,"/twitter_scrapes/first_friends/friends_",this_timecode,".rds"))
-    }
-
-
-    # and immediately scrape followers
-    if (scrape_settings$scrape_followers){
-      message("Scraping first followers...")
-      new_followers <- getFollowersBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
-      #colnames(new_followers) <- c("user_id", "followers", "scraped_at") #this line fucks everything up, don't use it
-      saveRDS(new_followers, paste0(panel_directory,"/twitter_scrapes/first_followers/followers_",this_timecode,".rds"))
-    }
-
-    # and scrape favorites and add rows to the favorite log/create novel favorites log
-    if (scrape_settings$scrape_favorites){
-      message("Scraping first favorites...")
-      new_favorites <- get_favorites_since(users = new_lookup %>% mutate(penultimate_tweet=NA), list_tokens=tokens, max_hours = max_hours)
-      new_favorites_data <- new_favorites[[1]]
-      new_favorites_attempted <- new_favorites[[2]]
-      saveRDS(new_favorites_data, paste0(panel_directory,"/twitter_scrapes/first_favorites/favorites_",this_timecode,".rds"))
-      saveRDS(new_favorites_attempted, paste0(panel_directory,"/twitter_scrapes/favorite_attempts/attempt_",this_timecode,".rds"))
-
-      message("Saving new log...")
-      this_log <- new_favorites_data %>% distinct(status_id, favorited_by, .keep_all = T) %>% group_by(favorited_by) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n()) %>% rename(user_id=favorited_by)
-
-      logs <- dir(paste0(panel_directory,"/twitter_scrapes/favorite_logs/")) %>% str_subset(., pattern="log_")
-
-      last_log_file <- max(logs)
-      if(!is.na(last_log_file)){
-        message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
-        last_log <- readRDS(paste0(panel_directory,"/twitter_scrapes/favorite_logs/",last_log_file))
-        new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+      if (file.exists(paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))){
+        message("Binding to last current lookup.")
+        last_current_lookup <- readRDS(paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+        new_current_lookup <- bind_rows(last_current_lookup, new_lookup) %>% distinct(user_id, .keep_all = TRUE)
+      } else {
+        message("Creating new current lookup.")
+        new_current_lookup <- new_lookup
       }
 
-      if(is.na(last_log_file)){
-        message("First favorites scrape, saving new log.")
+      saveRDS(new_current_lookup, paste0(panel_directory, "/twitter_scrapes/user_info/current_lookup.rds"))
+
+
+      # code to immediately scrape all timeline history and add entries to the central log
+      if (scrape_settings$scrape_timelines){
+        message("Scraping first timelines...")
+        init_log <- new_lookup %>% transmute(user_id = user_id, penultimate_tweet=NA, ultimate_tweet=NA)
+
+        first_timelines_data <- updateTimelines(users = init_log, n = 3200, max_hours = max_hours, list_tokens = tokens) #used to use allHistory, but that can break because it doesn't check rate limits. This is slower but safer.
+        first_timelines <- first_timelines_data[[1]]
+        first_attempts <- first_timelines_data[[2]]
+
+        #UNCOMMENT BELOW WHEN SENTIMENT AND DARMOC ARE READY FOR USAGE BY tricordR
+        # if (sentiment==TRUE){
+        #   message("Analyzing sentiment...")
+        #   source("~/Documents/GitRprojects/LaForge/functions/sentiment_analysis_functions.R")
+        #   first_timelines <- addSentiment(first_timelines)
+        # }
+        # if (darmoc==TRUE){
+        #   message("Analyzing ideology and sureness...")
+        #   library(tidyverse)
+        #   library(glmnet)
+        #   library(quanteda)
+        #   source("~/Documents/GitRprojects/LaForge/functions/v1_darmoc/featurization.R") #featurization scripts for the classifiers used here
+        #   #load classifiers and feature names
+        #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/bin_liborcon_Nint.rda")
+        #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/bin_most_not_NIAA.rda")
+        #   load(file = "~/Documents/GitRprojects/LaForge/functions/v1_darmoc/training_featnames.rda")
+        #   preds <- myTokMatchClass(input = first_timelines$text, i_mod = bin_liborcon_Nint, s_mod = bin_most_not_NIAA, match_to = training_featnames, type = "response")
+        #   first_timelines <- cbind(first_timelines,preds)
+        # }
+
+        saveRDS(first_timelines, file = paste0(panel_directory,"/twitter_scrapes/first_timelines/timelines_", this_timecode, ".rds"))
+        saveRDS(first_attempts, file = paste0(panel_directory,"/twitter_scrapes/timeline_attempts/attempted_", this_timecode, ".rds"))
+
+        this_log <- first_timelines %>% distinct(user_id, status_id, .keep_all = T) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1))
+        new_log <- bind_rows(init_log, this_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+
+        logs <- dir(paste0(panel_directory,"/twitter_scrapes/timeline_logs/")) %>% str_subset(., pattern="log_")
+
+        last_log_file <- max(logs)
+        if(!is.na(last_log_file)){
+          message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+          last_log <- readRDS(paste0(panel_directory,"/twitter_scrapes/timeline_logs/",last_log_file))
+          new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+        }
+        if(is.na(last_log_file)){
+          message("First scrape")
+        }
+        saveRDS(new_log, file = paste0(panel_directory,"/twitter_scrapes/timeline_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
       }
 
-      saveRDS(new_log, file = paste0(panel_directory,"/twitter_scrapes/favorite_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
+
+      # code to immediately scrape friend lists
+      if (scrape_settings$scrape_friends){
+        message("Scraping first friends...")
+        new_friends <- getFriendsBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
+        #colnames(new_friends) <- c("user_id", "friends", "scraped_at")
+        saveRDS(new_friends, paste0(panel_directory,"/twitter_scrapes/first_friends/friends_",this_timecode,".rds"))
+      }
+
+
+      # and immediately scrape followers
+      if (scrape_settings$scrape_followers){
+        message("Scraping first followers...")
+        new_followers <- getFollowersBig(users = new_lookup, list_tokens=tokens, max_hours = max_hours)
+        #colnames(new_followers) <- c("user_id", "followers", "scraped_at") #this line fucks everything up, don't use it
+        saveRDS(new_followers, paste0(panel_directory,"/twitter_scrapes/first_followers/followers_",this_timecode,".rds"))
+      }
+
+      # and scrape favorites and add rows to the favorite log/create novel favorites log
+      if (scrape_settings$scrape_favorites){
+        message("Scraping first favorites...")
+        new_favorites <- get_favorites_since(users = new_lookup %>% mutate(penultimate_tweet=NA), list_tokens=tokens, max_hours = max_hours)
+        new_favorites_data <- new_favorites[[1]]
+        new_favorites_attempted <- new_favorites[[2]]
+        saveRDS(new_favorites_data, paste0(panel_directory,"/twitter_scrapes/first_favorites/favorites_",this_timecode,".rds"))
+        saveRDS(new_favorites_attempted, paste0(panel_directory,"/twitter_scrapes/favorite_attempts/attempt_",this_timecode,".rds"))
+
+        message("Saving new log...")
+        this_log <- new_favorites_data %>% distinct(status_id, favorited_by, .keep_all = T) %>% group_by(favorited_by) %>% summarise(penultimate_tweet = maxNchar(status_id, 2), ultimate_tweet = maxNchar(status_id, 1), count = n()) %>% rename(user_id=favorited_by)
+
+        logs <- dir(paste0(panel_directory,"/twitter_scrapes/favorite_logs/")) %>% str_subset(., pattern="log_")
+
+        last_log_file <- max(logs)
+        if(!is.na(last_log_file)){
+          message("Prior scraping date: ", last_log_file %>% str_sub(start = 5,end = 10))
+          last_log <- readRDS(paste0(panel_directory,"/twitter_scrapes/favorite_logs/",last_log_file))
+          new_log <- bind_rows(last_log,new_log) %>% group_by(user_id) %>% summarise(penultimate_tweet = maxNchar(penultimate_tweet, 1), ultimate_tweet = maxNchar(ultimate_tweet, 1))
+        }
+
+        if(is.na(last_log_file)){
+          message("First favorites scrape, saving new log.")
+        }
+
+        saveRDS(new_log, file = paste0(panel_directory,"/twitter_scrapes/favorite_logs/log_", str_sub(this_timecode, 3, 8),".rds"))
+      }
     }
   }
 
-  if (!is.data.frame(new_lookup)){
-    message("Lookup error!  Initial scrape aborted.")
-  }
+  if (!is.data.frame(new_lookup)){message("Lookup error!  Initial scrape aborted.")}
+  try(if (!(nrow(new_lookup)>0)){message("Lookup error!  Initial scrape aborted.")}, silent = T)
 }
 
 #' Scrape Timelines of a Panel
