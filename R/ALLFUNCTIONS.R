@@ -875,11 +875,11 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       set.seed(as.POSIXct(Sys.time()))
       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
     }
-    followers_df <- do.call(rbind, followers_list)
+    followers_df <- do.call(bind_rows, followers_list)
     followers_megalist[[batch]] <- followers_df
     if(all(users_df$user_id %in% attempted)){break}
   }
-  followers_megadf <- do.call(rbind, followers_megalist)
+  followers_megadf <- do.call(bind_rows, followers_megalist)
   if (!is.null(followers_megadf)){
     followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
   } else {
