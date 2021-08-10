@@ -94,7 +94,9 @@ addStudy <- function(study_name){
 #' @param panel_name Name of the panel to be added.
 #' @param user_ids Twitter user ids of users to be added to the new panel.
 #' @param scrape_timelines Should timelines be scraped for this panel? Defaults to TRUE.
-#' @param scrape_friends Should friends be scraped for this panel? Defaults to FALSE.
+#' @param 
+
+Should friends be scraped for this panel? Defaults to FALSE.
 #' @param scrape_followers Should followers be scraped for this panel? Defaults to FALSE.
 #' @param scrape_favorites Should favorites be scraped for this panel? Defaults to FALSE.
 #' @param first_scrape Should tricordR conduct an initial scrape of the specified data for the specified users?
@@ -665,7 +667,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
 #' @examples
 #' scrapeFriends()
 
-scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=1){
+scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=8){
   message("Scraping friends...")
   today <- timeCode()
   users <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
@@ -902,7 +904,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
 #' @examples
 #' scrapeFollowers()
 
-scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=1){
+scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=8){
   message("Scraping followers...")
   today <- timeCode()
   users <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
