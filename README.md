@@ -161,7 +161,7 @@ above. When scrape\_timelines is TRUE, this initial scrape will include
 the last 3200 tweets available from each user.
 
 Moreover, these settings are saved, and if you have added the
-daily\_scrape\_script.R to your crontab as instructed above, tricordR
+daily\_twitter\_scrape.R to your crontab as instructed above, tricordR
 will automatically update these datasets daily: in this case, we would
 collect daily snapshots of the accounts these users follow (their
 friends), and download any new tweets from these users that have been
