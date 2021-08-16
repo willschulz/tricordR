@@ -94,9 +94,7 @@ addStudy <- function(study_name){
 #' @param panel_name Name of the panel to be added.
 #' @param user_ids Twitter user ids of users to be added to the new panel.
 #' @param scrape_timelines Should timelines be scraped for this panel? Defaults to TRUE.
-#' @param 
-
-Should friends be scraped for this panel? Defaults to FALSE.
+#' @param scrape_friends Should friends be scraped for this panel? Defaults to FALSE.
 #' @param scrape_followers Should followers be scraped for this panel? Defaults to FALSE.
 #' @param scrape_favorites Should favorites be scraped for this panel? Defaults to FALSE.
 #' @param first_scrape Should tricordR conduct an initial scrape of the specified data for the specified users?
