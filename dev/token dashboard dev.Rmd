@@ -1,0 +1,225 @@
+---
+title: "token usage dash dev"
+author: "Will Schulz"
+date: "8/16/2021"
+output: html_document
+---
+
+```{r}
+library(tricordR)
+
+```
+
+
+
+```{r}
+token_log <- readRDS(file = "~/tricordings/logs/token_usage/tokens_used_210816.rds")
+
+token_log <- dir("~/tricordings/logs/token_usage/", full.names = T) %>% map_dfr(., readRDS)
+
+token_log
+
+
+```
+
+
+
+```{r}
+#token_log %>% group_by(user_id) %>% summarise(scraping_function=scraping_function[1], count = n(), mean_bytes = mean(object_bytes), sd_bytes = sd(object_bytes), min_bytes = min(object_bytes), max_bytes = max(object_bytes))# %>% filter(count>1)
+
+token_log %>% group_by(time) %>% summarise(scraping_function=scraping_function[1], count = n(), mean_bytes = mean(object_bytes), sd_bytes = sd(object_bytes), min_bytes = min(object_bytes), max_bytes = max(object_bytes))
+
+token_log %>% group_by(time, user_id) %>% summarise(scraping_function=scraping_function[1], count = n(), mean_bytes = mean(object_bytes), sd_bytes = sd(object_bytes), min_bytes = min(object_bytes), max_bytes = max(object_bytes))
+
+token_log %>% group_by(time, user_id) %>% summarise(scraping_function=scraping_function[1], count = n(), mean_bytes = mean(object_bytes), sd_bytes = sd(object_bytes), min_bytes = min(object_bytes), max_bytes = max(object_bytes))
+```
+
+
+```{r}
+plot(token_log$time, log10(token_log$object_bytes))
+
+
+plot(token_log$time, token_log$object_bytes, log = "y")
+abline(h = 0)
+
+plot(token_log$time, token_log$object_bytes)
+
+object.size(nullthing)
+
+```
+
+
+```{r}
+token_log
+```
+
+
+```{r}
+token_log$time[1] == token_log$time[5]
+
+difftime(token_log$time[5], token_log$time[1])
+```
+
+
+
+```{r}
+token_log$time
+```
+
+```{r}
+plot(token_log$time, token_log$object_bytes, log = "y")
+
+
+plot(token_log$time, token_log$object_bytes)
+points(token_log$time[which(token_log$object_bytes==0)], token_log$object_bytes[which(token_log$object_bytes==0)], col="red", pch = 4)
+
+```
+
+
+```{r}
+plot(token_log$time, token_log$object_bytes)
+points(token_log$time[which(token_log$object_bytes==0)], token_log$object_bytes[which(token_log$object_bytes==0)], col="red", pch = 4)
+
+type_colors <- case_when(token_log$scraping_function == "updateTimelines" ~ "blue",
+                         token_log$scraping_function == "getFriendsBig" ~ "green",
+                         token_log$scraping_function == "getFollowersBig" ~ "orange",
+                         token_log$scraping_function == "new_lookup_firstScrape" ~ "pink",
+                         str_detect(token_log$scraping_function, "rate_limit") ~ "brown")
+
+plot(token_log$time, token_log$object_bytes, col = type_colors)
+plot(token_log$time, token_log$object_bytes, col = type_colors)
+points(token_log$time[which(token_log$object_bytes==0)], token_log$object_bytes[which(token_log$object_bytes==0)], col="red", pch = 4)
+
+unique(token_log$scraping_function)
+```
+#Dash dev
+
+#organize by token sets
+
+```{r}
+tokensets_dirs <- dir("~/tricordings/tokens", full.names = T)
+
+tokenset_names <- str_remove_all(string = tokensets_dirs, pattern = ".*tricordings/tokens/") %>% str_remove_all(string = ., pattern = ".rds")
+
+tokensets_infos_list <- list()
+for(i in seq_along(tokensets_dirs)){
+  rm(tokenset_info)
+  
+  tokenset <- readRDS(tokensets_dirs[[i]])
+  tokenset_info <- list()
+  tokenset_info$name <- tokenset_names[i]
+  
+  token_keys <- c()
+  for (j in 1:length(tokenset)) {
+    token_keys[j] <- tokenset[[j]]$app$key
+  }
+  tokenset_info$keys <- token_keys
+  tokensets_infos_list[[i]] <- tokenset_info
+}
+
+tokensets_infos_list
+
+```
+
+
+```{r}
+hours_back = 2
+tokenset_name="ws_tw"
+```
+
+
+```{r}
+tokenset_info <- tokensets_infos_list[[which(tokenset_names==tokenset_name)]]
+
+token_log <- dir("~/tricordings/logs/token_usage/", full.names = T) %>% map_dfr(., readRDS)
+
+token_log_filtered <- token_log %>%
+  filter(difftime(Sys.time(), time, units = "hours")<=hours_back) %>%
+  filter(key %in% tokenset_info$keys)
+
+tokensets_infos_list[[1]]$keys
+```
+
+
+```{r}
+prep_token_data <- function(tokensets_infos_list, tokenset_name, hours_back) {
+  tokenset_info <- tokensets_infos_list[[which(tokenset_names==tokenset_name)]]
+
+  token_log <- dir("~/tricordings/logs/token_usage/", full.names = T) %>% map_dfr(., readRDS)
+
+  token_log_filtered <- token_log %>%
+    filter(difftime(Sys.time(), time, units = "hours")<=hours_back) %>%
+    filter(key %in% tokenset_info$keys)
+  
+  return(token_log_filtered)
+}
+
+```
+
+
+```{r}
+prep_token_data(tokensets_infos_list, "ws_tw", 1.2)
+
+```
+
+
+
+```{r}
+my_pch <- 16
+
+legend_reference <- data.frame(scraping_functions = c("updateTimelines", "getFriendsBig", "getFollowersBig", "new_lookup_firstScrape", "rate_limit"),
+                     color_code = c("blue", "green", "orange", "magenta", "brown"))
+
+type_colors <- case_when(token_log$scraping_function == legend_reference$scraping_functions[1] ~ legend_reference$color_code[1],
+                         token_log$scraping_function == legend_reference$scraping_functions[2] ~ legend_reference$color_code[2],
+                         token_log$scraping_function == legend_reference$scraping_functions[3] ~ legend_reference$color_code[3],
+                         token_log$scraping_function == legend_reference$scraping_functions[4] ~ legend_reference$color_code[4],
+                         str_detect(token_log$scraping_function, legend_reference$scraping_functions[5]) ~ legend_reference$color_code[5])
+
+par(xpd=T, bty = "L", bg = "#343E48", fg = "gray", col.axis = "gray", col.lab = "gray", mar = c(5.1, 4.1, 4.1, 14.1))
+plot(token_log$time, token_log$object_bytes, col = type_colors, xlab = "Time", ylab = "Bytes Returned", pch = my_pch)
+#points(token_log$time[which(token_log$object_bytes==0)], token_log$object_bytes[which(token_log$object_bytes==0)], col="red", pch = 4)
+legend("topright", legend = legend_reference$scraping_functions, pch = my_pch, col = legend_reference$color_code, inset = c(-.75, 0))
+
+
+
+```
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+
+
+
+
+
+
