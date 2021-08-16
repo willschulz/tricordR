@@ -388,7 +388,7 @@ logToken <- function(list_tokens, token_index, scrape_object, scraping_function)
   today <- dateCode()
   object_size <- try(object.size(scrape_object))
   if(class(object_size)=="try-error"){object_size <- 0}
-  new_row <- data.frame(key = list_tokens[[token_index]]$app$key, scraping_function, time = Sys.time(), object_size = )
+  new_row <- data.frame(key = list_tokens[[token_index]]$app$key, scraping_function, time = Sys.time(), object_size = object_size)
   if (file.exists(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))) {
     today_token_log <- readRDS(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))
     today_token_log <- bind_rows(today_token_log, new_row)
@@ -566,14 +566,14 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=15, randomize =
         prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
         next
       }
-      
+
       if(str_detect(warning_text, "Sorry, that page does not exist.")){
         message("User does not exist.  Moving on and not reattempting in this scrape...")
         already <- c(already, users_remaining_subset$user_id)
         prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
         next
       }
-      
+
       if(!warned){
         if(length(friends_unparsed$ids)==0){
           message("Zero friends scraped!  Assuming zero friends and continuing...")

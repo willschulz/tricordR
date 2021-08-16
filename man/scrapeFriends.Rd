@@ -9,7 +9,7 @@ scrapeFriends(
   list_tokens,
   n = 20000,
   per_token_limit = 15,
-  max_hours = 8
+  max_hours = 15
 )
 }
 \arguments{

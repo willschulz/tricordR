@@ -9,7 +9,7 @@ getFollowersBig(
   n = 20000,
   list_tokens,
   per_token_limit = 15,
-  max_hours = 1
+  max_hours = 15
 )
 }
 \arguments{

@@ -4,7 +4,7 @@
 \alias{getFriendsBig}
 \title{Get Friends (>5k)}
 \usage{
-getFriendsBig(users, n = 20000, list_tokens, max_hours = 1, randomize = TRUE)
+getFriendsBig(users, n = 20000, list_tokens, max_hours = 15, randomize = TRUE)
 }
 \arguments{
 \item{users}{Either a character vector of user_ids, or a dataframe containing a user_id column.}

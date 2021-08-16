@@ -9,7 +9,7 @@ updateTimelines(
   n = 3200,
   list_tokens,
   per_token_limit = 100,
-  max_hours = 4
+  max_hours = 15
 )
 }
 \arguments{
