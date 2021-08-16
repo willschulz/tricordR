@@ -380,16 +380,17 @@ prepTokens <- function(tokenset, which_tokens = 1:9){
 #' @param scrape_object Object that should have just been scraped
 #' @param scraping_function Name of higher-level function using tokens.
 #' @param user_id Id of user attempting to scrape.
+#' @param warnerr_text Warning/error text as available.  Defaults to "".
 #' @keywords scraping
 #' @export
 #' @examples
 #' logToken()
 
-logToken <- function(list_tokens, token_index, scrape_object, scraping_function, user_id){
+logToken <- function(list_tokens, token_index, scrape_object, scraping_function, user_id, warnerr_text = ""){
   today <- dateCode()
   try({this_object_size <- object.size(scrape_object)}, silent=TRUE)
   if(class(this_object_size)=="try-error"){this_object_size <- 0}
-  new_row <- data.frame(key = list_tokens[[token_index]]$app$key, scraping_function, time = Sys.time(), object_bytes = as.numeric(this_object_size), user_id = user_id)
+  new_row <- data.frame(key = list_tokens[[token_index]]$app$key, scraping_function, time = Sys.time(), object_bytes = as.numeric(this_object_size), user_id = user_id, warnerr_text = warnerr_text)
   if (file.exists(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))) {
     today_token_log <- readRDS(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))
     today_token_log <- bind_rows(today_token_log, new_row)
@@ -535,7 +536,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=15, randomize =
                                                         page = prior_request_pagination_string,
                                                         parse = FALSE)},
                warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
-      logToken(list_tokens = list_tokens, token_index = i, scrape_object = friends_unparsed, scraping_function = "getFriendsBig", user_id = users_remaining_subset$user_id)
+      logToken(list_tokens = list_tokens, token_index = i, scrape_object = friends_unparsed, scraping_function = "getFriendsBig", user_id = users_remaining_subset$user_id, warnerr_text = warning_text)
 
       if(warned){message(warning_text)}
       if(str_detect(warning_text, "rate|Rate")){
@@ -723,7 +724,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
         if(warned){message(warning_text)}
 
-        logToken(list_tokens = list_tokens, token_index = i, scrape_object = individual_followers_list[[j]], scraping_function = "getFollowersBig", user_id = users_remaining_subset$user_id[j])
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = individual_followers_list[[j]], scraping_function = "getFollowersBig", user_id = users_remaining_subset$user_id[j], warnerr_text = warning_text)
 
         if(str_detect(warning_text, "rate limit")){
           if(j>1){j <- j-1}
@@ -1084,7 +1085,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
         }
 
-        logToken(list_tokens = list_tokens, token_index = i, scrape_object = individual_timelines_list[[j]], scraping_function = "updateTimelines", user_id = users_remaining_subset$user_id[j])
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = individual_timelines_list[[j]], scraping_function = "updateTimelines", user_id = users_remaining_subset$user_id[j], warnerr_text = warning_text)
 
         if (!str_detect(warning_text, "rate limit") & nchar(warning_text)>0) {message(paste0(warning_text))}
         if (str_detect(warning_text, "rate limit")) {
@@ -1515,8 +1516,8 @@ scrapePanel <- function(panel_directory, tokens,
 #' @param study_name The path to the panel folder corresponding to the set of users to be scraped.
 #' @param tokens The list of tokens to be used for scraping.  See prepTokens().
 #' @param include_timelines Should timelines be scraped?
-#' @param include_friends Should timelines be scraped?
-#' @param include_followers Should timelines be scraped?
+#' @param include_friends Should friends be scraped?
+#' @param include_followers Should followers be scraped?
 #' @param include_favorites Should favorites be scraped?
 #' @param sentiment Should tweets be analyzed for sentiment?  Defaults to none
 #' @param darmoc Should tweets be analyzed for ideology and sureness? Defaults to FALSE
@@ -1539,12 +1540,12 @@ scrapeStudy <- function(study_name, tokens,
   for (i in 1:length(panel_directories)) {
     message("Scraping ", str_remove_all(panel_directories[i], ".*studies/"))
     scrapePanel(panel_directories[i], tokens = tokens,
-                include_timelines,
-                include_friends,
-                include_followers,
-                include_favorites,
-                sentiment,
-                darmoc)
+                include_timelines = include_timelines,
+                include_friends = include_friends,
+                include_followers = include_followers,
+                include_favorites = include_favorites,
+                sentiment = sentiment,
+                darmoc = darmoc)
   }
 }
 

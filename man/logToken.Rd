@@ -4,7 +4,14 @@
 \alias{logToken}
 \title{Log Token Usage}
 \usage{
-logToken(list_tokens, token_index, scrape_object, scraping_function, user_id)
+logToken(
+  list_tokens,
+  token_index,
+  scrape_object,
+  scraping_function,
+  user_id,
+  warnerr_text = ""
+)
 }
 \arguments{
 \item{list_tokens}{List of tokens in use by higher-level function.}
@@ -16,6 +23,8 @@ logToken(list_tokens, token_index, scrape_object, scraping_function, user_id)
 \item{scraping_function}{Name of higher-level function using tokens.}
 
 \item{user_id}{Id of user attempting to scrape.}
+
+\item{warnerr_text}{Warning/error text as available.  Defaults to "".}
 }
 \description{
 This function logs token usage throughout scraping operations.

@@ -22,9 +22,9 @@ scrapeStudy(
 
 \item{include_timelines}{Should timelines be scraped?}
 
-\item{include_friends}{Should timelines be scraped?}
+\item{include_friends}{Should friends be scraped?}
 
-\item{include_followers}{Should timelines be scraped?}
+\item{include_followers}{Should followers be scraped?}
 
 \item{include_favorites}{Should favorites be scraped?}
 
