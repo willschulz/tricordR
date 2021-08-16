@@ -455,7 +455,7 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #' @examples
 #' getFriendsBig()
 
-getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = TRUE){
+getFriendsBig <- function(users, n=20000, list_tokens, max_hours=15, randomize = TRUE){
   require(tidyverse)
   require(rtweet)
   n_tokens <- length(list_tokens)
@@ -534,6 +534,14 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
         prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
         next
       }
+      
+      if(str_detect(warning_text, "Sorry, that page does not exist.")){
+        message("User does not exist.  Moving on and not reattempting in this scrape...")
+        already <- c(already, users_remaining_subset$user_id)
+        prior_request_pagination_string <- "0" #setting this to 0 will break us out of the while loop when we go to next
+        next
+      }
+      
       if(!warned){
         if(length(friends_unparsed$ids)==0){
           message("Zero friends scraped!  Assuming zero friends and continuing...")
@@ -590,7 +598,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
 #' @examples
 #' scrapeFriends()
 
-scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=8){
+scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=15){
   message("Scraping friends...")
   today <- timeCode()
   users <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
@@ -615,7 +623,7 @@ scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit
 #' @examples
 #' getFollowersBig()
 
-getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max_hours=1){
+getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max_hours=15){
   require(tidyverse)
   require(rtweet)
   n_tokens <- length(list_tokens)
@@ -765,7 +773,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
 #' @examples
 #' scrapeFollowers()
 
-scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=8){
+scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_limit=15, max_hours=15){
   message("Scraping followers...")
   today <- timeCode()
   users <- readRDS(paste0(panel_directory,"twitter_scrapes/user_ids.rds"))
@@ -978,7 +986,7 @@ scrapeFollowers <- function(panel_directory, list_tokens, n=20000, per_token_lim
 #' @examples
 #' updateTimelines()
 
-updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, max_hours=4){
+updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, max_hours=15){
   require(tidyverse)
   require(rtweet)
   start_time <- Sys.time()
@@ -1083,7 +1091,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
 #' @examples
 #' getTimelinesHistorical()
 
-getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=100, max_hours=4){
+getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=100, max_hours=15){
   require(tidyverse)
   require(rtweet)
   start_time <- Sys.time()
