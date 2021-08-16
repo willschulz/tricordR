@@ -30,6 +30,9 @@ initialize <- function(location = "~/"){
 
   # create log directory
   dir.create(paste0(tricordings_directory, "logs"))
+
+  # create token usage log directory, within log directory
+  dir.create(paste0(tricordings_directory, "logs/", "token_usage"))
 }
 
 #' Save Tokens for Cycling Functions
@@ -368,6 +371,31 @@ prepTokens <- function(tokenset, which_tokens = 1:9){
   return(list_tokens)
 }
 
+
+#' Log Token Usage
+#'
+#' This function logs token usage throughout scraping operations.
+#' @param list_tokens List of tokens in use by higher-level function.
+#' @param token_index Index of token in current use.
+#' @param scrape_object Object that should have just been scraped
+#' @param scraping_function Name of higher-level function using tokens.
+#' @keywords scraping
+#' @export
+#' @examples
+#' logToken()
+
+logToken <- function(list_tokens, token_index, scrape_object, scraping_function){
+  today <- dateCode()
+  object_size <- try(object.size(scrape_object))
+  if(class(object_size)=="try-error"){object_size <- 0}
+  new_row <- data.frame(key = list_tokens[[token_index]]$app$key, scraping_function, time = Sys.time(), object_size = )
+  if (file.exists(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))) {
+    today_token_log <- readRDS(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))
+    today_token_log <- bind_rows(today_token_log, new_row)
+  } else (today_token_log <- new_row)
+  saveRDS(today_token_log, file = paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))
+}
+
 #' Return Nth Max
 #'
 #' Order an input by numeric value and return the Nth largest element
@@ -499,12 +527,14 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
 
 
       message(paste0("Attempting to scrape friends from user ", users_remaining_subset$user_id))
+      friends_unparsed <- NULL
       tryCatch({friends_unparsed <- rtweet::get_friends(user = users_remaining_subset$user_id,
                                                         n = n,
                                                         token = list_tokens[[i]],
                                                         page = prior_request_pagination_string,
                                                         parse = FALSE)},
                warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
+      logToken(list_tokens = list_tokens, token_index = i, scrape_object = friends_unparsed, scraping_function = "getFriendsBig")
 
       if(warned){message(warning_text)}
       if(str_detect(warning_text, "rate|Rate")){
@@ -512,11 +542,13 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
         # rate limit waiting time code -- is this the best place to put it?
         rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_getFriendsBig")
 
         if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
           message("Waiting 15 mins for rate limit on rate limits to reset..")
           Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
           rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
+          logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_getFriendsBig")
         }
 
         if (rl$remaining < 5) { #calibrate this
@@ -644,11 +676,13 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
+      logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_getFollowersBig")
 
       if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
         message("Waiting 15 mins for rate limit on rate limits to reset..")
         Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
         rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_getFollowersBig")
       }
 
       if (rl$remaining < 5) { #calibrate this
@@ -678,8 +712,9 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
         message(paste0("Attempting to scrape followers from user ", users_remaining_subset$user_id[j]))
         tryCatch({individual_followers_list[[j]] <- rtweet::get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
-
         if(warned){message(warning_text)}
+
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = individual_followers_list[[j]], scraping_function = "getFollowersBig")
 
         if(str_detect(warning_text, "rate limit")){
           if(j>1){j <- j-1}
@@ -1000,11 +1035,13 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+      logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_updateTimelines")
 
       if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
         message("Waiting 15 mins for rate limit on rate limits to reset..")
         Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
         rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_updateTimelines")
       }
 
       if (rl$remaining < 5) { #used to be 100, but seems like a waste since I already check for rate limit errors in this function
@@ -1037,6 +1074,9 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
           tryCatch({individual_timelines_list[[j]] <- rtweet::get_timeline(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]], check = FALSE)},
                    warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
         }
+
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = individual_timelines_list[[j]], scraping_function = "updateTimelines")
+
         if (!str_detect(warning_text, "rate limit") & nchar(warning_text)>0) {message(paste0(warning_text))}
         if (str_detect(warning_text, "rate limit")) {
           if(j>1){j <- j-1}
@@ -1111,11 +1151,13 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
       message("Users Remaining: ", nrow(users_remaining))
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+      logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_getTimelinesHistorical")
 
       if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
         message("Waiting 15 mins for rate limit on rate limits to reset..")
         Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
         rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+        logToken(list_tokens = list_tokens, token_index = i, scrape_object = rl, scraping_function = "rate_limit_getTimelinesHistorical")
       }
 
       if (rl$remaining < 500) { #calibrate this
@@ -1136,6 +1178,7 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
       slice_size <- min(per_token_limit,nrow(users_remaining))
       users_remaining_subset <- users_remaining[1:slice_size,]
       {timelines_list[[i]] <- rtweet::get_timeline(user = users_remaining_subset$user_id, n = n, token = list_tokens[[i]], check = FALSE)}
+      logToken(list_tokens = list_tokens, token_index = i, scrape_object = timelines_list[[i]], scraping_function = "getTimelinesHistorical")
       # could add some stuff here to handle " Not authorized." error better, so scrapes don't take the full max hours
       attempted_now <- users_remaining_subset$user_id
       attempted <- unique(c(attempted, attempted_now))
@@ -1173,6 +1216,7 @@ firstScrape <- function(user_ids, panel_directory, tokens, max_hours = 1, sentim
   this_timecode <- timeCode()
 
   new_lookup <- try(rtweet::lookup_users(users = user_ids, token = tokens[[1]]))
+  logToken(list_tokens = tokens, token_index = 1, scrape_object = new_lookup, scraping_function = "new_lookup_firstScrape")
 
   if (is.data.frame(new_lookup)){
     if (nrow(new_lookup)>0){
