@@ -594,6 +594,13 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
         ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
         # rate limit waiting time code -- is this the best place to put it?
         rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
+
+        if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
+          message("Waiting 15 mins for rate limit on rate limits to reset..")
+          Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+          rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
+        }
+
         if (rl$remaining < 5) { #calibrate this
           if(already_cycled){
             wait <- rl$reset + 0.1
@@ -788,6 +795,13 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
+
+      if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
+        message("Waiting 15 mins for rate limit on rate limits to reset..")
+        Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+        rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
+      }
+
       if (rl$remaining < 5) { #calibrate this
         if(already_cycled){
           wait <- rl$reset + 0.1
@@ -1137,6 +1151,13 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+
+      if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
+        message("Waiting 15 mins for rate limit on rate limits to reset..")
+        Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+        rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+      }
+
       if (rl$remaining < 5) { #used to be 100, but seems like a waste since I already check for rate limit errors in this function
         if(already_cycled){
           wait <- rl$reset + 0.1
@@ -1241,6 +1262,13 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
       message("Users Remaining: ", nrow(users_remaining))
       if (! length(already) < nrow(users_df)) {break}
       rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+
+      if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
+        message("Waiting 15 mins for rate limit on rate limits to reset..")
+        Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+        rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
+      }
+
       if (rl$remaining < 500) { #calibrate this
         if(already_cycled){
           wait <- rl$reset + 0.1
