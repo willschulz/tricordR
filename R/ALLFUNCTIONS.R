@@ -440,74 +440,7 @@ timeCode <- function(){ #add this function to schulzFunctions?
 #   return(system(paste0("/usr/local/bin/python3 ~/Documents/GitRprojects/LaForge/functions/ts_to_tid.py -y ", year(this_date), " -m ", month(this_date), " -d ", (day(this_date) - days_back)), intern = T))
 # } #target - universalize
 #
-# # Network functions
-#
-# get_friends_rotate_maxToken <- function(users, n=5000, list_tokens, per_token_limit=15, max_hours=1){
-#   require(tidyverse)
-#   require(rtweet)
-#   if (is.data.frame(users)){
-#     users_df <- users
-#   }
-#   if (!is.data.frame(users)){
-#     users_df <- data.frame(user_id=users, other=NA)
-#   }
-#   n_tokens <- length(list_tokens)
-#   start_time <- Sys.time()
-#   message("Started: ", start_time)
-#   users_remaining <- users_df
-#   friends_list <- list()
-#   friends_megalist <- list()
-#   already <- c()
-#   attempted <- c()
-#   batch <- 0
-#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
-#     batch <- batch + 1
-#     message("Batch: ", batch)
-#     for (i in 1:n_tokens) {
-#       message("\nToken: ", i)
-#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
-#       if (! length(already) < nrow(users_df)) {break}
-#       rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
-#       if (rl$remaining < 2) {# used to be 15
-#         wait <- rl$reset + 0.1
-#         message(paste("Waiting for", round(wait,2),"minutes..."))
-#         Sys.sleep(wait * 60)
-#       }
-#       slice_size <- min(per_token_limit,nrow(users_remaining))
-#       users_remaining_subset <- users_remaining[1:slice_size,]
-#       individual_friends_list <- list()
-#       for (j in 1:slice_size) {
-#         warned <- FALSE
-#         warning_text <- ""
-#
-#         tryCatch({individual_friends_list[[j]] <- rtweet::get_friends(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
-#                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
-#
-#         if(str_detect(warning_text, "rate limit")){
-#           if(j>1){j <- j-1}
-#           message("Rate limit reached!  Moving on to next token...")
-#           break
-#         }
-#       }
-#       attempted_now <- users_remaining_subset$user_id[1:j]
-#       attempted <- unique(c(attempted, attempted_now))
-#       if (length(individual_friends_list)>0) {
-#         friends_list[[i]] <- do.call(rbind, individual_friends_list)
-#         already <- c(already, unique(friends_list[[i]]$user))
-#       }
-#       set.seed(as.POSIXct(Sys.time()))
-#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
-#     }
-#     friends_df <- do.call(rbind, friends_list)
-#     friends_megalist[[batch]] <- friends_df
-#     if(all(users_df$user_id %in% attempted)){break}
-#   }
-#   friends_megadf <- do.call(rbind, friends_megalist)
-#   friends_megadf <- friends_megadf %>% mutate(scraped_at = Sys.time())
-#   #return(list(friends_megadf, attempted))
-#   return(friends_megadf)
-# }
-#
+
 
 #' Get Friends (>5k)
 #'
@@ -573,21 +506,6 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
                                                         parse = FALSE)},
                warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
 
-      # if(str_detect(warning_text, "rate|Rate")){ #this version is bad, don't use it - it waits 15 minutes before every damn token
-      #   message("Rate limit reached!  Moving on to next token...")
-      #   ifelse(i==n_tokens, {i <- 1; already_cycled <- TRUE}, {i <- i+1})
-      #   # rate limit waiting time code -- is this the best place to put it?
-      #   # rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
-      #   # if (rl$remaining < 5) { #calibrate this
-      #     if(already_cycled){
-      #       #wait <- rl$reset + 0.1
-      #       wait <- 15
-      #       message(paste("Waiting for", round(wait,2),"minutes..."))
-      #       Sys.sleep(wait * 60)
-      #     }
-      #   # }
-      #   next
-      # }
       if(warned){message(warning_text)}
       if(str_detect(warning_text, "rate|Rate")){
         message("Rate limit reached!  Moving on to next token...")
@@ -597,7 +515,7 @@ getFriendsBig <- function(users, n=20000, list_tokens, max_hours=1, randomize = 
 
         if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
           message("Waiting 15 mins for rate limit on rate limits to reset..")
-          Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+          Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
           rl <- rtweet::rate_limit(query = "get_friends", token = list_tokens[[i]])
         }
 
@@ -683,75 +601,6 @@ scrapeFriends <- function(panel_directory, list_tokens, n=20000, per_token_limit
   } else {message("No new friends scraped in this session.  Not saving any friends data file for this scrape.")}
 }
 
-# #generally speaking, better to use maxToken_BIG
-# get_followers_rotate_maxToken <- function(users, n=5000, list_tokens, per_token_limit=15, max_hours=1){
-#   require(tidyverse)
-#   require(rtweet)
-#   if (is.data.frame(users)){
-#     users_df <- users
-#   }
-#   if (!is.data.frame(users)){
-#     users_df <- data.frame(user_id=users, other=NA)
-#   }
-#   n_tokens <- length(list_tokens)
-#   start_time <- Sys.time()
-#   message("Started: ", start_time)
-#   users_remaining <- users_df
-#   followers_list <- list()
-#   followers_megalist <- list()
-#   already <- c()
-#   attempted <- c()
-#   batch <- 0
-#   while ((difftime(time1 = Sys.time(), time2 = start_time, units = "h") < max_hours) & (length(already) < nrow(users_df))){
-#     batch <- batch + 1
-#     message("Batch: ", batch)
-#     for (i in 1:n_tokens) {
-#       message("\nToken: ", i)
-#       message("Users Remaining: ", nrow(users_remaining)) # This doesn't equal B + C, below
-#       if (! length(already) < nrow(users_df)) {break}
-#       rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
-#       if (rl$remaining < 15) {
-#         wait <- rl$reset + 0.1
-#         message(paste("Waiting for", round(wait,2),"minutes..."))
-#         Sys.sleep(wait * 60)
-#       }
-#       slice_size <- min(per_token_limit,nrow(users_remaining))
-#       users_remaining_subset <- users_remaining[1:slice_size,]
-#       individual_followers_list <- list()
-#       for (j in 1:slice_size) {
-#         warned <- FALSE
-#         warning_text <- ""
-#
-#         tryCatch({individual_followers_list[[j]] <- rtweet::get_followers(user = users_remaining_subset$user_id[j], n = n, token = list_tokens[[i]])},
-#                  warning=function(w) {warning_text <<- (w$message); warned <<- TRUE})
-#
-#         if(str_detect(warning_text, "rate limit")){
-#           if(j>1){j <- j-1}
-#           message("Rate limit reached!  Moving on to next token...")
-#           break
-#         }
-#         if(!warned){
-#           try(individual_followers_list[[j]] <- individual_followers_list[[j]] %>% transmute(user = users_remaining_subset$user_id[j], user_id)) #try added to patch Error: Problem with `mutate()` input `..2`. ✖ object 'user_id' not found
-#         }
-#       }
-#       attempted_now <- users_remaining_subset$user_id[1:j]
-#       attempted <- unique(c(attempted, attempted_now))
-#       if (length(individual_followers_list)>0) {
-#         followers_list[[i]] <- do.call(rbind, individual_followers_list)
-#         already <- c(already, unique(followers_list[[i]]$user))
-#       }
-#       set.seed(as.POSIXct(Sys.time()))
-#       users_remaining <- users_df %>% filter(! user_id %in% already) %>% slice_sample(prop=1)
-#     }
-#     followers_df <- do.call(rbind, followers_list)
-#     followers_megalist[[batch]] <- followers_df
-#     if(all(users_df$user_id %in% attempted)){break}
-#   }
-#   followers_megadf <- do.call(rbind, followers_megalist)
-#   followers_megadf <- followers_megadf %>% mutate(scraped_at = Sys.time())
-#   #return(list(followers_megadf, attempted))
-#   return(followers_megadf)
-# }
 
 #' Get Followers (>5k)
 #'
@@ -798,7 +647,7 @@ getFollowersBig <- function(users, n=20000, list_tokens, per_token_limit=15, max
 
       if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
         message("Waiting 15 mins for rate limit on rate limits to reset..")
-        Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+        Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
         rl <- rtweet::rate_limit(query = "get_followers", token = list_tokens[[i]])
       }
 
@@ -1154,7 +1003,7 @@ updateTimelines <- function(users_df, n=3200, list_tokens, per_token_limit=100, 
 
       if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
         message("Waiting 15 mins for rate limit on rate limits to reset..")
-        Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+        Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
         rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
       }
 
@@ -1265,7 +1114,7 @@ getTimelinesHistorical <- function(users, n=3200, list_tokens, per_token_limit=1
 
       if (is.null(rl)) { #safety to wait in case rate limit on rate limits is exhausted
         message("Waiting 15 mins for rate limit on rate limits to reset..")
-        Sys.sleep(15*60 + 1) #wawit 15 minutes and 1 second
+        Sys.sleep(15*60 + 1) #wait 15 minutes and 1 second
         rl <- rtweet::rate_limit(query = "get_timeline", token = list_tokens[[i]])
       }
 
