@@ -1,9 +1,3 @@
-#########################################################################
-# TWITTER_DASH_2GROUP_STUDY_D3
-#########################################################################
-
-# R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2panel_study_d3/app.R', port = 4710)"
-# /Library/Frameworks/R.framework/Resources/bin/Rscript -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2panel_study_d3/app.R', port = 4710)"
 
 options(warn=-1)
 
@@ -172,7 +166,8 @@ server <- function(input, output) {
     par(xpd=T, bty = "L", bg = "#343E48", fg = "gray", col.axis = "gray", col.lab = "gray", mar = c(5.1, 4.1, 4.1, 14.1))
     plot(token_log$time, token_log$object_bytes, col = type_colors, xlab = "Time", ylab = "Bytes Returned", pch = my_pch)
     #points(token_log$time[which(token_log$object_bytes==0)], token_log$object_bytes[which(token_log$object_bytes==0)], col="red", pch = 4)
-    legend("topright", legend = legend_reference$scraping_functions, pch = my_pch, col = legend_reference$color_code, inset = c(-.75, 0))
+    #legend(x = max(token_log$time), y = mean(range(token_log$object_bytes)), legend = legend_reference$scraping_functions, pch = my_pch, col = legend_reference$color_code, xjust = 0, yjust = .5)
+    legend(x = max(token_log$time), y = mean(range(token_log$object_bytes)), legend = legend_reference$scraping_functions, pch = my_pch, col = legend_reference$color_code, xjust = 0, yjust = .5, bty = "n")
   })
 
   # output$panel_1s_ts_d <- r2d3::renderD3({
