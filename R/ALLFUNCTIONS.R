@@ -386,7 +386,7 @@ prepTokens <- function(tokenset, which_tokens = 1:9){
 
 logToken <- function(list_tokens, token_index, scrape_object, scraping_function){
   today <- dateCode()
-  object_size <- try(object.size(scrape_object))
+  try(object_size <- object.size(scrape_object), silent=TRUE)
   if(class(object_size)=="try-error"){object_size <- 0}
   new_row <- data.frame(key = list_tokens[[token_index]]$app$key, scraping_function, time = Sys.time(), object_size = object_size)
   if (file.exists(paste0("~/tricordings/logs/token_usage/tokens_used_", today, ".rds"))) {
