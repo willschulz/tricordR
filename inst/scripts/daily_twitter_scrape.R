@@ -7,6 +7,8 @@
 options(tidyverse.quiet = TRUE)
 
 library(tricordR)
+library(dplyr)
+library(stringr)
 
 all_panels_contents <- dir("~/tricordings/studies", full.names = T) %>% dir(full.names = T) %>% dir(full.names = T)
 scrape_settings_paths <- all_panels_contents[str_detect(all_panels_contents, "scrape_settings.rds")]
