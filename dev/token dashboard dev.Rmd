@@ -231,7 +231,7 @@ legend("bottomleft", legend = legend_reference$scraping_functions, pch = my_pch,
 
 ```{r}
 
-
+token_log %>% arrange(desc(time))
 ```
 
 
