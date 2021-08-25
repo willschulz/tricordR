@@ -1812,7 +1812,8 @@ prep_timeline_data <- function(panel_directory, sessions_back, include_historica
   scrape_dir <- dir(paste0(panel_directory,"/twitter_scrapes/timelines/"), full.names = TRUE) %>% str_subset("timelines_")
   if (!load_all_since_first){
     scrape_dir <- scrape_dir %>% .[(length(.)-min((sessions_back-1), (length(.)-1))):length(.)]
-    scrape_dir <- scrape_dir[-which(is.na(scrape_dir))]
+    #scrape_dir <- scrape_dir[-which(is.na(scrape_dir))] #this leads to errors when there are no NAs
+    scrape_dir <- scrape_dir[!(is.na(scrape_dir))]
   }
 
   if (include_historical){
