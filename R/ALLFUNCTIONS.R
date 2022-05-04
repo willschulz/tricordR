@@ -2299,10 +2299,12 @@ readRelevantAssignmentFollowers <- function(path, relevant_user_ids){
 #' @examples
 #' prep_network_data_d3_spirals()
 
-prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE){
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE){
 
+  if(verbose){message("Loading id_links ...")}
   id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
   id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
+  if(verbose){message("nrow id_links: ", nrow(id_links))}
 
   p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 
@@ -2430,21 +2432,20 @@ nodeIndexer <- function(twitter_user_id, metadata){
 #' @examples
 #' sn_to_userid()
 
-sn_to_userid <- function(sn, treatment_acct_info){
-  if(! sn %in% treatment_acct_info$screen_name){
-    message("This screen name is not in the reference set!")
-    return(NA)
-  }
-  if(length(sn)==1){
-    return(treatment_acct_info %>% filter(screen_name == sn) %>% pull(user_id))
-  }
-  if(length(sn)>1){
-    output <- c()
-    for (i in 1:length(sn)){
+sn_to_userid <- function (sn, treatment_acct_info){
+  output <- c()
+  for (i in 1:length(sn)) {
+    if (is.na(sn[i])) {
+      message("No assignment made.")
+      output[i] <- NA
+    } else if (!sn[i] %in% treatment_acct_info$screen_name) {
+      message("This screen name is not in the reference set!")
+      output[i] <- NA
+    } else {
       output[i] <- treatment_acct_info %>% filter(screen_name == sn[i]) %>% pull(user_id)
     }
-    return(output)
   }
+  return(output)
 }
 
 
@@ -2583,6 +2584,7 @@ link_ids <- function(claims, new_friends_by_follower){
 #' match_by_following_3()
 
 match_by_following_3 <- function(responses_new, study_name, panel_name, assignment_dir, participant_tokens, this_timecode){
+  .Deprecated("match_async_by_time")
   prior_treatment_followers_path <- maxN(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T), N = 3) #get 3rd most recent
 
   prior_treatment_followers <- readRDS(prior_treatment_followers_path)
@@ -2625,7 +2627,7 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
   if(nrow(new_followers)==0){
     warning("No new followers!")
     for (i in 1:nrow(responses_new)) {
-      match_by_following_3_BYHAND(responses_new = responses_new[i,], user_id = NA,
+      match_byhand(responses_new = responses_new[i,], user_id = NA,
                                   study_name = study_name,
                                   panel_name = panel_name,
                                   assignment_panel = assignment_panel,
@@ -2652,9 +2654,9 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
   }
 }
 
-#' Match Asynchronously by Survey Start and End Time (3)
+#' Match Asynchronously by Survey Start and End Time
 #'
-#' A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise
+#' A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise.  Flexibly handles up to 999 assignments, by detecting the number of columns named "followNUMERAL" and "fNUMERAL" where NUMERAL is an integer between 1 and 999.
 #' @param responses_new New survey responses
 #' @param study_name Name of study
 #' @param panel_name Name of participant panel, passed from higher-level function.
@@ -2675,15 +2677,12 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
 
   message("Identifying claims...")
-  claims <- responses_new %>% filter(Finished & (twitter_agreement=="Yes")) %>% select(ResponseId, StartDate, EndDate, starts_with("follow"), f1, f2, f3) %>%
-    transmute(ResponseId,StartDate, EndDate,
-              claim1 = str_detect(follow1, "confirm"), #previously commented out
-              claim2 = str_detect(follow2, "confirm"), #previously commented out
-              claim3 = str_detect(follow3, "confirm"), #previously commented out
-              f1=sn_to_userid(f1, treatment_acct_info),
-              f2=sn_to_userid(f2, treatment_acct_info),
-              f3=sn_to_userid(f3, treatment_acct_info)
-    )
+  claims <- responses_new %>%
+    filter(Finished & (twitter_agreement=="Yes")) %>%
+    select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", range = 1:999), num_range(prefix = "f", range = 1:999)) %>%
+    mutate(across(num_range(prefix = "f", range = 1:999), sn_to_userid, treatment_acct_info),
+           across(num_range(prefix = "follow", range = 1:999), str_detect, "confirm")) %>%
+    rename_with(., .fn = str_replace, .cols = num_range(prefix = "follow", range = 1:999), "follow", "claim")
 
   #might need to adjust how NAs and refusals-to-follow are represented here
 
@@ -2698,7 +2697,6 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
   }
 
   claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list, start_date = lubridate::with_tz(StartDate, "America/New_York"), end_date = lubridate::with_tz(EndDate, "America/New_York")) #previously commented out
-
 
   id_links_list <- list()
   for (j in 1:nrow(claims)){
@@ -2746,9 +2744,9 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
   }
 }
 
-#' Match by Following 3 (Investigation Function)
+#' Match Investigate
 #'
-#' A function to match survey responses to twitter IDs based on following assigned accounts, for investigation.
+#' A function to match survey responses to twitter IDs based on following assigned accounts, for investigation.  Can handle up to 999 assignment accounts.
 #' @param responses_new New survey responses
 #' @param before Follower dataframe selected to represent the "before survey response" period.
 #' @param after Follower dataframe selected to represent the "after survey response" period.
@@ -2761,23 +2759,20 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
 #' @keywords matching
 #' @export
 #' @examples
-#' match_by_following_3_INVESTIGATE()
+#' match_investigate()
 
-match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study_name, panel_name = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL, use_claims = FALSE){
+match_investigate <- function(responses_new, before, after, study_name, panel_name = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL, use_claims = FALSE){
 
   prior_treatment_followers <- before
   treatment_acct_info <- readRDS(file = paste0("~/tricordings/studies/",study_name,"/",assignment_panel,"/twitter_scrapes/user_info/current_lookup.rds"))
 
   message("Identifying claims...")
-  claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
-    transmute(ResponseId,
-              claim1 = str_detect(follow1, "confirm"),
-              claim2 = str_detect(follow2, "confirm"),
-              claim3 = str_detect(follow3, "confirm"),
-              f1=sn_to_userid(f1, treatment_acct_info),
-              f2=sn_to_userid(f2, treatment_acct_info),
-              f3=sn_to_userid(f3, treatment_acct_info)
-    )
+  claims <- responses_new %>%
+    filter(Finished & (twitter_agreement=="Yes")) %>%
+    select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", range = 1:999), num_range(prefix = "f", range = 1:999)) %>%
+    mutate(across(num_range(prefix = "f", range = 1:999), sn_to_userid, treatment_acct_info),
+           across(num_range(prefix = "follow", range = 1:999), str_detect, "confirm")) %>%
+    rename_with(., .fn = str_replace, .cols = num_range(prefix = "follow", range = 1:999), "follow", "claim")
 
   c_mat <- claims %>% select(starts_with("claim")) %>% as.matrix
   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
@@ -2819,9 +2814,9 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
   }
 }
 
-#' Match by Following 3 (By Hand)
+#' Match by Hand
 #'
-#' A function to match survey responses to twitter IDs based on following assigned accounts, for investigation.
+#' A function to match survey responses to twitter IDs based on following assigned accounts, for manual remediation.  Can handle up to 999 assignment accounts.
 #' @param responses_new New survey responses
 #' @param user_id User ID, manually entered, to associated with the new response.
 #' @param study_name Name of study
@@ -2832,21 +2827,21 @@ match_by_following_3_INVESTIGATE <- function(responses_new, before, after, study
 #' @keywords matching
 #' @export
 #' @examples
-#' match_by_following_3_BYHAND()
+#' match_byhand()
 
-match_by_following_3_BYHAND <- function(responses_new, user_id, study_name, panel_name = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL){
+match_byhand <- function(responses_new, user_id, study_name, panel_name = "participants", assignment_panel = "assignments", add = FALSE, tokens = NULL){
 
   if (nrow(responses_new)!=1){stop("responses_new must be a 1-row dataframe!")}
 
   treatment_acct_info <- readRDS(file = paste0("~/tricordings/studies/",study_name,"/",assignment_panel,"/twitter_scrapes/user_info/current_lookup.rds"))
 
   message("Identifying claims...")
-  claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3) %>%
-    transmute(ResponseId,
-              f1=sn_to_userid(f1, treatment_acct_info),
-              f2=sn_to_userid(f2, treatment_acct_info),
-              f3=sn_to_userid(f3, treatment_acct_info)
-    )
+  claims <- responses_new %>%
+    filter(Finished & (twitter_agreement=="Yes")) %>%
+    select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", range = 1:999), num_range(prefix = "f", range = 1:999)) %>%
+    mutate(across(num_range(prefix = "f", range = 1:999), sn_to_userid, treatment_acct_info),
+           across(num_range(prefix = "follow", range = 1:999), str_detect, "confirm")) %>%
+    rename_with(., .fn = str_replace, .cols = num_range(prefix = "follow", range = 1:999), "follow", "claim")
 
   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
 
@@ -2882,6 +2877,7 @@ match_by_following_3_BYHAND <- function(responses_new, user_id, study_name, pane
 #' scrapeQualtrics()
 
 scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_panel = NULL, max_treat_followers = 60000, treatment_tokens, participant_tokens){
+  #once fully tested, drop match_by variable and eliminate from hourly_qualtrics_scrape.R script and any dashboard implementations
   panel_directory <- paste0("~/tricordings/studies/",study_name,"/",panel_name,"/")
 
   if(is.null(assignment_panel)){
@@ -2896,14 +2892,6 @@ scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_
   # qualtrics credentials now permanently installed, no need to read anything in
   responses_fetched <- qualtRics::fetch_survey(surveyID = readRDS(paste0(panel_directory,"scrape_settings.rds"))$qualtrics_survey_id,
                                     verbose = FALSE, force_request = TRUE)
-  # NOT NEEDED IF CLAIMS IGNORED
-  # responses_fetched <- responses_fetched %>%
-  #   mutate(follow1 = as.character(follow1),
-  #          follow2 = as.character(follow2),
-  #          follow3 = as.character(follow3)#,
-  #          #follow4 = as.character(follow4),
-  #          #follow5 = as.character(follow5)
-  #          )
 
   #fetch treatment followers
   message("Scraping all treatment followers...")
@@ -2928,15 +2916,14 @@ scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_
   if(nrow(responses_new)>0){
     message("Saving...")
     saveRDS(responses_fetched, file = paste0(panel_directory, "/survey_scrapes/responses_fetched_",this_timecode,".rds")); message("Saved.")
-    if ((match_by=="follow5")){ #generalize to other systems, like direct capture
-      message("Matching by follow-5 system...")
-      match_by_following_5(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_dir = assignment_dir, participant_tokens = participant_tokens, this_timecode = this_timecode)
-    }
-    if ((match_by=="follow3")){
-      message("Matching by follow-3 async system...")
-      #match_by_following_3(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_dir = assignment_dir, participant_tokens = participant_tokens, this_timecode = this_timecode)
+    # if ((match_by=="follow5")){ #generalize to other systems, like direct capture
+    #   message("Matching by follow-5 system...")
+    #   match_by_following_5(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_dir = assignment_dir, participant_tokens = participant_tokens, this_timecode = this_timecode)
+    # }
+    #if ((match_by=="follow3")){
+      message("Matching by flexible async system...")
       match_async_by_time(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_panel = assignment_panel, participant_tokens = participant_tokens, this_timecode = this_timecode, add = TRUE)
-    }
+    #}
   }
 }
 

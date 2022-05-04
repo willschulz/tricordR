@@ -8,8 +8,290 @@ output: html_document
 ```{r}
 devtools::install_github("https://github.com/willschulz/tricordR/", auth_token = "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")
 .rs.restartR()
+```
+
+```{r}
 library(tricordR)
 ```
+
+```{r}
+
+scrapeStudy("spirals_bad_pilot", prepTokens("ws_tw"))
+
+```
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+users_df <- readRDS("~/tricordings/studies/spirals_bad_pilot/participants/twitter_scrapes/timeline_logs/log_210816.rds")
+list_tokens <- prepTokens("ws_botexp")
+```
+
+
+```{r}
+
+updateTimelines <- function(users_df, n = 3200, list_tokens, per_token_limit = 100, max_hours = 15) 
+{
+    require(tidyverse)
+    require(rtweet)
+    start_time <- Sys.time()
+    message("Started: ", start_time)
+    users_remaining <- users_df
+    n_tokens = length(list_tokens)
+    timelines_list <- list()
+    timelines_megalist <- list()
+    already <- c()
+    attempted <- c()
+    batch <- 0
+    already_cycled <- FALSE
+    while ((difftime(time1 = Sys.time(), time2 = start_time, 
+        units = "h") < max_hours) & (length(already) < nrow(users_df))) {
+        batch <- batch + 1
+        message("Batch: ", batch)
+        for (i in 1:n_tokens) {
+            if (i == n_tokens) {
+                already_cycled <- TRUE
+            }
+            message("\nToken: ", i)
+            message("Users Remaining: ", nrow(users_remaining))
+            if (!length(already) < nrow(users_df)) {
+                break
+            }
+            rl <- rtweet::rate_limit(query = "get_timeline", 
+                token = list_tokens[[i]])
+            logToken(list_tokens = list_tokens, token_index = i, 
+                scrape_object = rl, scraping_function = "rate_limit_updateTimelines", 
+                user_id = "rl")
+            if (is.null(rl)) {
+                message("Waiting 15 mins for rate limit on rate limits to reset..")
+                Sys.sleep(15 * 60 + 1)
+                rl <- rtweet::rate_limit(query = "get_timeline", 
+                  token = list_tokens[[i]])
+                logToken(list_tokens = list_tokens, token_index = i, 
+                  scrape_object = rl, scraping_function = "rate_limit_updateTimelines", 
+                  user_id = "rl")
+            }
+            if (rl$remaining < 5) {
+                if (already_cycled) {
+                  wait <- rl$reset + 0.1
+                  message(paste("Waiting for", round(wait, 2), 
+                    "minutes..."))
+                  Sys.sleep(wait * 60)
+                }
+                if (!already_cycled) {
+                  next
+                }
+            }
+            slice_size <- min(per_token_limit, nrow(users_remaining))
+            users_remaining_subset <- users_remaining[1:slice_size, 
+                ]
+            message("Attempting to scrape timelines from:", paste(users_remaining_subset$user_id, 
+                collapse = "\n"))
+            individual_timelines_list <- list()
+            for (j in 1:slice_size) {
+                warned <- FALSE
+                warning_text <- ""
+                if (!is.na(users_remaining_subset$penultimate_tweet[j])) {
+                  tryCatch({
+                    individual_timelines_list[[j]] <- rtweet::get_timeline(user = users_remaining_subset$user_id[j], 
+                      n = n, token = list_tokens[[i]], check = FALSE, 
+                      since_id = users_remaining_subset$penultimate_tweet[j])
+                  }, warning = function(w) {
+                    warning_text <<- (w$message)
+                    warned <<- TRUE
+                  })
+                }
+                if (is.na(users_remaining_subset$penultimate_tweet[j])) {
+                  tryCatch({
+                    individual_timelines_list[[j]] <- rtweet::get_timeline(user = users_remaining_subset$user_id[j], 
+                      n = n, token = list_tokens[[i]], check = FALSE)
+                  }, warning = function(w) {
+                    warning_text <<- (w$message)
+                    warned <<- TRUE
+                  })
+                }
+                logToken(list_tokens = list_tokens, token_index = i, 
+                  scrape_object = individual_timelines_list[[j]], 
+                  scraping_function = "updateTimelines", user_id = users_remaining_subset$user_id[j], 
+                  warnerr_text = warning_text)
+                if (!str_detect(warning_text, "rate limit") & 
+                  nchar(warning_text) > 0) {
+                  message(paste0(warning_text))
+                }
+                if (str_detect(warning_text, "rate limit")) {
+                  if (j > 1) {
+                    j <- j - 1
+                  }
+                  message("Rate limit reached!  Moving on to next token...")
+                  break
+                }
+            }
+            attempted_now <- users_remaining_subset$user_id[1:j]
+            attempted <- unique(c(attempted, attempted_now))
+            individual_timelines_list_bound <- do.call(rbind, 
+                individual_timelines_list)
+            try(message("Rows:", nrow(individual_timelines_list_bound)))
+            try(message("is.null: ", is.null(individual_timelines_list_bound)))
+            if (is.null(individual_timelines_list_bound)) {
+                message("Some kind of error in this batch.  individual_timelines_list_bound came back NULL.")
+            }
+            if (!is.null(individual_timelines_list_bound)) {
+                timelines_list[[i]] <- individual_timelines_list_bound
+                already <- c(already, unique(timelines_list[[i]]$user_id))
+            }
+            set.seed(as.POSIXct(Sys.time()))
+            users_remaining <- users_df %>% filter(!user_id %in% 
+                already) %>% slice_sample(prop = 1)
+        }
+        timelines_df <- do.call(rbind, timelines_list)
+        if (!is.null(timelines_df)) {
+            timelines_megalist[[batch]] <- timelines_df
+        }
+        if (all(users_df$user_id %in% attempted)) {
+            break
+        }
+    }
+    timelines_megadf <- do.call(rbind, timelines_megalist)
+    timelines_megadf <- timelines_megadf %>% mutate(scraped_at = Sys.time())
+    return(list(timelines_megadf, attempted))
+}
+```
+
+
+```{r}
+logToken(list_tokens = list_tokens, token_index = i, 
+                  scrape_object = individual_timelines_list[[j]], 
+                  scraping_function = "updateTimelines", user_id = users_remaining_subset$user_id[j], 
+                  warnerr_text = warning_text)
+
+```
+
+
+
+```{r}
+logToken <- function (list_tokens, token_index, scrape_object, scraping_function, 
+    user_id, warnerr_text = "") 
+{
+    today <- dateCode()
+    try({
+        this_object_size <- object.size(scrape_object)
+    }, silent = TRUE)
+    if (class(this_object_size) == "try-error") {
+        this_object_size <- 0
+    }
+    new_row <- data.frame(key = list_tokens[[token_index]]$app$key, 
+        scraping_function, time = Sys.time(), object_bytes = as.numeric(this_object_size), 
+        user_id = user_id, warnerr_text = warnerr_text)
+    if (file.exists(paste0("~/tricordings/logs/token_usage/tokens_used_", 
+        today, ".rds"))) {
+        today_token_log <- readRDS(paste0("~/tricordings/logs/token_usage/tokens_used_", 
+            today, ".rds"))
+        today_token_log <- bind_rows(today_token_log, new_row)
+    }
+    else (today_token_log <- new_row)
+    saveRDS(today_token_log, file = paste0("~/tricordings/logs/token_usage/tokens_used_", 
+        today, ".rds"))
+}
+
+```
+
+
+```{r}
+testfun <- function (scrape_object) 
+{
+    this_object_size <- try({object.size(scrape_object)}, silent = TRUE)
+    if (class(this_object_size) == "try-error") {
+      message(class(this_object_size))
+        this_object_size <- 0
+    }
+  return(this_object_size)
+}
+
+testfun(individual_timelines_list[[j]])
+
+this_object_size <- try({object.size(individual_timelines_list[[j]])}, silent = TRUE)
+```
+
+
+```{r}
+
+
+```
+
+
+
+
+
+```{r}
+token_log <- readRDS(file = "~/tricordings/logs/token_usage/tokens_used_210816.rds")
+
+token_log
+
+
+```
+
+
+
+```{r}
+token_log %>% group_by(user_id) %>% summarise(scraping_function=scraping_function[1], count = n(), mean_bytes = mean(object_bytes), sd_bytes = sd(object_bytes), min_bytes = min(object_bytes), max_bytes = max(object_bytes))
+
+```
+
+
+
+```{r}
+plot(token_log$time, log10(token_log$object_bytes))
+
+
+plot(token_log$time, token_log$object_bytes, log = "y")
+abline(h = 0)
+
+plot(token_log$time, token_log$object_bytes)
+
+object.size(nullthing)
+
+
+```
+
+
+```{r}
+streamed <- stream_tweets(timeout = 10, token = prepTokens("ws_tw"))
+
+
+streamed
+
+addStudy("test_study")
+
+addPanel("test_study", "test_panel", user_ids = unique(streamed$user_id)[1:250], scrape_timelines = T, scrape_friends = T, scrape_followers = T, first_scrape = T, tokens = prepTokens("ws_tw"), max_hours = 3)
+```
+
+
+```{r}
+source("")
+
+```
+
+
+```{r}
+
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -534,7 +816,7 @@ do.call(rbind, testlist)
 
 
 ```{r}
-
+editPanel("spirals_bad_pilot", "assignments", scrape_friends = TRUE)
 
 ```
 

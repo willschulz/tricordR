@@ -31,6 +31,91 @@ study_name <- "spirals_bad_pilot"
 participant_panel <- "participants"
 assignment_panel <- "assignments"
 
+#######
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE){
+
+  if(verbose){message("Loading id_links ...")}
+  id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
+  if(verbose){message("nrow id_links: ", nrow(id_links))}
+
+  p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
+
+  if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, "/", panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
+
+
+  relevant_user_ids <- unique(id_links$user_id) %>% .[which(!is.na(.))]# %>% .[which(! . %in% unique(p_friends_all$user))]
+
+  if (include_protected){
+    a_followers_relevant <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/followers/"), full.names = T) %>% map_dfr(., readRelevantAssignmentFollowers, relevant_user_ids = relevant_user_ids)
+    protected_relevant_friends <- a_followers_relevant %>% transmute(userx = user_id, user_idx = user, scraped_at) %>% rename("user" = userx, "user_id" = user_idx)
+    p_friends_all <- rbind(p_friends_all, protected_relevant_friends)
+  }
+
+  par_info <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "participant") %>% filter(user_id %in% id_links$user_id)
+  ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
+  all_info <- rbind(par_info, ass_info)
+
+  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(twitter_agreement=="Yes")# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+  #vertex_metadata <- all_info
+
+  na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
+  for(i in 1:length(na_user_ids_indices)){
+    vertex_metadata$user_id[na_user_ids_indices[i]] <- paste0("UNMATCHED_",i)
+    vertex_metadata$screen_name[na_user_ids_indices[i]] <- paste0("UNMATCHED_",i)
+  }
+
+  vertex_metadata$stroke_group <- "none"
+  vertex_metadata$stroke_group[na_user_ids_indices] <- "unmatched"
+  vertex_metadata$stroke_group[which(vertex_metadata$protected)] <- "protected"
+
+  vertex_metadata$stroke_color <- "white"
+  vertex_metadata$stroke_color[na_user_ids_indices] <- "red"
+  vertex_metadata$stroke_color[which(vertex_metadata$protected)] <- "orange"
+
+  vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+  vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+
+  p_friends_all <- left_join(p_friends_all, (vertex_metadata %>% select(user_id, start_date)), by = c("user" = "user_id"))
+
+  data <- p_friends_all %>%
+    filter(user_id %in% vertex_metadata$user_id) %>%
+    group_by(user, user_id) %>%
+    summarise(first = min(scraped_at),
+              last = max(scraped_at),
+              start_date = start_date[1]
+              # color = ifelse(difftime(Sys.time(), last, units = "day")>1,
+              #                "orange",
+              #                "green")
+    ) %>%
+    mutate(color = case_when((difftime(Sys.time(), last, units = "day")>1) ~ "orange",
+                             ((difftime(Sys.time(), last, units = "day")<=1) & difftime(first, start_date, units = "day")>=0) ~ "green",
+                             (difftime(first, start_date, units = "day")<0) ~ "blue")) %>% select(-start_date)
+
+
+  #always-inactive claims should be red:
+  data <- map_dfr(which((vertex_metadata$group!="assignment") & (sapply(vertex_metadata$claimed, length)>0)),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$claimed[[.x]],
+                              first = as.POSIXct(NA), last = as.POSIXct(NA), color = "red")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+
+  #shown and not claimed should be gray
+  data <- map_dfr(which(vertex_metadata$group!="assignment"),
+                  ~data.frame("user" = vertex_metadata$user_id[.x],
+                              "user_id" = vertex_metadata$shown[[.x]],
+                              first = as.POSIXct(NA), last = as.POSIXct(NA), color = "gray")) %>%
+    anti_join(., data, by = c("user", "user_id")) %>%
+    rbind(., data)
+  if(verbose){message("nrow e: ", nrow(data))}
+  if(verbose){message("nrow v: ", nrow(vertex_metadata))}
+
+  return(list("e" = data, "v" = vertex_metadata))
+}
+########
+
 # study_names <- dir("~/laforge_files/studies", full.names = T) %>%
 #   dir(full.names = T) %>%
 #   dir(full.names = T) %>%
@@ -94,7 +179,7 @@ body <- dashboardBody(
     column(width=8,
            box(title="Network",
                width = 12,
-               networkD3::forceNetworkOutput("network_graph_d3", height = paste0(450, "px"), width = "100%") %>%
+               networkD3::forceNetworkOutput("network_graph_d3", height = paste0(650, "px"), width = "100%") %>%
                  withSpinner(color="#777777", type=8)
                ,dataTableOutput("data_table") %>%
                  withSpinner(color="#777777", type=8)
@@ -180,24 +265,35 @@ server <- function(input, output) {
     message("Survey plot generated!")
   })
 
-  network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
+  network_data_prepped_d3 <- reactive({#invalidateLater(refresh_time) #commented out in repair attempt
     message("Prepping network data...")
     #prep_network_data_d3_spirals(study_name,participant_group(),assignment_group())
-    prep_network_data_d3_spirals(study_name,participant_group(),assignment_group(), include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
+    message("Study name: ",study_name)
+    message("Participant group: ",participant_group())
+    message("Assignment group: ",assignment_group())
+    prep_network_data_d3_spirals(study_name = study_name,panel_name = participant_group(),assignment_panel = assignment_group(), include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
+    #prep_network_data_d3_spirals(study_name = "spirals_bad_pilot",panel_name = "participants", assignment_panel = "assignments", include_protected = F)
+    #message("Network data prepped!")
   })
-
 
   output$network_graph_d3 <- networkD3::renderForceNetwork({invalidateLater(refresh_time)
     #par(bg="#343E48", fg="grey", mar = c(0,0,0,0))
 
+    data <- network_data_prepped_d3()
+    message(length(data))
+    message(length(data$v))
+    message(length(data$e))
+
     message("Organizing nodes...")
-    myNodes <- network_data_prepped_d3()$v %>% add_column(NodeID = 1:nrow(.)-1, .before = 0)
+    myNodes <- data$v %>% add_column(NodeID = 1:nrow(.)-1, .before = 0)
+    message("myNodes has nrow: ", nrow(myNodes))
 
     message("Organizing links...")
-    myLinks <- network_data_prepped_d3()$e %>% mutate("source" = nodeIndexer(user, myNodes),
+    myLinks <- data$e %>% mutate("source" = nodeIndexer(user, myNodes),
                                  "target" = nodeIndexer(user_id, myNodes),
                                  "value" = 2
     )
+    message("myLinks has nrow: ", nrow(myLinks))
 
     #MyClickScript <- 'alert("You clicked " + d.name);'
 
@@ -206,7 +302,7 @@ server <- function(input, output) {
     message("Generating forceNetwork...")
     fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
                  linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80,
-                 clickAction = MyClickScript,  #commented out to fix "argument of length 0)"
+                 #clickAction = MyClickScript,  #commented out to fix "argument of length 0)"
                  bounded = T,
                  colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
                                       paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
@@ -230,8 +326,8 @@ server <- function(input, output) {
   })
 
   options_reactive <- reactive({list(pageLength = 5, editable = F,
-                                     lengthChange = FALSE,
-                                     search = list(search = input$user_text) #commented out to fix "argument of length 0)"
+                                     lengthChange = FALSE#,
+                                     #search = list(search = input$user_text) #commented out to fix "argument of length 0)"
                                      )})
 
   message("Prepping data table ...")

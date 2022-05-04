@@ -8,7 +8,8 @@ prep_network_data_d3_spirals(
   study_name,
   panel_name,
   assignment_panel = "assignments",
-  include_protected = TRUE
+  include_protected = TRUE,
+  verbose = TRUE
 )
 }
 \arguments{

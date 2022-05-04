@@ -2,7 +2,7 @@
 % Please edit documentation in R/ALLFUNCTIONS.R
 \name{match_async_by_time}
 \alias{match_async_by_time}
-\title{Match Asynchronously by Survey Start and End Time (3)}
+\title{Match Asynchronously by Survey Start and End Time}
 \usage{
 match_async_by_time(
   responses_new,
@@ -30,7 +30,7 @@ match_async_by_time(
 \item{add}{Go ahead and add these users to the participants panel? Defaults to TRUE.}
 }
 \description{
-A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise
+A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise.  Flexibly handles up to 999 assignments, by detecting the number of columns named "followNUMERAL" and "fNUMERAL" where NUMERAL is an integer between 1 and 999.
 }
 \examples{
 match_async_by_time()
