@@ -17,7 +17,7 @@ library(dashboardthemes)
 library(shinycssloaders)
 library(tricordR)
 
-refresh_time=5*60*1000 #(milliseconds)
+refresh_time=10*60*1000 #(milliseconds)
 spinner_size <- .5
 
 screen_name_label_cols <- c("white", "white", "red")
@@ -129,7 +129,7 @@ header <- dashboardHeader(title = "Timeline Dashboard"
 sidebar <- dashboardSidebar(#width=12,
   #textInput("study_name", "Study Name", value = "test_study", width = "100%", placeholder = NULL),
   selectInput("study_name", "Study Name", choices = study_names), #target
-  numericInput("days_back", "Days Back", value = 50, min = 1, max = 365, step = 1),
+  numericInput("days_back", "Days Back", value = 4, min = 1, max = 365, step = 1),
   #br(),#br(),br(),
   # selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
   #             c("Sentiment" = "sentiment",
@@ -137,9 +137,9 @@ sidebar <- dashboardSidebar(#width=12,
   #               #"Lasso Sureness" = "sureness",
   #               "None" = "none")),
   # numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
-  checkboxInput(inputId = "show_names", label = "Show Names", value = TRUE),
-  checkboxInput(inputId = "load_all_since_first", label = "Load All", value = TRUE),
-  checkboxInput(inputId = "include_historical", label = "Include Historical", value = TRUE),
+  checkboxInput(inputId = "show_names", label = "Show Names", value = FALSE),
+  checkboxInput(inputId = "load_all_since_first", label = "Load All", value = FALSE),
+  checkboxInput(inputId = "include_historical", label = "Include Historical", value = FALSE),
 
   br(),
   actionButton("fetch_tweets","Fetch Tweets", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")#,
@@ -231,7 +231,7 @@ server <- function(input, output) {
   })
 
   observeEvent(input$fetch_survey, {
-    scrape_qualtrics(participant_panel(), input$study_name, match_by = "follow3",
+    scrape_qualtrics(participant_panel(), input$study_name, match_by = "follow3", #match_by argument will be deprecated
                      treatment_tokens = twitter_tokens, participant_tokens = twitter_tokens) #don't need to split anymore since automatically tries all
     #treatment_tokens = twitter_tokens[1:6], participant_tokens = twitter_tokens[7:9])
     showModal(modalDialog(
@@ -243,6 +243,7 @@ server <- function(input, output) {
 
   timeline_data_panel_1s <- reactive({
     invalidateLater(refresh_time)
+    message("Loading timeline data panel 1 ...")
     prep_timeline_data(panel_directory = paste0(experiment_directory(), panels()[1]),
                        sessions_back=(input$days_back),
                        include_historical = input$include_historical,
@@ -251,6 +252,7 @@ server <- function(input, output) {
 
   timeline_data_panel_2s <- reactive({
     invalidateLater(refresh_time)
+    message("Loading timeline data panel 2 ...")
     prep_timeline_data(panel_directory = paste0(experiment_directory(), panels()[2]),
                        sessions_back=(input$days_back),
                        include_historical = input$include_historical,
@@ -267,6 +269,7 @@ server <- function(input, output) {
 
   output$panel_1s_ts_d <- r2d3::renderD3({
     invalidateLater(refresh_time)
+    message("Rendering timelines panel 1 ...")
     timeline_data <- timeline_data_panel_1s()
     timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
     data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
@@ -300,6 +303,7 @@ server <- function(input, output) {
 
   output$panel_2s_ts_d <- r2d3::renderD3({
     invalidateLater(refresh_time)
+    message("Rendering timelines panel 2 ...")
     timeline_data <- timeline_data_panel_2s()
     timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
     data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
