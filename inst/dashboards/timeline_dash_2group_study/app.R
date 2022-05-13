@@ -101,14 +101,14 @@ header <- dashboardHeader(title = "Tweet Dashboard"
 sidebar <- dashboardSidebar(#width=12,
   #textInput("study_name", "Study Name", value = "test_study", width = "100%", placeholder = NULL),
   selectInput("study_name", "Study Name", choices = study_names), #target
-  numericInput("days_back", "Days Back", value = 10, min = 1, max = 365, step = 1),
+  numericInput("days_back", "Days Back", value = 4, min = 1, max = 365, step = 1),
   #br(),#br(),br(),
   selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
               c("Sentiment" = "sentiment_score",
                 "Lasso Ideology" = "ideology",
                 #"Lasso Sureness" = "sureness",
                 "None" = "none")),
-  numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
+  numericInput("volume_smoothing", "Minute Smoothing", value = 60, min = 1, max = 60, step = 1),
   checkboxInput(inputId = "show_names", label = "Show Names", value = TRUE),
   checkboxInput(inputId = "load_all_since_first", label = "Load All", value = FALSE),
   checkboxInput(inputId = "include_historical", label = "Include Historical", value = FALSE),
@@ -201,6 +201,9 @@ server <- function(input, output) {
 
   timeline_data_panel_1s <- reactive({
     invalidateLater(refresh_time)
+    message("Loading timeline data panel 1 ...")
+    message("experiment directory: ", experiment_directory())
+    message("panel directory: ", paste0(experiment_directory(), panels()[1]))
     prep_timeline_data(panel_directory = paste0(experiment_directory(), panels()[1]),
                        sessions_back=(input$days_back),
                        include_historical = input$include_historical,
@@ -209,6 +212,9 @@ server <- function(input, output) {
 
   timeline_data_panel_2s <- reactive({
     invalidateLater(refresh_time)
+    message("Loading timeline data panel 2 ...")
+    message("experiment directory: ", experiment_directory())
+    message("panel directory: ", paste0(experiment_directory(), panels()[2]))
     prep_timeline_data(panel_directory = paste0(experiment_directory(), panels()[2]),
                        sessions_back=(input$days_back),
                        include_historical = input$include_historical,

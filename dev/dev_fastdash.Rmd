@@ -300,3 +300,167 @@ test <- prep_network_data_d3_spirals(study_name, participant_panel, assignment_p
 length(test)
 
 ```
+
+
+
+
+
+
+# Timeline Dash D3
+
+## Fix Bug
+
+Error in data.frame: arguments imply differing number of rows: 132323, 0, 1
+
+```{r}
+#original
+prep_timeline_data(panel_directory = paste0(experiment_directory(), panels()[1]),
+                       sessions_back=(input$days_back),
+                       include_historical = input$include_historical,
+                       load_all_since_first = input$load_all_since_first)
+
+```
+
+
+```{r}
+#nonreactive
+experiment_directory = "~/tricordings/studies/spirals_bad_pilot/"
+panels = c("participants", "assignments")
+days_back = 50
+include_historical = F
+load_all_since_first = F
+
+test <- prep_timeline_data(panel_directory = paste0(experiment_directory, panels[1]),
+                       sessions_back=(days_back),
+                       include_historical = include_historical,
+                       load_all_since_first = load_all_since_first)
+
+test
+dim(test[[1]])
+
+nrow(test[[1]])
+```
+
+
+```{r}
+
+test[[1]] <- test[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*days_back))
+
+
+data <- data.frame(x = (1000*as.numeric(test[[1]]$created_at)),
+                   y = test[[1]]$user_index,
+                   text = test[[1]]$text,
+                   sentiment = test[[1]]$score,
+                   screen_name = test[[1]]$screen_name,
+                   created_at = test[[1]]$created_at,
+                   size = rep(4, nrow(test[[1]])))
+
+!is.null(test$score)
+
+if_else(!is.null(test$score), true = test[[1]]$score, false = NA)
+
+ifelse(!is.null(test$score), yes = test[[1]]$score, no = NA)
+
+data <- data.frame(x = (1000*as.numeric(test[[1]]$created_at)),
+               y = test[[1]]$user_index,
+               text = test[[1]]$text,
+               sentiment = ifelse(!is.null(test$score), yes = test[[1]]$score, no = NA),
+               screen_name = test[[1]]$screen_name,
+               created_at = test[[1]]$created_at,
+               size = 4)
+
+data <- data.frame(x = (1000*as.numeric(test[[1]]$created_at)),
+               y = test[[1]]$user_index,
+               text = test[[1]]$text,
+               sentiment = test[[1]]$score,
+               screen_name = test[[1]]$screen_name,
+               created_at = test[[1]]$created_at,
+               size = rep(4, nrow(test[[1]])))
+
+data <- data.frame(x = (1000*as.numeric(test[[1]]$created_at)),
+               y = test[[1]]$user_index,
+               text = test[[1]]$text,
+               sentiment = test[[1]]$score,
+               screen_name = test[[1]]$screen_name,
+               created_at = test[[1]]$created_at)
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+
+
+# Make Fast With Buffer
+
+
+
+
+```{r}
+#this is pretty fast, unclear why it doesn't work in the dashboard
+experiment_directory = "~/tricordings/studies/spirals_bad_pilot/"
+panels = c("participants", "assignments")
+days_back = 50
+include_historical = T
+load_all_since_first = T
+
+timeline_data <- prep_timeline_data(panel_directory = paste0(experiment_directory, panels[1]),
+                       sessions_back=(days_back),
+                       include_historical = include_historical,
+                       load_all_since_first = load_all_since_first)
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+

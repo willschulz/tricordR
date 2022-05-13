@@ -72,8 +72,8 @@ study_names <- dir("~/tricordings/studies", full.names = T) %>%
 tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 twitter_tokens <- prepTokens(tokenset, 1:9)
 
-px_panel_1 <- 300
-px_panel_2 <- 300
+px_panel_1 <- 500
+px_panel_2 <- 500
 
 px_l <- 40
 
@@ -137,7 +137,7 @@ sidebar <- dashboardSidebar(#width=12,
   #               #"Lasso Sureness" = "sureness",
   #               "None" = "none")),
   # numericInput("volume_smoothing", "Minute Smoothing", value = 15, min = 1, max = 60, step = 1),
-  checkboxInput(inputId = "show_names", label = "Show Names", value = FALSE),
+  checkboxInput(inputId = "show_names", label = "Show Names", value = FALSE), #doesn't currently do anything
   checkboxInput(inputId = "load_all_since_first", label = "Load All", value = FALSE),
   checkboxInput(inputId = "include_historical", label = "Include Historical", value = FALSE),
 
@@ -211,9 +211,11 @@ server <- function(input, output) {
   })
 
   experiment_directory <- reactive({paste0(tricordings_directory,"/", input$study_name, "/")})
+
   panels <- reactive({dir(experiment_directory())})
 
   output$panel_1_name <- renderText({
+    message(panels())
     panels()[1]
   })
 
@@ -244,6 +246,8 @@ server <- function(input, output) {
   timeline_data_panel_1s <- reactive({
     invalidateLater(refresh_time)
     message("Loading timeline data panel 1 ...")
+    message("experiment directory: ", experiment_directory())
+    message("panel directory: ", paste0(experiment_directory(), panels()[1]))
     prep_timeline_data(panel_directory = paste0(experiment_directory(), panels()[1]),
                        sessions_back=(input$days_back),
                        include_historical = input$include_historical,
@@ -271,14 +275,22 @@ server <- function(input, output) {
     invalidateLater(refresh_time)
     message("Rendering timelines panel 1 ...")
     timeline_data <- timeline_data_panel_1s()
+    message("nrow: ",nrow(timeline_data[[1]]))
     timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
     data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
                        y = timeline_data[[1]]$user_index,
                        text = timeline_data[[1]]$text,
-                       sentiment = timeline_data[[1]]$score,
+                       sentiment = ifelse(!is.null(timeline_data$score), yes = timeline_data[[1]]$score, no = NA),
                        screen_name = timeline_data[[1]]$screen_name,
                        created_at = timeline_data[[1]]$created_at,
                        size = 4)
+    # data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
+    #                    y = timeline_data[[1]]$user_index,
+    #                    text = timeline_data[[1]]$text,
+    #                    sentiment = timeline_data[[1]]$score,
+    #                    screen_name = timeline_data[[1]]$screen_name,
+    #                    created_at = timeline_data[[1]]$created_at,
+    #                    size = 4)
     options(r2d3.theme = list(
       background = "#343E48",
       foreground = "#808080")
@@ -305,14 +317,22 @@ server <- function(input, output) {
     invalidateLater(refresh_time)
     message("Rendering timelines panel 2 ...")
     timeline_data <- timeline_data_panel_2s()
+    message("nrow: ",nrow(timeline_data[[1]]))
     timeline_data[[1]] <- timeline_data[[1]] %>% filter(created_at > (Sys.time() - 60*60*24*input$days_back))
     data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
                        y = timeline_data[[1]]$user_index,
                        text = timeline_data[[1]]$text,
-                       sentiment = timeline_data[[1]]$score,
+                       sentiment = ifelse(!is.null(timeline_data$score), yes = timeline_data[[1]]$score, no = NA),
                        screen_name = timeline_data[[1]]$screen_name,
                        created_at = timeline_data[[1]]$created_at,
                        size = 4)
+    # data <- data.frame(x = (1000*as.numeric(timeline_data[[1]]$created_at)),
+    #                    y = timeline_data[[1]]$user_index,
+    #                    text = timeline_data[[1]]$text,
+    #                    sentiment = timeline_data[[1]]$score,
+    #                    screen_name = timeline_data[[1]]$screen_name,
+    #                    created_at = timeline_data[[1]]$created_at,
+    #                    size = 4)
     options(r2d3.theme = list(
       background = "#343E48",
       foreground = "#808080")
