@@ -6,77 +6,82 @@ output: html_document
 ---
 
 ```{r}
-devtools::install_github("willschulz/tricordR", auth_token = "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")
-.rs.restartR()
-library(tricordR)
+# devtools::install_github("willschulz/tricordR", auth_token = "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")
+# .rs.restartR()
+# library(tricordR)
 
+```
+
+
+```{r}
+
+#disable survey scraping on bad pilot
+
+# bad_pilot_settings <- readRDS("~/tricordings/studies/spirals_bad_pilot/participants/scrape_settings.rds")
+# 
+# bad_pilot_settings <- bad_pilot_settings[-1]
+# bad_pilot_settings$scrape_survey <- FALSE
+# bad_pilot_settings
+# 
+# saveRDS(bad_pilot_settings, file = "~/tricordings/studies/spirals_bad_pilot/participants/scrape_settings.rds")
 ```
 
 
 # Add study
 
 ```{r}
-addStudy("spirals_bad_pilot")
+# addStudy("spirals_experiment")
 ```
 
 
 # Add assignments panel
 
 ```{r}
-pilot_placebos <- readRDS(file = "~/Documents/GitRprojects/TIE_experiment/analyses/treatment_selection/sports_reporter_data_210713/for_pilot.rds")
 
-pilot_treatments <- readRDS("~/tricordings/studies/spirals_assignment_sampling/6_assignments_selected/libs_for_pilot.rds")
-
-assignment_accounts <- c(pilot_placebos$user_id[1:9], pilot_treatments$user_id[1:9])
-
-
-addPanel("spirals_bad_pilot", "assignments",
-         user_ids = assignment_accounts,
-         scrape_survey = FALSE,
-         first_scrape = T,
-         scrape_timelines = T,
-         scrape_friends = F,
-         scrape_followers = T, #run this, but then cancel below, and scrape a couple of times with qualtrics fetch
-         scrape_favorites = F,
-         tokens = prepTokens("ws_botexp", 1:9))
-
-editPanel("spirals_bad_pilot", "assignments", scrape_followers = F) #daily scrapes would interfere with matching system
+# assignments <- readRDS("~/Dropbox (Princeton)/spirals_experiment/actual_launch/treatment_selection/final_assignments.rds")
+# assignment_accounts <- assignments$user_id
+# 
+# 
+# addPanel("spirals_experiment", "assignments",
+#          user_ids = assignment_accounts,
+#          scrape_survey = FALSE,
+#          first_scrape = T,
+#          scrape_timelines = T,
+#          scrape_friends = T,
+#          scrape_followers = T, #run this, but then cancel below, and scrape a couple of times with qualtrics fetch
+#          scrape_favorites = F,
+#          tokens = prepTokens("ws_botexp", 1:9))
+# 
+# editPanel("spirals_experiment", "assignments", scrape_followers = F) #daily scrapes would interfere with matching system
 
 ```
 
 
-
-```{r}
-#set up survey using screen names
-pilot_placebos %>% filter(user_id %in% assignment_accounts)
-
-pilot_treatments %>% filter(user_id %in% assignment_accounts)
-
-```
 
 
 # Lookup Survey ID
 
 ```{r}
-survey_id <- qualtRics::all_surveys() %>% filter(name == "Twitter Spirals Recruitment") %>% pull(id)
-
+# survey_id <- qualtRics::all_surveys() %>% filter(name == "Twitter Spirals Recruitment Encouragement") %>% pull(id)
+# 
+# qualtRics::fetch_survey(survey_id)
 ```
 
 # Add Participants Panel
 
 ```{r}
-addPanel("spirals_bad_pilot", "participants", scrape_survey = TRUE, qualtrics_survey_id = survey_id, scrape_timelines = T, scrape_friends = T, scrape_followers = T, scrape_favorites = F)
+# addPanel("spirals_experiment", "participants", scrape_survey = TRUE, qualtrics_survey_id = survey_id, scrape_timelines = T, scrape_friends = T, scrape_followers = T, scrape_favorites = F)
 
 ```
 
 # Then Run 2 Qualtrics Scrapes Before Launching Survey
 
 ```{r}
-scrapeQualtrics("spirals_bad_pilot", "participants", match_by = "follow3", assignment_dir = "~/tricordings/studies/spirals_bad_pilot/assignments/", treatment_tokens = prepTokens("ws_botexp"), participant_tokens = prepTokens("ws_botexp"))
-
-Sys.sleep(60)
-
-scrapeQualtrics("spirals_bad_pilot", "participants", match_by = "follow3", assignment_dir = "~/tricordings/studies/spirals_bad_pilot/assignments/", treatment_tokens = prepTokens("ws_botexp"), participant_tokens = prepTokens("ws_botexp"))
+# scrapeQualtrics("spirals_experiment", "participants", match_by = "follow3", assignment_panel = "assignments", treatment_tokens = prepTokens("ws_botexp"), participant_tokens = prepTokens("ws_botexp"))
+# 
+# Sys.sleep(60)
+# 
+# scrapeQualtrics("spirals_experiment", "participants", match_by = "follow3", assignment_panel = "assignments", treatment_tokens = prepTokens("ws_botexp"), participant_tokens = prepTokens("ws_botexp"))
 ```
 
 # Launch the Survey
@@ -96,7 +101,9 @@ scrapeQualtrics("spirals_bad_pilot", "participants", match_by = "follow3", assig
 # Use Dashboards
 
 ```{r}
-runDash("2_timelines_d3")
+runDash("timeline_dash_2group_study")
+
+#runDash("2_timelines_d3")
 
 ```
 

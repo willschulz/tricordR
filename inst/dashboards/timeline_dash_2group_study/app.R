@@ -111,7 +111,7 @@ sidebar <- dashboardSidebar(#width=12,
   numericInput("volume_smoothing", "Minute Smoothing", value = 60, min = 1, max = 60, step = 1),
   checkboxInput(inputId = "show_names", label = "Show Names", value = TRUE),
   checkboxInput(inputId = "load_all_since_first", label = "Load All", value = FALSE),
-  checkboxInput(inputId = "include_historical", label = "Include Historical", value = FALSE),
+  checkboxInput(inputId = "include_historical", label = "Include Historical", value = TRUE),
   br(),br(),br(),
   actionButton("fetch_tweets","Fetch Tweets", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67"),
   actionButton("fetch_survey","Fetch Survey", icon("download"), style = "color:#CDCDCD; background-color: #44505A; border-color: #4C5A67")
