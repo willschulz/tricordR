@@ -33,6 +33,10 @@ panel_name <- participant_panel
 ```{r}
 test <- prep_network_data_d3_spirals(study_name, participant_panel, assignment_panel, include_protected = F)
 
+
+test
+
+test[[2]]
 ```
 
 
@@ -87,11 +91,11 @@ test <- prep_network_data_d3_spirals(study_name, participant_panel, assignment_p
     message("Loading survey responses ...")
     survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", 
         study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, 
-        .keep_all = T) %>% filter(str_detect(twitter_agreement, "Yes"))
+        .keep_all = T) %>% filter(str_detect(twitter_agreement, "Yes"))#change 1
     message("Setting vertex metadata ...")
     vertex_metadata <- id_links %>% select(ResponseId, start_date, 
         shown, claimed, user_id) %>% left_join(., survey_responses %>% 
-        select(-c(shown, claimed, user_id)), by = "ResponseId") %>% 
+        select(-c(start_date, end_date, shown, claimed, user_id)), by = "ResponseId") %>%  #change 2
         full_join(., all_info)
     na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
     for (i in 1:length(na_user_ids_indices)) {
@@ -106,8 +110,8 @@ test <- prep_network_data_d3_spirals(study_name, participant_panel, assignment_p
     vertex_metadata$stroke_color <- "white"
     vertex_metadata$stroke_color[na_user_ids_indices] <- "red"
     vertex_metadata$stroke_color[which(vertex_metadata$protected)] <- "orange"
-    vertex_metadata$group[which(vertex_metadata$t == 1)] <- "treated"
-    vertex_metadata$group[which(vertex_metadata$t == 0)] <- "placeboed"
+    #vertex_metadata$group[which(vertex_metadata$t == 1)] <- "treated"
+    #vertex_metadata$group[which(vertex_metadata$t == 0)] <- "placeboed"
     message("Joining participant friends to vertext metadata ...")
     p_friends_all <- left_join(p_friends_all, (vertex_metadata %>% 
         select(user_id, start_date)), by = c(user = "user_id"))
@@ -149,19 +153,21 @@ saveRDS(id_links_confirmed, file = paste0("~/tricordings/studies/spirals_experim
 
 
 ```{r}
-
-
-```
-
-
-```{r}
-
+id_links
 
 ```
 
 
 ```{r}
+survey_responses %>% select(start_date)
 
+```
+
+
+# do sentiment classification bc why not
+
+```{r}
+library("sentimentr")
 
 ```
 

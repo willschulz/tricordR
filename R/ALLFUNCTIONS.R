@@ -2299,7 +2299,7 @@ readRelevantAssignmentFollowers <- function(path, relevant_user_ids){
 #' @examples
 #' prep_network_data_d3_spirals()
 
-prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE){
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE, compliance_threshold_daycount = 1){
   if(verbose){message("Test message ...")}
   if(verbose){message("Loading id_links ...")}
   id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
@@ -2347,8 +2347,8 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   vertex_metadata$stroke_color[na_user_ids_indices] <- "red"
   vertex_metadata$stroke_color[which(vertex_metadata$protected)] <- "orange"
 
-  vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
-  vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
+  #vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
+  #vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
 
   message("Joining participant friends to vertext metadata ...")
   p_friends_all <- left_join(p_friends_all, (vertex_metadata %>% select(user_id, start_date)), by = c("user" = "user_id"))
@@ -2364,7 +2364,7 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
               #                "orange",
               #                "green")
     ) %>%
-    mutate(color = case_when((difftime(Sys.time(), last, units = "day")>1) ~ "orange",
+    mutate(color = case_when((difftime(Sys.time(), last, units = "day")>compliance_threshold_daycount) ~ "orange",
                              ((difftime(Sys.time(), last, units = "day")<=1) & difftime(first, start_date, units = "day")>=0) ~ "green",
                              (difftime(first, start_date, units = "day")<0) ~ "blue")) %>% select(-start_date)
 

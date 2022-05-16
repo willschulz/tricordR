@@ -1,3 +1,4 @@
+#launch dash
 # R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/survey_dash/app.R', port = 4712)"
 # /Library/Frameworks/R.framework/Resources/bin/Rscript -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/survey_dash/app.R', port = 4712)"
 
@@ -13,7 +14,7 @@ library(dashboardthemes)
 library(shinycssloaders)
 library(tricordR)
 
-survey_start_date <- "2021-07-01 12:00:00 EST"
+survey_start_date <- "2022-05-13 12:00:00 EST"
 
 #refresh_time=5*60*1000 #(milliseconds)
 refresh_time=60*60*1000 #(milliseconds)
@@ -22,6 +23,8 @@ survey_cumulation_colors <- c(rgb(.2,.8,.2),rgb(.8,0,0))
 default_axis_cex <- 1
 
 assignment_node_col <- "gray40"
+participant_node_col <- "plum"
+
 placeboed_node_col <- "plum"
 treated_node_col <- "dodgerblue2"
 
@@ -210,14 +213,25 @@ server <- function(input, output) {
     MyClickScript <- "Shiny.setInputValue('user_text', d.name);"
 
     message("Generating forceNetwork...")
+    # fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
+    #                               linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80,
+    #                               clickAction = MyClickScript,  #commented out to fix "argument of length 0)"
+    #                               bounded = T,
+    #                               colourScale = paste0("d3.scaleOrdinal().domain(['assignment','participant','placeboed','treated']).range([",
+    #                                                    paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
+    #                                                                                        participant_node_col,
+    #                                                                                        placeboed_node_col,
+    #                                                                                        treated_node_col)),
+    #                                                                      collapse = "\', \'"),"\'")
+    #                                                    ,"]);"))
+
     fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
                                   linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80,
                                   clickAction = MyClickScript,  #commented out to fix "argument of length 0)"
                                   bounded = T,
-                                  colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
+                                  colourScale = paste0("d3.scaleOrdinal().domain(['assignment','participant']).range([",
                                                        paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
-                                                                                           placeboed_node_col,
-                                                                                           treated_node_col)),
+                                                                                           participant_node_col)),
                                                                          collapse = "\', \'"),"\'")
                                                        ,"]);"))
     fn$x$nodes$border <- myNodes$stroke_color
