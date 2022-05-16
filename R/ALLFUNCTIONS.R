@@ -2306,14 +2306,17 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
   if(verbose){message("nrow id_links: ", nrow(id_links))}
 
+  message("Loading all participants' friends...")
   p_friends_all <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/twitter_scrapes/friends/"), full.names = T) %>% map_dfr(., readRDS)
 
+  #
   if (nrow(p_friends_all)==0) {p_friends_all <- dir(paste0("~/tricordings/studies/", "/", study_name, "/", panel_name, "/twitter_scrapes/first_friends/"), full.names = T)[1] %>% map_dfr(., readRDS)}
 
-
+  message("Selecting relevant user_ids ...")
   relevant_user_ids <- unique(id_links$user_id) %>% .[which(!is.na(.))]# %>% .[which(! . %in% unique(p_friends_all$user))]
 
   if (include_protected){
+    message("Including protected accounts ...")
     a_followers_relevant <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/followers/"), full.names = T) %>% map_dfr(., readRelevantAssignmentFollowers, relevant_user_ids = relevant_user_ids)
     protected_relevant_friends <- a_followers_relevant %>% transmute(userx = user_id, user_idx = user, scraped_at) %>% rename("user" = userx, "user_id" = user_idx)
     p_friends_all <- rbind(p_friends_all, protected_relevant_friends)
@@ -2323,7 +2326,10 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   ass_info <- dir(paste0("~/tricordings/studies/", study_name, "/", assignment_panel, "/twitter_scrapes/user_info/"), full.names = T) %>% map_dfr(readRDS) %>% arrange(desc(created_at)) %>% distinct(user_id, .keep_all = T) %>% mutate(group = "assignment")
   all_info <- rbind(par_info, ass_info)
 
+  message("Loading survey responses ...")
   survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(twitter_agreement=="Yes")# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+
+  message("Setting vertex metadata ...")
   vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
   #vertex_metadata <- all_info
 
@@ -2344,8 +2350,10 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   vertex_metadata$group[which(vertex_metadata$t==1)] <- "treated"
   vertex_metadata$group[which(vertex_metadata$t==0)] <- "placeboed"
 
+  message("Joining participant friends to vertext metadata ...")
   p_friends_all <- left_join(p_friends_all, (vertex_metadata %>% select(user_id, start_date)), by = c("user" = "user_id"))
 
+  message("Generating data object ...")
   data <- p_friends_all %>%
     filter(user_id %in% vertex_metadata$user_id) %>%
     group_by(user, user_id) %>%
@@ -2377,6 +2385,7 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
     anti_join(., data, by = c("user", "user_id")) %>%
     rbind(., data)
 
+  message("Finished prepping network data!")
   return(list("e" = data, "v" = vertex_metadata))
 }
 
