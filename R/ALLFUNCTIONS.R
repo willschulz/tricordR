@@ -2300,7 +2300,7 @@ readRelevantAssignmentFollowers <- function(path, relevant_user_ids){
 #' prep_network_data_d3_spirals()
 
 prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE){
-
+  if(verbose){message("Test message ...")}
   if(verbose){message("Loading id_links ...")}
   id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
   id_links <- id_links[!duplicated(id_links$ResponseId, fromLast = T),]
