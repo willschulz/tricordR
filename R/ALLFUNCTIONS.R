@@ -2327,10 +2327,10 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   all_info <- rbind(par_info, ass_info)
 
   message("Loading survey responses ...")
-  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(twitter_agreement=="Yes")# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
+  survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(str_detect(twitter_agreement, "Yes"))# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
 
   message("Setting vertex metadata ...")
-  vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+  vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(start_date, end_date, shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
   #vertex_metadata <- all_info
 
   na_user_ids_indices <- which(is.na(vertex_metadata$user_id))

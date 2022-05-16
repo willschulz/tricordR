@@ -118,26 +118,29 @@ server <- function(input, output) {
     groups()[2]
   })
 
-  participant_group <- reactive({
-    for (i in 1:2){
-      if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-        participant_group <- groups()[i]
-      }
-    }
-    return(participant_group)
-  })
 
-  assignment_group <- reactive({#this could be made more intelligent, but good enough for now
-    for (i in 1:2){
-      if (is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-        assignment_group <- groups()[i]
-      }
-    }
-    return(assignment_group)
-  })
+  participant_group <- "participants"
+  assignment_group <- "assignments"
+  # participant_group <- reactive({
+  #   for (i in 1:2){
+  #     if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+  #       participant_group <- groups()[i]
+  #     }
+  #   }
+  #   return(participant_group)
+  # })
+  #
+  # assignment_group <- reactive({#this could be made more intelligent, but good enough for now
+  #   for (i in 1:2){
+  #     if (is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+  #       assignment_group <- groups()[i]
+  #     }
+  #   }
+  #   return(assignment_group)
+  # })
 
   survey_data_prepped <- reactive({invalidateLater(refresh_time)
-    prep_survey_data(experiment_directory(),participant_group())
+    prep_survey_data(experiment_directory(),participant_group)
   })
 
 
@@ -182,8 +185,11 @@ server <- function(input, output) {
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
     message("Prepping network data...")
-    #prep_network_data_d3_spirals(study_name,participant_group(),assignment_group())
-    prep_network_data_d3_spirals(study_name,participant_group(),assignment_group(), include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
+    message("Study name: ", study_name)
+    message("Participant group: ", participant_group)
+    message("Assignment group: ", assignment_group)
+    #prep_network_data_d3_spirals(study_name,participant_group,assignment_group)
+    prep_network_data_d3_spirals(study_name,participant_group,assignment_group, include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
   })
 
 

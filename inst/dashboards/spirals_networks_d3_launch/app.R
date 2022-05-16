@@ -58,16 +58,16 @@ dash_theme = "grey_dark"
 
 # App title ----
 header <- dashboardHeader(title = "Compliance Dashboard"
-  # title = shinyDashboardLogoDIY(
-  #   boldText = "LaForge",
-  #   mainText = "Survey",
-  #   textSize = 16,
-  #   badgeText = " v1.0",
-  #   badgeTextColor = "white",
-  #   badgeTextSize = 2,
-  #   badgeBackColor = "#343E48",
-  #   badgeBorderRadius = 3
-  # )
+                          # title = shinyDashboardLogoDIY(
+                          #   boldText = "LaForge",
+                          #   mainText = "Survey",
+                          #   textSize = 16,
+                          #   badgeText = " v1.0",
+                          #   badgeTextColor = "white",
+                          #   badgeTextSize = 2,
+                          #   badgeBackColor = "#343E48",
+                          #   badgeBorderRadius = 3
+                          # )
 )
 
 sidebar <- dashboardSidebar(#width=12,
@@ -118,26 +118,29 @@ server <- function(input, output) {
     groups()[2]
   })
 
-  participant_group <- reactive({
-    for (i in 1:2){
-      if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-        participant_group <- groups()[i]
-      }
-    }
-    return(participant_group)
-  })
 
-  assignment_group <- reactive({#this could be made more intelligent, but good enough for now
-    for (i in 1:2){
-      if (is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
-        assignment_group <- groups()[i]
-      }
-    }
-    return(assignment_group)
-  })
+  participant_group <- "participants"
+  assignment_group <- "assignments"
+  # participant_group <- reactive({
+  #   for (i in 1:2){
+  #     if (!is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+  #       participant_group <- groups()[i]
+  #     }
+  #   }
+  #   return(participant_group)
+  # })
+  #
+  # assignment_group <- reactive({#this could be made more intelligent, but good enough for now
+  #   for (i in 1:2){
+  #     if (is.null(readRDS(paste0(experiment_directory(), groups()[i], "/scrape_settings.rds"))$qualtrics_survey_id)){
+  #       assignment_group <- groups()[i]
+  #     }
+  #   }
+  #   return(assignment_group)
+  # })
 
   survey_data_prepped <- reactive({invalidateLater(refresh_time)
-    prep_survey_data(experiment_directory(),participant_group())
+    prep_survey_data(experiment_directory(),participant_group)
   })
 
 
@@ -182,8 +185,11 @@ server <- function(input, output) {
 
   network_data_prepped_d3 <- reactive({invalidateLater(refresh_time)
     message("Prepping network data...")
-    #prep_network_data_d3_spirals(study_name,participant_group(),assignment_group())
-    prep_network_data_d3_spirals(study_name,participant_group(),assignment_group(), include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
+    message("Study name: ", study_name)
+    message("Participant group: ", participant_group)
+    message("Assignment group: ", assignment_group)
+    #prep_network_data_d3_spirals(study_name,participant_group,assignment_group)
+    prep_network_data_d3_spirals(study_name,participant_group,assignment_group, include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
   })
 
 
@@ -195,8 +201,8 @@ server <- function(input, output) {
 
     message("Organizing links...")
     myLinks <- network_data_prepped_d3()$e %>% mutate("source" = nodeIndexer(user, myNodes),
-                                 "target" = nodeIndexer(user_id, myNodes),
-                                 "value" = 2
+                                                      "target" = nodeIndexer(user_id, myNodes),
+                                                      "value" = 2
     )
 
     #MyClickScript <- 'alert("You clicked " + d.name);'
@@ -205,15 +211,15 @@ server <- function(input, output) {
 
     message("Generating forceNetwork...")
     fn <- networkD3::forceNetwork(Links = myLinks, Nodes = myNodes, Value = "value", Source = "source", Target = "target", NodeID = "screen_name", Group = "group", opacity = 1, arrows = T, fontSize = 20, fontFamily = "helvetica", legend=T,
-                 linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80,
-                 clickAction = MyClickScript,  #commented out to fix "argument of length 0)"
-                 bounded = T,
-                 colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
-                                      paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
-                                                                          placeboed_node_col,
-                                                                          treated_node_col)),
-                                                        collapse = "\', \'"),"\'")
-                                      ,"]);"))
+                                  linkColour = myLinks$color, charge = -10, zoom = F, linkDistance = 80,
+                                  clickAction = MyClickScript,  #commented out to fix "argument of length 0)"
+                                  bounded = T,
+                                  colourScale = paste0("d3.scaleOrdinal().domain(['assignment','placeboed','treated']).range([",
+                                                       paste0("\'",paste(gplots::col2hex(c(assignment_node_col,
+                                                                                           placeboed_node_col,
+                                                                                           treated_node_col)),
+                                                                         collapse = "\', \'"),"\'")
+                                                       ,"]);"))
     fn$x$nodes$border <- myNodes$stroke_color
 
     fn <- htmlwidgets::onRender(fn,
@@ -232,7 +238,7 @@ server <- function(input, output) {
   options_reactive <- reactive({list(pageLength = 5, editable = F,
                                      lengthChange = FALSE,
                                      search = list(search = input$user_text) #commented out to fix "argument of length 0)"
-                                     )})
+  )})
 
   message("Prepping data table ...")
   output$data_table <- renderDataTable(network_data_prepped_d3()[[2]] %>% select(ResponseId, user_id, screen_name, group),
