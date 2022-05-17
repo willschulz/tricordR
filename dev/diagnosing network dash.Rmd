@@ -139,17 +139,88 @@ test[[2]]
 ```
 
 
+# make id_links_confirmed
+
+```{r}
+id_links_bound <- dir("~/tricordings/studies/spirals_experiment/participants/id_links/", full.names = T) %>% map_dfr(., readRDS)
+id_links_bound <- id_links_bound %>% rename(qualtrics_start_date = start_date, qualtrics_end_date = end_date)
+id_links_bound
+```
+
+
+for each na user_id row, 
+in order starting with the row whose best candidate has the largest number of matches,
+filter out all user_ids already matched from the candidate df,
+if zero remain, flag as noncompliant
+if exactly one remains, set that as the row's user_id,
+if more than one remains, flag as ambiguous
 
 
 ```{r}
-#hard-code id_links_confirmed
+matched_userids <- id_links_bound %>% filter(!is.na(user_id)) %>% pull(user_id)
 
-id_links_bound <- dir("~/tricordings/studies/spirals_experiment/participants/id_links/", full.names = T) %>% map_dfr(., readRDS)
+unmatched <- id_links_bound %>% filter(is.na(user_id))
+unmatched
 
+```
+
+
+```{r}
+unmatched$candidates
+nrow(unmatched$candidates)
+
+test <- unmatched$candidates[[2]]
+
+max(test$match_count)
+
+maxMatch <- function(x){
+  return(max(x$match_count))
+}
+
+lapply(unmatched$candidates, nrow)
+lapply(unmatched$candidates, maxMatch)
+
+nonDupMatchCount <- function(x, already_matched){
+  return(x %>% filter(!follower %in% already_matched) %>% nrow())
+}
+
+nonDupMatches <- function(x, already_matched){
+  return(x %>% filter(!follower %in% already_matched) %>% pull(follower))
+}
+
+lapply(unmatched$candidates, nonDupMatches, already_matched = matched_userids)
+
+
+sapply(unmatched$candidates, maxMatch)
+sapply(unmatched$candidates, nonDupMatchCount, already_matched = matched_userids)
+sapply(unmatched$candidates, nonDupMatches, already_matched = matched_userids)
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
 id_links_confirmed <- id_links_bound %>% filter(!is.na(user_id))
 #saveRDS(id_links_confirmed, file = paste0("~/tricordings/studies/spirals_experiment/participants/id_links_confirmed/id_links",timeCode(),".rds"))
 
 ```
+
+
+```{r}
+
+
+```
+
 
 
 ```{r}
