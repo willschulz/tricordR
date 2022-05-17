@@ -2389,7 +2389,10 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
 
   if (anonymize_participants){
     vertex_metadata_identifiable <- vertex_metadata
-    vertex_metadata <- vertex_metadata %>% filter(!is.na(ResponseId)) %>% mutate(user_id = paste0("ANON_", 1:nrow(.)), screen_name = paste0("ANON_", 1:nrow(.)))
+    indices_to_replace <- which(!is.na(vertex_metadata$ResponseId))
+    vertex_metadata$user_id[indices_to_replace] <- paste0("ANON_", 1:length(indices_to_replace))
+    vertex_metadata$screen_name[indices_to_replace] <- paste0("ANON_", 1:length(indices_to_replace))
+    #vertex_metadata <- vertex_metadata %>% filter(!is.na(ResponseId)) %>% mutate(user_id = paste0("ANON_", 1:nrow(.)), screen_name = paste0("ANON_", 1:nrow(.)))
     #anonymity_index <- data.frame(raw = vertex_metadata_identifiable$user_id, anonymized = vertex_metadata$user_id)
     anonymity_index <- left_join(vertex_metadata_identifiable %>% filter(!is.na(ResponseId)) %>% select(ResponseId, user_id), vertex_metadata %>% select(ResponseId, user_id), by = c("ResponseId" = "ResponseId")) %>% select(-ResponseId) %>% rename(raw = user_id.x, anon = user_id.y)
     for(i in 1:nrow(data)){
