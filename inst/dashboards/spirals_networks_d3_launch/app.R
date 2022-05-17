@@ -192,7 +192,7 @@ server <- function(input, output) {
     message("Participant group: ", participant_group)
     message("Assignment group: ", assignment_group)
     #prep_network_data_d3_spirals(study_name,participant_group,assignment_group)
-    prep_network_data_d3_spirals(study_name,participant_group,assignment_group, include_protected = F)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
+    prep_network_data_d3_spirals(study_name,participant_group,assignment_group, include_protected = F, compliance_threshold_daycount = 1)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
   })
 
 

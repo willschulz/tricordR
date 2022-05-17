@@ -2330,7 +2330,7 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
   survey_responses <- prep_survey_data(paste0("~/tricordings/studies/", study_name, "/"), panel_name)[[1]] %>% distinct(ResponseId, .keep_all = T) %>% filter(str_detect(twitter_agreement, "Yes"))# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
 
   message("Setting vertex metadata ...")
-  vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(start_date, end_date, shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
+  vertex_metadata <- id_links %>% select(ResponseId, start_date, shown, claimed, user_id) %>% left_join(., survey_responses %>% select(-c(shown, claimed, user_id)), by="ResponseId") %>% full_join(., all_info)
   #vertex_metadata <- all_info
 
   na_user_ids_indices <- which(is.na(vertex_metadata$user_id))
@@ -2705,12 +2705,12 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
     claim_list[[i]] <- f_mat[i,c_mat[i,]] #previously commented out
   }
 
-  claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list, start_date = lubridate::with_tz(StartDate, "America/New_York"), end_date = lubridate::with_tz(EndDate, "America/New_York")) #previously commented out
+  claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list, qualtrics_start_date = lubridate::with_tz(StartDate, "America/New_York"), qualtrics_end_date = lubridate::with_tz(EndDate, "America/New_York")) #previously commented out
 
   id_links_list <- list()
   for (j in 1:nrow(claims)){
-    start_time_code <- claims$start_date[j] %>% as.character %>% str_remove_all(pattern = "-| |:")
-    end_time_code <- claims$end_date[j] %>% as.character %>% str_remove_all(pattern = "-| |:")
+    start_time_code <- claims$qualtrics_start_date[j] %>% as.character %>% str_remove_all(pattern = "-| |:")
+    end_time_code <- claims$qualtrics_end_date[j] %>% as.character %>% str_remove_all(pattern = "-| |:")
 
     assignment_followers_dir <- dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T)
     assignment_followers_dir_time_codes <- assignment_followers_dir %>% str_remove_all(".*/followers_") %>% str_remove_all(".rds")

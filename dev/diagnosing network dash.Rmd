@@ -147,9 +147,16 @@ test[[2]]
 id_links_bound <- dir("~/tricordings/studies/spirals_experiment/participants/id_links/", full.names = T) %>% map_dfr(., readRDS)
 
 id_links_confirmed <- id_links_bound %>% filter(!is.na(user_id))
-saveRDS(id_links_confirmed, file = paste0("~/tricordings/studies/spirals_experiment/participants/id_links_confirmed/id_links",timeCode(),".rds"))
+#saveRDS(id_links_confirmed, file = paste0("~/tricordings/studies/spirals_experiment/participants/id_links_confirmed/id_links",timeCode(),".rds"))
 
 ```
+
+
+```{r}
+id_links_test <- dir("~/tricordings/studies/spirals_experiment/participants/id_links/", full.names = T)[1] %>% map_dfr(., readRDS)
+id_links_test
+```
+
 
 
 ```{r}
