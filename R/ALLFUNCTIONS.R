@@ -2695,6 +2695,8 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
     saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",this_timecode,".rds"))
     if (add & !is.null(participant_tokens)){editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = participant_tokens, max_hours = 2)}
   }
+
+  if (!add){return(id_links)}
 }
 
 #' Match Investigate
