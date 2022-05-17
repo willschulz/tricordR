@@ -19,6 +19,8 @@ library(shinycssloaders)
 
 # SETTINGS
 
+default_days_back <- 60
+
 refresh_time=5*60*1000 #(milliseconds)
 spinner_size <- .5
 
@@ -101,7 +103,7 @@ header <- dashboardHeader(title = "Tweet Dashboard"
 sidebar <- dashboardSidebar(#width=12,
   #textInput("study_name", "Study Name", value = "test_study", width = "100%", placeholder = NULL),
   selectInput("study_name", "Study Name", choices = study_names), #target
-  numericInput("days_back", "Days Back", value = 90, min = 1, max = 365, step = 1),
+  numericInput("days_back", "Days Back", value = default_days_back, min = 1, max = 365, step = 1),
   #br(),#br(),br(),
   selectInput("color_variable", "Color:", #update this so it selects a user set, and add a feature for how color is used - sentiment, political content, lasso ideology, etc...
               c("Sentiment" = "sentiment_score",
