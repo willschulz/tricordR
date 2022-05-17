@@ -98,7 +98,7 @@ body <- dashboardBody(
     #column(width=8,
            box(title="Network",
                width = 12,
-               networkD3::forceNetworkOutput("network_graph_d3", height = paste0(650, "px"), width = "100%") %>%
+               networkD3::forceNetworkOutput("network_graph_d3", height = paste0(630, "px"), width = "100%") %>%
                  withSpinner(color="#777777", type=8)
                ,dataTableOutput("data_table") %>%
                  withSpinner(color="#777777", type=8)
