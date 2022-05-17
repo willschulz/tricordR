@@ -2299,7 +2299,7 @@ readRelevantAssignmentFollowers <- function(path, relevant_user_ids){
 #' @examples
 #' prep_network_data_d3_spirals()
 
-prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE, compliance_threshold_daycount = 1){
+prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_panel = "assignments", include_protected = TRUE, verbose = TRUE, compliance_threshold_daycount = 1, anonymize_participants = FALSE){
   if(verbose){message("Test message ...")}
   if(verbose){message("Loading id_links ...")}
   id_links <- dir(paste0("~/tricordings/studies/", study_name, "/", panel_name, "/id_links_confirmed/"), full.names = T) %>% map_dfr(., readRDS)# %>% filter(ResponseId != "R_3fO7aQmR13LJ4zs") #target - remember to remove this filter and simply prevent duplicates in future
@@ -2386,6 +2386,7 @@ prep_network_data_d3_spirals <- function(study_name, panel_name, assignment_pane
     rbind(., data)
 
   message("Finished prepping network data!")
+  if (anonymize_participants){vertex_metadata <- vertex_metadata %>% filter(!is.na(ResponseId)) %>% mutate(user_id = paste0("ANON_", 1:nrow(.)), screen_name = paste0("ANON_", 1:nrow(.)))}
   return(list("e" = data, "v" = vertex_metadata))
 }
 

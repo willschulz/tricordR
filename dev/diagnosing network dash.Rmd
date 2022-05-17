@@ -135,8 +135,22 @@ test[[2]]
         anti_join(., data, by = c("user", "user_id")) %>% rbind(., 
         data)
     message("Finished prepping network data!")
+```
+
+```{r}
+data
 
 ```
+
+
+```{r}
+vertex_metadata
+
+vertex_metadata %>% filter(!is.na(ResponseId)) %>% mutate(user_id = paste0("ANON_", 1:nrow(.)), screen_name = paste0("ANON_", 1:nrow(.)))
+```
+
+
+
 
 
 # make id_links_confirmed

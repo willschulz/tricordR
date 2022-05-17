@@ -75,6 +75,8 @@ header <- dashboardHeader(title = "Compliance Dashboard"
 
 sidebar <- dashboardSidebar(#width=12,
   #selectInput("study_name", "Study Name", choices = study_names)
+  checkboxInput(inputId = "include_protected", label = "Include Protected", value = TRUE),
+  checkboxInput(inputId = "anonymize_participants", label = "Anonymize Participants", value = TRUE)
 )
 
 # Main panel for displaying outputs ----
@@ -192,7 +194,7 @@ server <- function(input, output) {
     message("Participant group: ", participant_group)
     message("Assignment group: ", assignment_group)
     #prep_network_data_d3_spirals(study_name,participant_group,assignment_group)
-    prep_network_data_d3_spirals(study_name,participant_group,assignment_group, include_protected = F, compliance_threshold_daycount = 1)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
+    prep_network_data_d3_spirals(study_name,participant_group,assignment_group, include_protected = input$include_protected, compliance_threshold_daycount = 1)#note: including protected creates a huge data lift in the long term... figure out how to mitigate
   })
 
 

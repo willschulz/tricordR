@@ -1,5 +1,5 @@
 #########################################################################
-# TWITTER_DASH_2GROUP_STUDY_D3
+# SPIRALS TWEETS D3
 #########################################################################
 
 # R -e "shiny::runApp('~/Documents/GitRprojects/LaForge/shiny/twitter_dash_2panel_study_d3/app.R', port = 4710)"
@@ -73,7 +73,7 @@ tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 twitter_tokens <- prepTokens(tokenset, 1:9)
 
 px_panel_1 <- 500
-px_panel_2 <- 200
+px_panel_2 <- 250
 
 px_l <- 40
 
