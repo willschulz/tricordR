@@ -2520,62 +2520,6 @@ link_ids <- function(claims, new_friends_by_follower){
   return(id_links)
 }
 
-# match_by_following_5 <- function(responses_new, study_name, panel_name, assignment_dir, participant_tokens, this_timecode){
-#   prior_treatment_followers_path <- maxN(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T), N = 3) #get 3rd most recent
-#
-#   prior_treatment_followers <- readRDS(prior_treatment_followers_path)
-#   treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
-#
-#   message("Identifying claims...")
-#   claims <- responses_new %>% select(ResponseId, starts_with("follow"), f1, f2, f3, f4, f5) %>%
-#     transmute(ResponseId,
-#               claim1 = !is.na(follow1),
-#               claim2 = !is.na(follow2),
-#               claim3 = !is.na(follow3),
-#               claim4 = !is.na(follow4),
-#               claim5 = !is.na(follow5),
-#               f1=sn_to_userid(f1, treatment_acct_info),
-#               f2=sn_to_userid(f2, treatment_acct_info),
-#               f3=sn_to_userid(f3, treatment_acct_info),
-#               f4=sn_to_userid(f4, treatment_acct_info),
-#               f5=sn_to_userid(f5, treatment_acct_info))
-#
-#   c_mat <- claims %>% select(starts_with("claim")) %>% as.matrix
-#   f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
-#
-#   all_list <- list()
-#   claim_list <- list()
-#   for(i in 1:nrow(claims)){
-#     all_list[[i]] <- f_mat[i,]
-#     claim_list[[i]] <- f_mat[i,c_mat[i,]]
-#   }
-#
-#   claims <- claims %>% transmute(ResponseId, shown = all_list, claimed = claim_list)
-#
-#   message("Reading most recent treatment followers scrape...")
-#   treatment_followers_current_scrape_path <- max(dir(paste0(assignment_dir,"/twitter_scrapes/followers"), full.names = T)) #get first most recent
-#   treatment_followers_current_scrape <- readRDS(treatment_followers_current_scrape_path)
-#
-#   #new followers of treatments
-#   new_followers <- treatment_followers_current_scrape %>% filter(! user_id %in% prior_treatment_followers$user_id) #this might lose anyone who happened to follow any treatments before
-#   if(nrow(new_followers)==0){stop("No new followers!")}
-#
-#   unique_new_followers <- unique(new_followers$user_id)
-#   new_friends_list <- list()
-#   message("Compiling unique new followers... (this may take some time)")
-#   for (i in 1:length(unique_new_followers)){
-#     new_friends_list[[i]] <- new_followers %>% filter(user_id == unique_new_followers[i]) %>% pull(user)
-#   }
-#
-#   new_friends_by_follower <- data.frame(follower = unique_new_followers) %>% mutate(new_friends = new_friends_list)
-#   id_links <- link_ids(claims, new_friends_by_follower)
-#   message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), " users successfully identified!")
-#
-#   if(nrow(id_links)>0){
-#     saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",this_timecode,".rds"))
-#     editPanel(study_name, panel_name, add_users = id_links$user_id, first_scrape = T, tokens = participant_tokens, max_hours = 1)
-#   }
-# }
 
 
 #' Match by Following 3
@@ -2817,7 +2761,7 @@ match_investigate <- function(responses_new, before, after, study_name, panel_na
   if(nrow(id_links)>0){
     if(!add){return(id_links)}
     if(add & !is.null(tokens)){
-      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",timeCode(),".rds"))
+      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",timeCode(),".rds"))#target
       editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = tokens, max_hours = 1)
     }
   }
