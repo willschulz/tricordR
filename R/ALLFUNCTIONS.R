@@ -2631,7 +2631,7 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
 
   message("Identifying claims...")
   claims <- responses_new %>%
-    filter(Finished & (twitter_agreement=="Yes")) %>%
+    filter(Finished & (str_detect(twitter_agreement,"Yes"))) %>%
     select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", range = 1:999), num_range(prefix = "f", range = 1:999)) %>%
     mutate(across(num_range(prefix = "f", range = 1:999), sn_to_userid, treatment_acct_info),
            across(num_range(prefix = "follow", range = 1:999), str_detect, "confirm")) %>%
@@ -2721,7 +2721,7 @@ match_investigate <- function(responses_new, before, after, study_name, panel_na
 
   message("Identifying claims...")
   claims <- responses_new %>%
-    filter(Finished & (twitter_agreement=="Yes")) %>%
+    filter(Finished & (str_detect(twitter_agreement,"Yes"))) %>%
     select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", range = 1:999), num_range(prefix = "f", range = 1:999)) %>%
     mutate(across(num_range(prefix = "f", range = 1:999), sn_to_userid, treatment_acct_info),
            across(num_range(prefix = "follow", range = 1:999), str_detect, "confirm")) %>%
@@ -2790,7 +2790,7 @@ match_byhand <- function(responses_new, user_id, study_name, panel_name = "parti
 
   message("Identifying claims...")
   claims <- responses_new %>%
-    filter(Finished & (twitter_agreement=="Yes")) %>%
+    filter(Finished & (str_detect(twitter_agreement,"Yes"))) %>%
     select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", range = 1:999), num_range(prefix = "f", range = 1:999)) %>%
     mutate(across(num_range(prefix = "f", range = 1:999), sn_to_userid, treatment_acct_info),
            across(num_range(prefix = "follow", range = 1:999), str_detect, "confirm")) %>%
