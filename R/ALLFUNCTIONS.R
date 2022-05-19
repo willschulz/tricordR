@@ -134,6 +134,7 @@ addPanel <- function(study_name, panel_name, user_ids = c(),
     dir.create(paste0(panel_directory,"/survey_scrapes"))
     dir.create(paste0(panel_directory,"/survey_scrape_logs"))
     dir.create(paste0(panel_directory,"/id_links"))
+    dir.create(paste0(panel_directory,"/id_links_confirmed"))
   }
 
   if (any(scrape_timelines,scrape_friends,scrape_followers,scrape_favorites)) {
@@ -2026,7 +2027,11 @@ prep_survey_data <- function(experiment_directory, panel_name){
   survey_dir <- dir(paste0(experiment_directory, panel_name, "/survey_scrapes/"), full.names = T)
   surveys_bound <- readRDS(max(survey_dir))
 
-  link_dir <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T)
+  if(length(dir(paste0(experiment_directory, panel_name, "/id_links_confirmed/")))>0){
+    link_dir <- dir(paste0(experiment_directory, panel_name, "/id_links_confirmed/"), full.names = T)
+  } else {
+    link_dir <- dir(paste0(experiment_directory, panel_name, "/id_links/"), full.names = T)
+  }
   links_bound <- map_dfr(link_dir, readRDS)
 
   survey_data_joined <- left_join(surveys_bound, links_bound)
@@ -2712,7 +2717,7 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
 
   if(nrow(id_links)>0){
     if (add & !is.null(participant_tokens)){
-      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",this_timecode,".rds"))
+      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",this_timecode,".rds"))#uses id_links dir, but saves to it, so this is fine
       editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = participant_tokens, max_hours = 2)
       }
   }

@@ -1,0 +1,206 @@
+---
+title: "decoupled async matching"
+author: "Will Schulz"
+date: "5/19/2022"
+output: html_document
+---
+
+
+```{r}
+library(tricordR)
+
+```
+
+
+```{r}
+#original unchanged
+scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_panel = NULL, max_treat_followers = 60000, treatment_tokens, participant_tokens){
+  #once fully tested, drop match_by variable and eliminate from hourly_qualtrics_scrape.R script and any dashboard implementations
+  panel_directory <- paste0("~/tricordings/studies/",study_name,"/",panel_name,"/")
+
+  if(is.null(assignment_panel)){
+    study_panels <- dir(paste0("~/tricordings/studies/",study_name,"/"))
+    assignment_panel <- study_panels[which(study_panels != panel_name)]
+  }
+
+  assignment_dir <- paste0("~/tricordings/studies/",study_name,"/",assignment_panel,"/")
+
+  #fetch survey
+  this_timecode <- timeCode()
+  # qualtrics credentials now permanently installed, no need to read anything in
+  responses_fetched <- qualtRics::fetch_survey(surveyID = readRDS(paste0(panel_directory,"scrape_settings.rds"))$qualtrics_survey_id,
+                                    verbose = FALSE, force_request = TRUE)
+
+  #fetch treatment followers
+  message("Scraping all treatment followers...")
+  treatment_acct_info <- readRDS(file = paste0(assignment_dir,"/twitter_scrapes/user_info/current_lookup.rds"))
+  treatment_followers_current_scrape <- getFollowersBig(treatment_acct_info, list_tokens = treatment_tokens, n = max_treat_followers)
+  saveRDS(treatment_followers_current_scrape, file = paste0(assignment_dir,"/twitter_scrapes/followers/followers_",this_timecode,".rds"))
+
+  prior_responses_path <- max(dir(paste0(panel_directory,"/survey_scrapes"), full.names = T))
+
+  if (is.na(prior_responses_path)) {
+    message("First survey scrape!")
+    responses_new <- responses_fetched
+  }
+
+  if (!is.na(prior_responses_path)){
+    prior_responses_fetched <- readRDS(prior_responses_path)
+    responses_new <- responses_fetched %>% filter(! ResponseId %in% prior_responses_fetched$ResponseId)
+  }
+
+  message(nrow(responses_new), " new responses collected...")
+
+  if(nrow(responses_new)>0){
+    message("Saving...")
+    saveRDS(responses_fetched, file = paste0(panel_directory, "/survey_scrapes/responses_fetched_",this_timecode,".rds")); message("Saved.")
+    # if ((match_by=="follow5")){ #generalize to other systems, like direct capture
+    #   message("Matching by follow-5 system...")
+    #   match_by_following_5(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_dir = assignment_dir, participant_tokens = participant_tokens, this_timecode = this_timecode)
+    # }
+    #if ((match_by=="follow3")){
+      message("Matching by flexible async system...")
+      match_async_by_time(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_panel = assignment_panel, participant_tokens = participant_tokens, this_timecode = this_timecode, add = TRUE)
+    #}
+  }
+}
+```
+
+
+
+```{r}
+add = FALSE
+participant_tokens = NULL
+this_timecode = NULL
+
+study_name = "spirals_experiment"
+panel_name = "participants"
+assignment_panel = "assignments"
+
+#dir(paste0("~/tricordings/studies/",study_name,"/", panel_name, "/", "survey_scrapes/"), full.names = T) %>% map_dfr(., readRDS)
+responses <- max(dir(paste0("~/tricordings/studies/",study_name,"/", panel_name, "/", "survey_scrapes/"), full.names = T)) %>% readRDS
+#id_links <- max(dir(paste0("~/tricordings/studies/",study_name,"/", panel_name, "/", "id_links/"), full.names = T)) %>% readRDS
+id_links <- dir(paste0("~/tricordings/studies/",study_name,"/", panel_name, "/", "id_links/"), full.names = T) %>% map_dfr(., readRDS)
+
+responses_unmatched <- responses %>% filter(! ResponseId %in% id_links$ResponseId)
+responses_unmatched
+
+match_async_by_time(study_name = study_name, panel_name = panel_name, assignment_panel = assignment_panel, add = TRUE, participant_tokens = prepTokens("ws_botexp"), responses_new = responses_unmatched)
+
+```
+
+
+```{r}
+responses_new <- responses_unmatched
+
+#match_async_by_time
+if (is.null(this_timecode)) {
+    this_timecode <- timeCode()
+}
+assignment_dir <- paste0("~/tricordings/studies/", study_name, 
+    "/", assignment_panel)
+treatment_acct_info <- readRDS(file = paste0(assignment_dir, 
+    "/twitter_scrapes/user_info/current_lookup.rds"))
+message("Identifying claims...")
+claims <- responses_new %>% filter(Finished & (str_detect(twitter_agreement, 
+    "Yes"))) %>% select(ResponseId, StartDate, EndDate, num_range(prefix = "follow", 
+    range = 1:999), num_range(prefix = "f", range = 1:999)) %>% 
+    mutate(across(num_range(prefix = "f", range = 1:999), 
+        sn_to_userid, treatment_acct_info), across(num_range(prefix = "follow", 
+        range = 1:999), str_detect, "confirm")) %>% rename_with(., 
+    .fn = str_replace, .cols = num_range(prefix = "follow", 
+        range = 1:999), "follow", "claim")
+c_mat <- claims %>% select(starts_with("claim")) %>% as.matrix
+f_mat <- claims %>% select(starts_with("f")) %>% as.matrix
+all_list <- list()
+claim_list <- list()
+for (i in 1:nrow(claims)) {
+    all_list[[i]] <- f_mat[i, ]
+    claim_list[[i]] <- f_mat[i, c_mat[i, ]]
+}
+claims <- claims %>% transmute(ResponseId, shown = all_list, 
+    claimed = claim_list, start_date = lubridate::with_tz(StartDate, 
+        "America/New_York"), end_date = lubridate::with_tz(EndDate, 
+        "America/New_York"))
+id_links_list <- list()
+for (j in 1:nrow(claims)) {
+    start_time_code <- claims$start_date[j] %>% as.character %>% 
+        str_remove_all(pattern = "-| |:")
+    end_time_code <- claims$end_date[j] %>% as.character %>% 
+        str_remove_all(pattern = "-| |:")
+    assignment_followers_dir <- dir(paste0(assignment_dir, 
+        "/twitter_scrapes/followers"), full.names = T)
+    assignment_followers_dir_time_codes <- assignment_followers_dir %>% 
+        str_remove_all(".*/followers_") %>% str_remove_all(".rds")
+    before_treatment_followers <- readRDS(assignment_followers_dir[max(which(assignment_followers_dir_time_codes < 
+        start_time_code))])
+    after_treatment_followers <- readRDS(assignment_followers_dir[min(which(assignment_followers_dir_time_codes > 
+        end_time_code))])
+    new_followers_ids <- anti_join(after_treatment_followers[, 
+        c(1, 2)], before_treatment_followers[, c(1, 2)]) %>% 
+        pull(user_id) %>% unique
+    new_followers <- after_treatment_followers %>% filter(user_id %in% 
+        new_followers_ids)
+    if (nrow(new_followers) == 0) {
+        message("No new followers in this window!")
+        id_links_list[[j]] <- claims[j, ] %>% mutate(user_id = NA, 
+            perfect_match = FALSE, unique_match = FALSE, 
+            no_match = TRUE, candidates = list(data.frame(follower = character(), 
+              all_match = logical(), match_count = integer())))
+    }
+    if (nrow(new_followers) > 0) {
+        unique_new_followers <- unique(new_followers$user_id)
+        new_friends_list <- list()
+        message("Compiling unique new followers... (this may take some time)")
+        for (i in 1:length(unique_new_followers)) {
+            new_friends_list[[i]] <- new_followers %>% filter(user_id == 
+              unique_new_followers[i]) %>% pull(user)
+        }
+        new_friends_by_follower <- data.frame(follower = unique_new_followers) %>% 
+            mutate(new_friends = new_friends_list)
+        id_links_list[[j]] <- link_ids(claims[j, ], new_friends_by_follower)
+    }
+}
+id_links <- do.call(rbind, id_links_list)
+na_somematch <- id_links %>% filter(is.na(user_id)) %>% pull(no_match) %>% 
+    !.
+message(sum(!is.na(id_links$user_id)), " of ", nrow(id_links), 
+    " users successfully identified!")
+message(sum(na_somematch), " unmatched users have at least one candidate to consider.")
+if (nrow(id_links) > 0) {
+    if (add & !is.null(participant_tokens)) {
+        saveRDS(id_links, file = paste0("~/tricordings/studies/", 
+            study_name, "/", panel_name, "/id_links/id_links_", 
+            this_timecode, ".rds"))
+        editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], 
+            first_scrape = T, tokens = participant_tokens, 
+            max_hours = 2)
+    }
+}
+if (!add) {
+    return(id_links)
+}
+
+id_links
+```
+
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
