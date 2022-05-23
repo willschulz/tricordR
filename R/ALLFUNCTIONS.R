@@ -2633,7 +2633,7 @@ match_by_following_3 <- function(responses_new, study_name, panel_name, assignme
 
 #' Match Asynchronously by Survey Start and End Time
 #'
-#' A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise.  Flexibly handles up to 999 assignments, by detecting the number of columns named "followNUMERAL" and "fNUMERAL" where NUMERAL is an integer between 1 and 999.
+#' A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise.  Flexibly handles up to 999 assignments, by detecting the number of columns named "followNUMERAL" and "fNUMERAL" where NUMERAL is an integer between 1 and 999.  No other variables in the survey data should have names with this format!
 #' @param responses_new New survey responses
 #' @param study_name Name of study
 #' @param panel_name Name of participant panel, passed from higher-level function.
