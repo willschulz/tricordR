@@ -13,7 +13,7 @@ all_panels_contents <- dir("~/tricordings/studies", full.names = T) %>% dir(full
 scrape_settings_paths <- all_panels_contents[str_detect(all_panels_contents, "scrape_settings.rds")]
 wants_survey <- c()
 for (i in 1:length(scrape_settings_paths)){
-  wants_survey[i] <- !is.null(readRDS(scrape_settings_paths[i])$qualtrics_survey_id)
+  wants_survey[i] <- (!is.null(readRDS(scrape_settings_paths[i])$qualtrics_survey_id)) & (is.null(readRDS(scrape_settings_paths[i])$pause_match_scrapes))
 }
 scrape_settings_paths_wantsurvey <- scrape_settings_paths[wants_survey]
 panel_directories <- str_remove_all(scrape_settings_paths_wantsurvey,"/scrape_settings.rds")
