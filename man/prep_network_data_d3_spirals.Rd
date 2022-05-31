@@ -9,7 +9,9 @@ prep_network_data_d3_spirals(
   panel_name,
   assignment_panel = "assignments",
   include_protected = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  compliance_threshold_daycount = 1,
+  anonymize_participants = FALSE
 )
 }
 \arguments{

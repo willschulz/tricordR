@@ -11,7 +11,8 @@ scrapeQualtrics(
   assignment_panel = NULL,
   max_treat_followers = 60000,
   treatment_tokens,
-  participant_tokens
+  participant_tokens,
+  add = FALSE
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ scrapeQualtrics(
 \item{treatment_tokens}{Tokens to scrape treatment followers.}
 
 \item{participant_tokens}{Tokens to scrape participant data.}
+
+\item{add}{Should new matches be added to the participants panel?  Defaults to FALSE, for safety.}
 
 \item{assignment_dir}{Directory of assignment panel.}
 }

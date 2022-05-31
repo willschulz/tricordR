@@ -30,7 +30,7 @@ match_async_by_time(
 \item{add}{Go ahead and add these users to the participants panel? Defaults to TRUE.}
 }
 \description{
-A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise.  Flexibly handles up to 999 assignments, by detecting the number of columns named "followNUMERAL" and "fNUMERAL" where NUMERAL is an integer between 1 and 999.
+A function to match survey responses to twitter IDs based on following assigned accounts, using the survey times to be more precise.  Flexibly handles up to 999 assignments, by detecting the number of columns named "followNUMERAL" and "fNUMERAL" where NUMERAL is an integer between 1 and 999.  No other variables in the survey data should have names with this format!
 }
 \examples{
 match_async_by_time()

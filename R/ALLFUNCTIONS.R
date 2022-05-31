@@ -2716,8 +2716,8 @@ match_async_by_time <- function(responses_new, study_name, panel_name, assignmen
   message(sum(na_somematch), " unmatched users have at least one candidate to consider.")
 
   if(nrow(id_links)>0){
+    saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",this_timecode,".rds"))
     if (add & !is.null(participant_tokens)){
-      saveRDS(id_links, file = paste0("~/tricordings/studies/",study_name,"/",panel_name, "/id_links/id_links_",this_timecode,".rds"))#uses id_links dir, but saves to it, so this is fine
       editPanel(study_name, panel_name, add_users = id_links$user_id[which(!is.na(id_links$user_id))], first_scrape = T, tokens = participant_tokens, max_hours = 2)
       }
   }
@@ -2852,12 +2852,13 @@ match_byhand <- function(responses_new, user_id, study_name, panel_name = "parti
 #' @param max_treat_followers Maximum number of followers to attempt to scrape from treatments. Defaults to 60,000.
 #' @param treatment_tokens Tokens to scrape treatment followers.
 #' @param participant_tokens Tokens to scrape participant data.
+#' @param add Should new matches be added to the participants panel?  Defaults to FALSE, for safety.
 #' @keywords matching
 #' @export
 #' @examples
 #' scrapeQualtrics()
 
-scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_panel = NULL, max_treat_followers = 60000, treatment_tokens, participant_tokens){
+scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_panel = NULL, max_treat_followers = 60000, treatment_tokens, participant_tokens, add = FALSE){
   #once fully tested, drop match_by variable and eliminate from hourly_qualtrics_scrape.R script and any dashboard implementations
   panel_directory <- paste0("~/tricordings/studies/",study_name,"/",panel_name,"/")
 
@@ -2903,7 +2904,7 @@ scrapeQualtrics <- function(study_name, panel_name, match_by = NULL, assignment_
     # }
     #if ((match_by=="follow3")){
       message("Matching by flexible async system...")
-      match_async_by_time(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_panel = assignment_panel, participant_tokens = participant_tokens, this_timecode = this_timecode, add = TRUE)
+      match_async_by_time(responses_new = responses_new, study_name = study_name, panel_name = panel_name, assignment_panel = assignment_panel, participant_tokens = participant_tokens, this_timecode = this_timecode, add = add)
     #}
   }
 }
