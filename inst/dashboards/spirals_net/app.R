@@ -75,7 +75,7 @@ header <- dashboardHeader(title = "Compliance Dashboard"
 sidebar <- dashboardSidebar(#width=12,
   #selectInput("study_name", "Study Name", choices = study_names)
   checkboxInput(inputId = "include_protected", label = "Include Protected", value = TRUE),
-  checkboxInput(inputId = "anonymize_participants", label = "Anonymize Participants", value = TRUE)
+  checkboxInput(inputId = "anonymize_participants", label = "Anonymize Participants", value = FALSE)
 )
 
 # Main panel for displaying outputs ----
