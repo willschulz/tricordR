@@ -77,8 +77,8 @@ study_names <- dir("~/tricordings/studies", full.names = T) %>%
 tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 twitter_tokens <- prepTokens(tokenset, 1:9)
 
-px_panel_1 <- 400
-px_panel_2 <- 180
+px_panel_1 <- 300
+px_panel_2 <- 400
 
 px_l <- 40
 
