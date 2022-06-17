@@ -19,6 +19,15 @@ library(shinycssloaders)
 
 # SETTINGS
 
+px_panel_1 <- 200
+px_panel_2 <- 600
+
+px_l <- 40
+
+dash_theme = "grey_dark"
+row_height = 200
+
+
 default_days_back <- 60
 
 refresh_time=5*60*1000 #(milliseconds)
@@ -76,14 +85,6 @@ study_names <- dir("~/tricordings/studies", full.names = T) %>%
 #this takes the alphabetical first token set on the machine
 tokenset <- str_remove_all(dir("~/tricordings/tokens"), ".rds")[1]
 twitter_tokens <- prepTokens(tokenset, 1:9)
-
-px_panel_1 <- 300
-px_panel_2 <- 400
-
-px_l <- 40
-
-dash_theme = "grey_dark"
-row_height = 200
 
 
 # App title ----
