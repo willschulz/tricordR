@@ -1495,15 +1495,15 @@ scrapePanel <- function(panel_directory, tokens,
   if (scrape_settings$scrape_timelines & include_timelines){
     scrapeTimelines(panel_directory = panel_directory,
                          list_tokens = tokens,
-                         max_hours = 2, sentiment = sentiment, darmoc = darmoc)
+                         max_hours = 3, sentiment = sentiment, darmoc = darmoc)
   }
   if (scrape_settings$scrape_friends & include_friends){
     scrapeFriends(panel_directory = panel_directory,
-                      list_tokens = tokens, n = 5000) #can't go higher than 5k yet
+                      list_tokens = tokens, n = 50000)
   }
   if (scrape_settings$scrape_followers & include_followers){
     scrapeFollowers(panel_directory = panel_directory,
-                        list_tokens = tokens, n = 5000) #this can go bigger than 5k
+                        list_tokens = tokens, n = 50000)
   }
   if (scrape_settings$scrape_favorites & include_favorites){
     ws_scrape_favorites2(panel_directory = panel_directory,
